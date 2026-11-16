@@ -24,10 +24,11 @@ const { act } = await import("../src/background/commands/act");
 const { resetApprovalsForTest, APPROVAL_TTL_MS } = await import("../src/background/approvals");
 
 const facts = (over: Partial<ElementFacts>): ElementFacts => ({ tag: "button", role: "button", name: "Search", inForm: false, pageHost: "x.com", ...over });
-const doc = { nonce: "n1", generation: 1 };
-const located = (f: ElementFacts, over: Record<string, unknown> = {}) => ({ found: true, x: 10, y: 20, facts: f, doc, ...over });
-const active = (f: ElementFacts, d = doc) => ({ facts: f, doc: d });
-const focused = (f: ElementFacts, over: Record<string, unknown> = {}) => ({ found: true, onTarget: true, hadText: false, facts: f, doc, ...over });
+const doc = { nonce: "n1", generation: 1, href: "https://x.com/" };
+// `id` is the opaque element identity page.ts hands out: el1 is "the" element unless a test says another one.
+const located = (f: ElementFacts, over: Record<string, unknown> = {}) => ({ found: true, x: 10, y: 20, facts: f, doc, id: "el1", ...(over.hit ? { hitId: "el2" } : {}), ...over });
+const active = (f: ElementFacts, d = doc, id = "el1") => ({ facts: f, doc: d, id });
+const focused = (f: ElementFacts, over: Record<string, unknown> = {}) => ({ found: true, onTarget: true, hadText: false, facts: f, doc, id: "el1", ...over });
 const field = (over: Partial<ElementFacts> = {}) => facts({ tag: "input", type: "text", role: "textbox", name: "Guest", editable: true, ...over });
 const save = () => facts({ type: "submit", name: "Save booking", inForm: true });
 const idOf = (text: string) => /approval_id: (ap_[a-z2-9]{12})\b/.exec(text)?.[1] ?? "";
@@ -43,6 +44,14 @@ beforeEach(() => {
   };
   resetApprovalsForTest();
 });
+
+/** Runs `fn`, returns the approval records it left in chrome.storage.session under the shared key. */
+async function storedApprovals(fn: () => Promise<void>): Promise<{ id: string; expiresAt: number; summary: string; pageUrl: string }[]> {
+  await fn();
+  const { APPROVALS_KEY } = await import("../src/shared/approvals-view");
+  const got = await (globalThis as unknown as { chrome: { storage: { session: { get(k: string): Promise<Record<string, never>> } } } }).chrome.storage.session.get(APPROVALS_KEY);
+  return got[APPROVALS_KEY] ?? [];
+}
 
 /** act on `f`, return the approval id it hands out. */
 async function askFor(args: Parameters<typeof act>[0], f: ElementFacts, over: Record<string, unknown> = {}) {
@@ -66,8 +75,32 @@ describe("act", () => {
     expect(out.status).toBe("needs_approval");
     expect(out.text).toContain("this click needs the owner's approval (submits a form: \"Save booking\")");
     expect(idOf(out.text)).toMatch(/^ap_[a-z2-9]{12}$/);
-    expect(out.text).toContain("Call act_with_approval with that approval_id, the same arguments and a short reason");
     expect(mocks.mouseClick).not.toHaveBeenCalled();
+  });
+
+  it("puts approval_id first, then how to call act_with_approval, so a cut-off text still has the id", async () => {
+    mocks.callPage.mockResolvedValueOnce(located(save()));
+    const { text } = await act({ action: "click", ref: "e5" }, false);
+    const [first, second] = text.split("\n");
+    expect(first).toMatch(/^approval_id: ap_[a-z2-9]{12}$/);
+    expect(second).toContain("Call act_with_approval with approval_id first, then the same arguments, then a short reason (under 200 characters).");
+    expect(text.indexOf("Not done:")).toBeGreaterThan(text.indexOf("act_with_approval"));
+  });
+
+  it("files a readable record in session storage for the side panel: summary and page url", async () => {
+    const stored = await storedApprovals(async () => {
+      await askFor({ action: "click", ref: "e5" }, save(), { doc: { ...doc, href: "https://x.com/cart#pay" } });
+      mocks.callPage.mockResolvedValueOnce(active(field({ name: "Rate", inForm: true })));
+      await act({ action: "press", key: "Enter" }, false);
+      mocks.callPage.mockResolvedValueOnce(located(facts({ tag: "select", role: "combobox", name: "Guests", inForm: true })));
+      await act({ action: "select", ref: "e2", text: "Two" }, false);
+    });
+    expect(stored.map((a) => [a.summary, a.pageUrl])).toEqual([
+      ['Click button "Save booking"', "https://x.com/cart#pay"],
+      ['Press Enter in textbox "Rate"', "https://x.com/"],
+      ['Select "Two" in combobox "Guests"', "https://x.com/"],
+    ]);
+    expect(stored[0]).toMatchObject({ id: expect.stringMatching(/^ap_/), expiresAt: expect.any(Number) });
   });
 
   it("gives a different approval_id every time", async () => {
@@ -141,8 +174,11 @@ describe("act", () => {
     const mismatches: [string, Parameters<typeof act>[0], () => void, ElementFacts, Record<string, unknown>][] = [
       ["other arguments (another ref)", { action: "click", ref: "e6" }, () => undefined, save(), {}],
       ["another tab", { action: "click", ref: "e5" }, () => { mocks.tab = { id: 8, url: "https://x.com/" }; }, save(), {}],
-      ["another document", { action: "click", ref: "e5" }, () => undefined, save(), { doc: { nonce: "n2", generation: 1 } }],
-      ["a newer snapshot", { action: "click", ref: "e5" }, () => undefined, save(), { doc: { nonce: "n1", generation: 2 } }],
+      ["another document", { action: "click", ref: "e5" }, () => undefined, save(), { doc: { ...doc, nonce: "n2" } }],
+      ["a newer snapshot", { action: "click", ref: "e5" }, () => undefined, save(), { doc: { ...doc, generation: 2 } }],
+      ["a same-document route change (same document, new location.href)", { action: "click", ref: "e5" }, () => undefined, save(), { doc: { ...doc, href: "https://x.com/#/other" } }],
+      ["another element that looks exactly the same (identity, not description)", { action: "click", ref: "e5" }, () => undefined, save(), { id: "el9" }],
+      ["another element under the pointer that looks the same", { action: "click", ref: "e5" }, () => undefined, save(), { hit: save(), hitId: "el9" }],
       ["another element", { action: "click", ref: "e5" }, () => undefined, { ...save(), name: "Delete booking" }, {}],
       ["another form action", { action: "click", ref: "e5" }, () => undefined, { ...save(), formAction: "/steal" }, {}],
       ["another link target", { action: "click", ref: "e5" }, () => undefined, { ...save(), activationUrl: "https://evil.test/" }, {}],
@@ -203,6 +239,120 @@ describe("act", () => {
     const out = await act({ action: "click", x: 10, y: 20 }, false);
     expect(out.status).toBe("needs_approval");
     expect(mocks.mouseClick).not.toHaveBeenCalled();
+  });
+
+  describe("approval is bound to the element itself", () => {
+    // Every row has the same Delete button: nothing in the facts tells them apart, only the element id does.
+    const deleteIn = (_row: string) => facts({ name: "Delete", tag: "button", type: "button", text: "Delete" });
+
+    it("a coordinate click approved on one Delete button does not cover an identical Delete that scrolled under the same point", async () => {
+      mocks.callPage.mockResolvedValueOnce(located(deleteIn("row 1"), { id: "el10" }));
+      const asked = await act({ action: "click", x: 10, y: 20 }, false);
+      expect(asked.status).toBe("needs_approval");
+      mocks.callPage.mockResolvedValueOnce(located(deleteIn("row 7"), { id: "el77" }));
+      const out = await act({ action: "click", x: 10, y: 20, approval_id: idOf(asked.text) }, true);
+      expect(out.status).toBe("needs_approval");
+      expect(out.text).toContain("changed since the owner was asked");
+      expect(mocks.mouseClick).not.toHaveBeenCalled();
+    });
+
+    it("the same coordinate click still runs when the same element is under the point", async () => {
+      mocks.callPage.mockResolvedValue(located(deleteIn("row 1"), { id: "el10" }));
+      const asked = await act({ action: "click", x: 10, y: 20 }, false);
+      const out = await act({ action: "click", x: 10, y: 20, approval_id: idOf(asked.text) }, true);
+      expect(out.status).toBe("done");
+      expect(mocks.mouseClick).toHaveBeenCalledOnce();
+    });
+
+    it("a ref approved for one Delete does not cover another Delete that took over the ref", async () => {
+      mocks.callPage.mockResolvedValueOnce(located(deleteIn("a"), { id: "el1" }));
+      const asked = await act({ action: "click", ref: "e3" }, false);
+      mocks.callPage.mockResolvedValueOnce(located(deleteIn("b"), { id: "el2" }));
+      const out = await act({ action: "click", ref: "e3", approval_id: idOf(asked.text) }, true);
+      expect(out.status).toBe("needs_approval");
+      expect(mocks.mouseClick).not.toHaveBeenCalled();
+    });
+
+    it("Enter approved in one field does not cover an identical field that has focus now", async () => {
+      mocks.callPage.mockResolvedValueOnce(active(field({ inForm: true }), doc, "el4"));
+      const asked = await act({ action: "press", key: "Enter" }, false);
+      mocks.callPage.mockResolvedValueOnce(active(field({ inForm: true }), doc, "el5"));
+      const out = await act({ action: "press", key: "Enter", approval_id: idOf(asked.text) }, true);
+      expect(out.status).toBe("needs_approval");
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+    });
+
+    it("a key pressed on a ref is bound to the element that took focus", async () => {
+      mocks.callPage.mockResolvedValueOnce(focused(field({ inForm: true }), { id: "el4" }));
+      const asked = await act({ action: "press", key: "Enter", ref: "e2" }, false);
+      mocks.callPage.mockResolvedValueOnce(focused(field({ inForm: true }), { id: "el5" }));
+      const out = await act({ action: "press", key: "Enter", ref: "e2", approval_id: idOf(asked.text) }, true);
+      expect(out.status).toBe("needs_approval");
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("frames and focus that cannot be inspected", () => {
+    const frame = () => facts({ tag: "iframe", role: "clickable", name: "Pay" });
+
+    it.each([
+      ["type", { action: "type", ref: "e1", text: "4242" }],
+      ["select", { action: "select", ref: "e1", text: "x" }],
+    ] as const)("blocks %s on a frame, even with an approval id", async (_n, args) => {
+      mocks.callPage.mockResolvedValue(located(frame()));
+      for (const approved of [false, true]) expect((await act({ ...args, approval_id: "ap_aaaaaaaaaaaa" }, approved)).status).toBe("blocked");
+      expect(mocks.insertText).not.toHaveBeenCalled();
+    });
+
+    it("blocks a key when focus is inside an iframe (the iframe is reported as the focused element)", async () => {
+      mocks.callPage.mockResolvedValue(active(frame()));
+      for (const key of ["a", "Enter", "ArrowDown"]) {
+        expect((await act({ action: "press", key }, false)).status).toBe("blocked");
+        expect((await act({ action: "press", key, approval_id: "ap_aaaaaaaaaaaa" }, true)).status).toBe("blocked");
+      }
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+    });
+
+    it("blocks a key when the focused element cannot be resolved", async () => {
+      mocks.callPage.mockResolvedValueOnce(undefined);
+      expect((await act({ action: "press", key: "x" }, false)).status).toBe("blocked");
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+    });
+
+    it("blocks typing at x,y when the click moved focus into a frame", async () => {
+      mocks.callPage.mockResolvedValueOnce(located(field())).mockResolvedValueOnce(active(frame()));
+      expect((await act({ action: "type", x: 10, y: 20, text: "x" }, false)).status).toBe("blocked");
+      expect(mocks.insertText).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("one value-change policy", () => {
+    const select = (over: Partial<ElementFacts> = {}) => facts({ tag: "select", role: "combobox", name: "Bed type", inForm: true, ...over });
+
+    it.each(["ArrowDown", "ArrowUp", "Home", "End", "PageUp", "PageDown", "Space", "k"])("press %s on a form select needs approval, like the select action", async (key) => {
+      mocks.callPage.mockResolvedValueOnce(active(select()));
+      expect((await act({ action: "press", key }, false)).status).toBe("needs_approval");
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+    });
+
+    it("blocks the same keys on a card expiry select, the select action and an option click", async () => {
+      const month = select({ name: "Month", autocomplete: "cc-exp-month" });
+      mocks.callPage.mockResolvedValue(active(month));
+      expect((await act({ action: "press", key: "ArrowDown" }, false)).status).toBe("blocked");
+      mocks.callPage.mockResolvedValue(located(month));
+      expect((await act({ action: "select", ref: "e1", text: "12" }, false)).status).toBe("blocked");
+      mocks.callPage.mockResolvedValue(located(facts({ tag: "option", role: "option", name: "12", autocomplete: "cc-exp-month" })));
+      expect((await act({ action: "click", ref: "e1" }, false)).status).toBe("blocked");
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+      expect(mocks.mouseClick).not.toHaveBeenCalled();
+    });
+
+    it("an option click in a form needs approval like select; Tab on the select does not", async () => {
+      mocks.callPage.mockResolvedValueOnce(located(facts({ tag: "option", role: "option", name: "Twin", inForm: true })));
+      expect((await act({ action: "click", ref: "e1" }, false)).status).toBe("needs_approval");
+      mocks.callPage.mockResolvedValueOnce(active(select()));
+      expect((await act({ action: "press", key: "Tab" }, false)).status).toBe("done");
+    });
   });
 
   it("asks before a click at x,y that lands on a frame", async () => {
@@ -318,8 +468,7 @@ describe("act", () => {
     it("fails closed when the focused element cannot be resolved", async () => {
       mocks.callPage.mockResolvedValueOnce(undefined);
       const out = await act({ action: "press", key: "Tab" }, false);
-      expect(out.status).toBe("needs_approval");
-      expect(idOf(out.text)).toMatch(/^ap_/);
+      expect(out.status).toBe("blocked");
       expect(mocks.pressKey).not.toHaveBeenCalled();
     });
 
@@ -334,5 +483,63 @@ describe("act", () => {
     await act({ action: "scroll", direction: "down" }, false);
     expect(mocks.callPage).not.toHaveBeenCalled();
     expect(mocks.wheel).toHaveBeenCalledWith(expect.anything(), 500, 400, 0, 800);
+  });
+
+  describe("when the bridge connection is replaced while the command runs", () => {
+    /** A liveness flag the test turns off, as a reconnect does. */
+    const alive = () => {
+      const state = { current: true };
+      return { state, isCurrent: () => state.current };
+    };
+
+    it("does not click if the connection went away while the page was being read", async () => {
+      const { state, isCurrent } = alive();
+      mocks.callPage.mockImplementationOnce(async () => {
+        state.current = false;
+        return located(facts({}));
+      });
+      await expect(act({ action: "click", ref: "e1" }, false, isCurrent)).rejects.toThrow(/bridge connection changed/);
+      expect(mocks.mouseClick).not.toHaveBeenCalled();
+    });
+
+    it("does not focus or scroll for a command that is already stale", async () => {
+      const { state, isCurrent } = alive();
+      state.current = false;
+      await expect(act({ action: "click", ref: "e1" }, false, isCurrent)).rejects.toThrow(/bridge connection changed/);
+      await expect(act({ action: "press", key: "Tab", ref: "e1" }, false, isCurrent)).rejects.toThrow(/bridge connection changed/);
+      expect(mocks.callPage).not.toHaveBeenCalled();
+    });
+
+    it("stops a typing command between its steps: no Backspace, no text", async () => {
+      const { state, isCurrent } = alive();
+      mocks.callPage.mockResolvedValueOnce(located(field())).mockImplementationOnce(async () => {
+        state.current = false;
+        return focused(field(), { hadText: true });
+      });
+      await expect(act({ action: "type", ref: "e2", text: "Ada" }, false, isCurrent)).rejects.toThrow(/bridge connection changed/);
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+      expect(mocks.insertText).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["press", { action: "press", key: "Tab" } as const, () => active(field())],
+      ["hover", { action: "hover", ref: "e1" } as const, () => located(facts({}))],
+      ["select", { action: "select", ref: "e1", text: "x" } as const, () => located(facts({ tag: "select", role: "combobox", name: "Bed" }))],
+    ])("does not %s once the connection is gone", async (_n, args, read) => {
+      const { state, isCurrent } = alive();
+      mocks.callPage.mockImplementationOnce(async () => {
+        state.current = false;
+        return read();
+      });
+      await expect(act(args, false, isCurrent)).rejects.toThrow(/bridge connection changed/);
+      expect(mocks.callPage).toHaveBeenCalledOnce();  // the select op itself never ran
+      expect(mocks.pressKey).not.toHaveBeenCalled();
+      expect(mocks.mouseMove).not.toHaveBeenCalled();
+    });
+
+    it("does not scroll once the connection is gone", async () => {
+      await expect(act({ action: "scroll", direction: "down" }, false, () => false)).rejects.toThrow(/bridge connection changed/);
+      expect(mocks.wheel).not.toHaveBeenCalled();
+    });
   });
 });

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BridgeClient, type BridgeDeps, type SocketLike } from "../src/background/bridge";
+import { resetLaneForTest } from "../src/background/lane";
 import type { CommandMessage, ResultMessage, Settings } from "../src/shared/protocol";
 
 class FakeSocket {
@@ -22,7 +23,7 @@ let sockets: FakeSocket[];
 let states: string[];
 let current: Settings;
 let probe: number | undefined;
-let run: (m: CommandMessage) => Promise<ResultMessage>;
+let run: (m: CommandMessage, isCurrent: () => boolean) => Promise<ResultMessage>;
 let hold: Promise<void> | undefined;  // makes the next loadSettings wait; it still answers with the settings of the moment it was called
 let probeGate: Promise<void> | undefined;
 
@@ -35,7 +36,7 @@ const client = () => {
     },
     openSocket: (url) => { const s = new FakeSocket(url); sockets.push(s); return s as unknown as SocketLike; },
     probeHttpStatus: async () => { await probeGate; return probe; },
-    runCommand: (m) => run(m),
+    runCommand: (m, isCurrent) => run(m, isCurrent),
     setBridgeState: async (s) => { states.push(s); },
     hello: () => ({ extension_version: "0.1.0", user_agent: "UA" }),
   };
@@ -45,6 +46,7 @@ const last = () => sockets[sockets.length - 1];
 
 beforeEach(() => {
   vi.useFakeTimers();
+  resetLaneForTest();  // the lane is module-level and shared by every client: a test that left work hanging must not block the next
   sockets = []; states = []; current = settings(); probe = undefined; hold = undefined; probeGate = undefined;
   run = async (m) => ({ type: "result", id: m.id, ok: true, text: "ok" });
 });
@@ -188,9 +190,19 @@ describe("BridgeClient connection generations", () => {
     expect(last().sent.filter((m) => m.type === "result")).toHaveLength(0);
   });
 
-  it("does not make the new connection wait behind a command of the old one", async () => {
+  it("keeps one lane across connections: a command of the new connection waits for the old one that is still running", async () => {
     const never = gate();
-    run = async (m) => (m.id === "old" ? never.p.then(() => ({ type: "result", id: m.id, ok: true, text: "" }) as ResultMessage) : { type: "result", id: m.id, ok: true, text: m.id });
+    let running = 0;
+    let most = 0;
+    const order: string[] = [];
+    run = async (m) => {
+      order.push(`start ${m.id}`);
+      most = Math.max(most, ++running);
+      if (m.id === "old") await never.p;
+      running--;
+      order.push(`end ${m.id}`);
+      return { type: "result", id: m.id, ok: true, text: m.id };
+    };
     const c = client();
     await c.ensureConnected();
     last().open();
@@ -201,7 +213,62 @@ describe("BridgeClient connection generations", () => {
     last().open();
     last().receive(command("new"));
     await vi.advanceTimersByTimeAsync(0);
-    expect(last().sent.filter((m) => m.type === "result").map((m) => m.id)).toEqual(["new"]);
+    expect(order).toEqual(["start old"]);       // the new command does not run next to the old one
+    never.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(order).toEqual(["start old", "end old", "start new", "end new"]);
+    expect(most).toBe(1);
+    expect(last().sent.filter((m) => m.type === "result").map((m) => m.id)).toEqual(["new"]);  // the old result goes nowhere
+  });
+
+  it("keeps one lane across a reconnect() as well, and skips what the old connection had queued", async () => {
+    const slow = gate();
+    let running = 0;
+    let most = 0;
+    const started: string[] = [];
+    run = async (m) => {
+      started.push(m.id);
+      most = Math.max(most, ++running);
+      if (m.id === "1") await slow.p;
+      running--;
+      return { type: "result", id: m.id, ok: true, text: m.id };
+    };
+    const c = client();
+    await c.ensureConnected();
+    last().open();
+    last().receive(command("1"));
+    last().receive(command("2"));
+    await vi.advanceTimersByTimeAsync(0);
+    await c.reconnect();
+    last().open();
+    last().receive(command("3"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(started).toEqual(["1"]);
+    slow.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(started).toEqual(["1", "3"]);        // 2 was stale when its turn came
+    expect(most).toBe(1);
+  });
+
+  it("tells a running command when its connection is gone, so it can stop before its next change to Chrome", async () => {
+    const slow = gate();
+    const seen: boolean[] = [];
+    run = async (m, isCurrent) => {
+      seen.push(isCurrent());
+      await slow.p;
+      seen.push(isCurrent());
+      return { type: "result", id: m.id, ok: true, text: m.id };
+    };
+    const c = client();
+    await c.ensureConnected();
+    last().open();
+    last().receive(command("1"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual([true]);
+    last().drop();
+    slow.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual([true, false]);
   });
 
   it("does not send the result of a command that finished after reconnect, nor run later ones", async () => {

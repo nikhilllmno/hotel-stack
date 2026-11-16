@@ -25,8 +25,11 @@ export type SnapshotData = {
   textLeft: number;         // characters of visible text cut off by max_text
 };
 
-/** Identifies the document and the snapshot an element belongs to; an approval is bound to both. */
-export type DocId = { nonce: string; generation: number };
+/**
+ * Identifies the document, the snapshot and the address an element belongs to; an approval is bound to all three.
+ * `href` changes with a same-document route change (history.pushState, a hash), which the nonce does not see.
+ */
+export type DocId = { nonce: string; generation: number; href: string };
 
 export type LocateData =
   | { found: false; reason: "gone" | "no-element" }
@@ -39,9 +42,14 @@ export type LocateData =
       hit?: ElementFacts;
       covered?: string;
       doc: DocId;
+      /** Opaque identity of `facts`' element and of `hit`'s: the same element has the same id for the life of the document. */
+      id: string;
+      hitId?: string;
     };
 
-export type FocusData = { found: false } | { found: true; onTarget: boolean; hadText: boolean; facts: ElementFacts; doc: DocId };
+export type FocusData =
+  | { found: false }
+  | { found: true; onTarget: boolean; hadText: boolean; facts: ElementFacts; doc: DocId; id: string };
 
 export type PageOps = {
   snapshot: { args: { maxText: number }; result: SnapshotData };
@@ -51,7 +59,7 @@ export type PageOps = {
    */
   locate: { args: { ref?: string; x?: number; y?: number }; result: LocateData };
   /** The element that really has keyboard focus (the body when nothing is focused; an iframe element when focus is inside a frame). */
-  active: { args: Record<never, never>; result: { facts: ElementFacts; doc: DocId } };
+  active: { args: Record<never, never>; result: { facts: ElementFacts; doc: DocId; id: string } };
   /** Focus the element and report which element has focus afterwards: it can differ when the target is not focusable. */
   focus: { args: { ref: string; clear: boolean }; result: FocusData };
   select: {
@@ -65,16 +73,27 @@ export type PageRequest = { [K in keyof PageOps]: { op: K } & PageOps[K]["args"]
 export type PageResult<R extends PageRequest> = PageOps[R["op"]]["result"];
 
 export function hermesPage(req: PageRequest): unknown {
-  type State = { nonce: string; generation: number; refs: Map<string, Element> };
+  type State = { nonce: string; generation: number; refs: Map<string, Element>; ids: WeakMap<Element, string>; nextId: number };
   const w = globalThis as unknown as { __hermes?: State };
   // Lives as long as this document: a new page starts with a new nonce, and every snapshot starts a new generation.
   const state = (w.__hermes ??= {
     nonce: Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, "0")).join(""),
     generation: 0,
     refs: new Map<string, Element>(),
+    ids: new WeakMap<Element, string>(),
+    nextId: 0,
   });
   const refs = state.refs;
-  const doc = (): DocId => ({ nonce: state.nonce, generation: state.generation });
+  const doc = (): DocId => ({ nonce: state.nonce, generation: state.generation, href: location.href });
+  /**
+   * Opaque identity of an element, kept in a WeakMap in this isolated world: the page cannot read or copy it, unlike
+   * an attribute. Two identical "Delete" buttons in different rows get different ids.
+   */
+  const idOf = (el: Element): string => {
+    let id = state.ids.get(el);
+    if (!id) state.ids.set(el, (id = `el${++state.nextId}`));
+    return id;
+  };
   const SELECTOR =
     'a[href],button,input:not([type=hidden]),select,textarea,summary,[contenteditable=""],[contenteditable=true],[onclick],' +
     "[role=button],[role=link],[role=tab],[role=menuitem],[role=checkbox],[role=radio],[role=switch],[role=option],[role=combobox]";
@@ -183,17 +202,34 @@ export function hermesPage(req: PageRequest): unknown {
     return raw ? absolute(raw) : undefined;
   };
 
+  /** The form the element submits: its own form attribute counts, so a field outside the <form> tag is still in that form. */
+  const formOf = (el: Element): HTMLFormElement | null => {
+    const owner = (el as HTMLInputElement).form;
+    return owner instanceof HTMLFormElement ? owner : el.closest("form");
+  };
+
+  /**
+   * A search exception: Enter here only reads. A field outside any form qualifies when it is type=search or inside
+   * role=search. A field in a form qualifies only when the form is GET and no submitter overrides that with
+   * formmethod, however the field is marked: Enter in a POST form submits it.
+   */
   const isSearch = (el: Element, form: Element | null) => {
-    if (inputType(el) === "search" || el.closest("[role=search]")) return true;
-    if (!form || form.querySelector("input[type=password]")) return false;
-    const method = (attr(form, "method") ?? "get").toLowerCase();
+    const marked = inputType(el) === "search" || el.closest("[role=search]") !== null;
+    if (!form) return marked;
+    if (form.querySelector("input[type=password]")) return false;
+    const method = (attr(form, "method") ?? "get").trim().toLowerCase();
+    const overridden = Array.from((form as HTMLFormElement).elements ?? []).some((c) => {
+      const m = attr(c, "formmethod");
+      return m !== undefined && m.trim().toLowerCase() !== "get";
+    });
+    if (method !== "get" || overridden) return false;
     const fieldWords = `${attr(el, "name") ?? ""} ${el.id}`;
-    return method === "get" && /(^|[\s_-])(q|s|query|search|keywords?)($|[\s_-])/i.test(fieldWords);
+    return marked || /(^|[\s_-])(q|s|query|search|keywords?)($|[\s_-])/i.test(fieldWords);
   };
 
   const factsOf = (el: Element): ElementFacts => {
     const tag = el.tagName.toLowerCase();
-    const form = el.closest("form");
+    const form = formOf(el);
     // An option takes the facts of the dropdown it belongs to, so a card-expiry option is as sensitive as the field.
     const field = tag === "option" || attr(el, "role") === "option" ? (el.closest("select,[role=listbox],[role=combobox]") ?? el) : el;
     const control = el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement;
@@ -297,10 +333,14 @@ export function hermesPage(req: PageRequest): unknown {
         hit: receiver && receiver !== el ? factsOf(receiver) : undefined,
         covered,
         doc: doc(),
+        id: idOf(el),
+        hitId: receiver && receiver !== el ? idOf(receiver) : undefined,
       };
     }
     const hit = hitAt(x ?? 0, y ?? 0);
-    return hit ? { found: true, x: x ?? 0, y: y ?? 0, facts: factsOf(resolveTarget(hit)), doc: doc() } : { found: false, reason: "no-element" };
+    if (!hit) return { found: false, reason: "no-element" };
+    const target = resolveTarget(hit);
+    return { found: true, x: x ?? 0, y: y ?? 0, facts: factsOf(target), doc: doc(), id: idOf(target) };
   };
 
   switch (req.op) {
@@ -308,8 +348,10 @@ export function hermesPage(req: PageRequest): unknown {
       return snapshot(req.maxText);
     case "locate":
       return locate(req);
-    case "active":
-      return { facts: factsOf(focusedElement()), doc: doc() };
+    case "active": {
+      const el = focusedElement();
+      return { facts: factsOf(el), doc: doc(), id: idOf(el) };
+    }
     case "focus": {
       const el = refs.get(req.ref);
       if (!el || !el.isConnected) return { found: false };
@@ -321,7 +363,7 @@ export function hermesPage(req: PageRequest): unknown {
         if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select();
         else getSelection()?.selectAllChildren(el);
       }
-      return { found: true, onTarget, hadText, facts: factsOf(actual), doc: doc() };
+      return { found: true, onTarget, hadText, facts: factsOf(actual), doc: doc(), id: idOf(actual) };
     }
     case "select": {
       const el = refs.get(req.ref);

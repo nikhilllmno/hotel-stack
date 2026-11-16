@@ -22,9 +22,16 @@ describe("runCommand", () => {
     handlers.act.mockResolvedValue({ text: "ok" });
     handlers.act_with_approval.mockResolvedValue({ text: "ok" });
     await runCommand(msg("act", true));
-    expect(handlers.act).toHaveBeenCalledWith({ action: "click" }, false);
+    expect(handlers.act).toHaveBeenCalledWith({ action: "click" }, false, expect.any(Function));
     await runCommand(msg("act_with_approval", true));
-    expect(handlers.act_with_approval).toHaveBeenCalledWith({ action: "click" }, true);
+    expect(handlers.act_with_approval).toHaveBeenCalledWith({ action: "click" }, true, expect.any(Function));
+  });
+
+  it("hands the connection's isCurrent to the handler", async () => {
+    handlers.act.mockResolvedValue({ text: "ok" });
+    const isCurrent = () => false;
+    await runCommand(msg("act", false), isCurrent);
+    expect(handlers.act.mock.calls[0][2]).toBe(isCurrent);
   });
 
   it("wraps output into a result and records lastAction", async () => {

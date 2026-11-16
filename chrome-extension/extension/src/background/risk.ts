@@ -67,12 +67,45 @@ export function baseKey(combo: string): string {
 
 const hasModifier = (combo: string) => combo.length > baseKey(combo).length;
 
+const isShortcut = (combo: string) => /\b(control|ctrl|meta|cmd|command)\+/i.test(combo);
+
 /** Whether a key press changes the value of a text field: characters, Space, Backspace, Delete, paste, cut, undo, redo. */
 function editsValue(combo: string): boolean {
   const key = baseKey(combo).toLowerCase();
   if (["backspace", "delete", "space", " "].includes(key)) return true;
-  const shortcut = /\b(control|ctrl|meta|cmd|command)\+/i.test(combo);
-  return shortcut ? ["v", "x", "z", "y"].includes(key) : key.length === 1;
+  return isShortcut(combo) ? ["v", "x", "z", "y"].includes(key) : key.length === 1;
+}
+
+/** Controls that pick a value instead of taking text: a key on them picks another value. */
+const CHOICE_ROLES = new Set(["combobox", "listbox", "radio", "checkbox", "switch", "slider", "spinbutton"]);
+const CHOICE_TYPES = new Set(["checkbox", "radio", "range", "number", "date", "datetime-local", "month", "week", "time", "color"]);
+const CHOICE_KEYS = new Set(["arrowup", "arrowdown", "arrowleft", "arrowright", "home", "end", "pageup", "pagedown", "space", " "]);
+
+const isChoiceControl = (f: ElementFacts) => f.tag === "select" || CHOICE_ROLES.has(f.role) || CHOICE_TYPES.has(f.type ?? "");
+
+/** Arrows, Home, End, PageUp, PageDown, Space and typed characters change the value of a select, listbox, radio, checkbox, range or spinbutton. */
+function choiceKey(combo: string): boolean {
+  const key = baseKey(combo).toLowerCase();
+  return CHOICE_KEYS.has(key) || (key.length === 1 && !isShortcut(combo));
+}
+
+/**
+ * The one value-change policy. Whether the action changes the value of the element that receives it: the select
+ * action, typing, a click on an option, a key that edits text, and a value-picking key on a choice control.
+ */
+function changesValue(action: RiskAction, f: ElementFacts): boolean {
+  const key = action.key ?? "";
+  switch (action.kind) {
+    case "type":
+    case "select":
+      return true;
+    case "click":
+      return f.role === "option" || f.tag === "option";
+    case "press":
+      return editsValue(key) || (isChoiceControl(f) && choiceKey(key));
+    default:
+      return false;
+  }
 }
 
 /** Every text that names the control. aria-label does not replace the visible text: a "Continue" label cannot hide "Delete". */
@@ -101,10 +134,12 @@ export function classifyTargets(action: RiskAction, targets: ElementFacts[], app
 function blockedReason(action: RiskAction, f: ElementFacts): string | undefined {
   const key = action.key ?? "";
   const activates = action.kind === "click" || (action.kind === "press" && ACTIVATION_KEYS.has(baseKey(key)));
-  const picksOption = action.kind === "click" && (f.role === "option" || f.tag === "option");
-  const changesValue = action.kind === "type" || action.kind === "select" || picksOption || (action.kind === "press" && editsValue(key));
-  if (changesValue && isSensitiveField(f)) {
+  if (changesValue(action, f) && isSensitiveField(f)) {
     return `Blocked: Hermes never changes password, one-time-code or payment-card fields (${f.name || f.type || f.tag}). Ask the owner to fill in that field themselves.`;
+  }
+  // Text, keys and selections go to whatever is inside a frame, and Hermes cannot read that: it could be a password.
+  if (isOpaque(f) && (action.kind === "type" || action.kind === "press" || action.kind === "select")) {
+    return `Blocked: the ${f.tag} is a frame Hermes cannot read, so it cannot tell which field would get the ${action.kind === "type" ? "text" : action.kind === "press" ? "key" : "selection"}. Ask the owner to do that themselves.`;
   }
   if (activates && f.activationUrl && classifyUrl(f.activationUrl).level === "blocked") {
     return "Blocked: this would run a javascript:, data: or vbscript: address. Hermes never does that.";
@@ -116,6 +151,8 @@ function judge(action: RiskAction, f: ElementFacts): Risk {
   const ask = (reason: string): Risk => ({ level: "needs_approval", reason, name: f.name });
   const safe: Risk = { level: "safe" };
   const opaque = () => ask("the target is inside a frame Hermes cannot read");
+  // A value change on a form field needs the owner, like the select action. Keys typed into a text field are typing, which is judged as typing.
+  const formValue = (): Risk | undefined => ((action.kind === "select" || !f.editable) && changesValue(action, f) && f.inForm && !f.search ? ask("changes a form field") : undefined);
   const click = (): Risk => {
     if (isOpaque(f)) return opaque();
     if (isSubmitControl(f)) return ask("submits a form");
@@ -123,10 +160,12 @@ function judge(action: RiskAction, f: ElementFacts): Risk {
   };
   switch (action.kind) {
     case "click":
-      return click();
+      return formValue() ?? click();
     case "press": {
       const base = baseKey(action.key ?? "");
       if (isOpaque(f)) return opaque();
+      const value = formValue();
+      if (value) return value;
       if (base === "Enter" && hasModifier(action.key ?? "")) return ask("Enter with a modifier key sends or submits");
       if (!ACTIVATION_KEYS.has(base)) return safe;
       if (f.editable) return base === "Enter" && !f.search ? ask("Enter sends or submits from a text field") : safe;
@@ -134,7 +173,7 @@ function judge(action: RiskAction, f: ElementFacts): Risk {
     }
     case "select":
       if (isOpaque(f)) return opaque();
-      return f.inForm && !f.search ? ask("changes a form field") : safe;
+      return formValue() ?? safe;
     case "type":
       return isOpaque(f) ? opaque() : safe;
     default:

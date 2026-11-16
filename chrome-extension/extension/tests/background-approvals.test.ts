@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { APPROVAL_TTL_MS, canonicalArgs, createApproval, factsKey, resetApprovalsForTest, takeApproval } from "../src/background/approvals";
 import type { ElementFacts } from "../src/background/risk";
+import { APPROVALS_KEY, readApproval } from "../src/shared/approvals-view";
 
-const binding = { tabId: 1, docNonce: "n", generation: 1, args: "[]", facts: ["f"] };
+const binding = { tabId: 1, docNonce: "n", generation: 1, href: "https://x.com/", args: "[]", facts: ["f"], elementIds: ["el1"], summary: 'Click button "Save"', pageUrl: "https://x.com/" };
 let stored: Record<string, unknown>;
 
 beforeEach(() => {
@@ -58,6 +59,26 @@ describe("approvals", () => {
     for (let i = 0; i < 55; i++) await createApproval(binding);
     expect((stored["hermes-approvals"] as unknown[]).length).toBeLessThanOrEqual(50);
     expect(await takeApproval(first)).toBeUndefined();
+  });
+
+  it("files the record under the key the side panel reads, with summary and page url, and the side panel reads it back", async () => {
+    expect(APPROVALS_KEY).toBe("hermes-approvals");
+    const id = await createApproval(binding);
+    expect(await readApproval(id)).toMatchObject({ id, summary: 'Click button "Save"', pageUrl: "https://x.com/", expiresAt: expect.any(Number) });
+    expect(await readApproval("ap_nope")).toBeUndefined();
+    await takeApproval(id);
+    expect(await readApproval(id)).toBeUndefined();   // used: gone for the side panel too
+  });
+
+  it("the side panel does not see an expired record", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      const id = await createApproval(binding);
+      vi.setSystemTime(Date.now() + APPROVAL_TTL_MS);
+      expect(await readApproval(id)).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("works in memory when session storage is not available", async () => {

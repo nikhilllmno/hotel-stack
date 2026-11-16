@@ -1,3 +1,4 @@
+import { APPROVALS_KEY, type ApprovalView } from "../shared/approvals-view";
 import type { ActArgs } from "../shared/protocol";
 import type { ElementFacts } from "./risk";
 
@@ -9,17 +10,17 @@ import type { ElementFacts } from "./risk";
 
 export const APPROVAL_TTL_MS = 10 * 60 * 1000;
 const MAX_RECORDS = 50;
-const STORAGE_KEY = "hermes-approvals";
 const ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
 
-export type Approval = {
-  id: string;
-  expiresAt: number;
+/** What the side panel reads (id, expiresAt, summary, pageUrl) plus what the extension checks before it acts. */
+export type Approval = ApprovalView & {
   tabId: number;
   docNonce: string;
   generation: number;
-  args: string;      // canonicalArgs
-  facts: string[];   // factsKey of every element that was judged
+  href: string;          // location.href when the owner was asked: a same-document route change voids the approval
+  args: string;          // canonicalArgs
+  facts: string[];       // factsKey of every element that was judged
+  elementIds: string[];  // opaque document-local identity of every element that was judged (page.ts), in the same order
 };
 
 export type Binding = Omit<Approval, "id" | "expiresAt">;
@@ -30,7 +31,7 @@ async function load(): Promise<Map<string, Approval>> {
   if (records) return records;
   records = new Map();
   try {
-    const stored = (await chrome.storage.session.get(STORAGE_KEY))[STORAGE_KEY] as Approval[] | undefined;
+    const stored = (await chrome.storage.session.get(APPROVALS_KEY))[APPROVALS_KEY] as Approval[] | undefined;
     for (const a of stored ?? []) records.set(a.id, a);
   } catch {
     // Without session storage the records live in memory only: a worker restart loses them and the owner asks again.
@@ -40,7 +41,7 @@ async function load(): Promise<Map<string, Approval>> {
 
 async function save(map: Map<string, Approval>): Promise<void> {
   try {
-    await chrome.storage.session.set({ [STORAGE_KEY]: [...map.values()] });
+    await chrome.storage.session.set({ [APPROVALS_KEY]: [...map.values()] });
   } catch {
     // see load()
   }
@@ -93,7 +94,7 @@ export function canonicalArgs(a: ActArgs): string {
   return JSON.stringify(sorted.map((k) => [k, picked[k]]));
 }
 
-/** What identifies an element: if any of it changes, the owner approved something else. */
+/** What describes an element: if any of it changes, the owner approved something else. Identity itself is the element id. */
 export function factsKey(f: ElementFacts): string {
   return JSON.stringify([f.tag, f.type, f.role, f.name, f.text, f.formAction, f.formMethod, f.activationUrl, f.inForm, f.fieldName, f.fieldId]);
 }

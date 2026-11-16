@@ -108,6 +108,23 @@ describe("element facts", () => {
     expect(byId).toMatchObject({ s1: true, s2: true, s3: true, s4: false, s5: false, s6: false });
   });
 
+  it("a search exception needs a form that only reads: Enter in any POST form (or with a POST submitter) is not a search", () => {
+    document.body.innerHTML =
+      // marked as search, but the form posts
+      `<form method="post"><input type="search" id="p1"></form>` +
+      `<form method="POST"><div role="search"><input id="p2"></div></form>` +
+      `<div role="search"><form method="post"><input name="q" id="p3"></form></div>` +
+      // a GET form whose submit button overrides the method
+      `<form><input type="search" id="p4"><button formmethod="post">Go</button></form>` +
+      // the field is outside the <form> tag but belongs to a POST form through the form attribute
+      `<form id="pf" method="post"></form><input type="search" id="p5" form="pf">` +
+      // genuine searches
+      `<form method="get"><input type="search" id="g1"></form><form><div role="search"><input id="g2"></div></form>` +
+      `<form><input name="q" id="g3"><button formmethod="get">Go</button></form><input type="search" id="g4">`;
+    const byId = Object.fromEntries(snapshot().elements.map((e) => [e.facts.fieldId, e.facts.search]));
+    expect(byId).toMatchObject({ p1: false, p2: false, p3: false, p4: false, p5: false, g1: true, g2: true, g3: true, g4: true });
+  });
+
   it("gives an option the autocomplete, name and id of its dropdown", () => {
     document.body.innerHTML = `<div role="listbox" id="m" aria-label="Month"><div role="option" id="o">07</div></div>`;
     document.getElementById("m")!.setAttribute("autocomplete", "cc-exp-month");
@@ -118,12 +135,24 @@ describe("element facts", () => {
   it("identifies the document with a stable nonce and a generation that grows with each snapshot", () => {
     document.body.innerHTML = `<button>A</button>`;
     snapshot();
-    const first = run<{ doc: { nonce: string; generation: number } }>({ op: "locate", ref: "e1" }).doc;
+    const first = run<{ doc: { nonce: string; generation: number; href: string } }>({ op: "locate", ref: "e1" }).doc;
     expect(first.nonce).toMatch(/^[0-9a-f]{24}$/);
     expect(run<{ doc: typeof first }>({ op: "active" }).doc).toEqual(first);
     snapshot();
     const second = run<{ doc: typeof first }>({ op: "locate", ref: "e1" }).doc;
-    expect(second).toEqual({ nonce: first.nonce, generation: first.generation + 1 });
+    expect(second).toEqual({ nonce: first.nonce, generation: first.generation + 1, href: first.href });
+  });
+
+  it("puts location.href in the document id, so a same-document route change is visible", () => {
+    document.body.innerHTML = `<button>A</button>`;
+    snapshot();
+    const before = run<{ doc: { nonce: string; href: string } }>({ op: "locate", ref: "e1" }).doc;
+    history.pushState({}, "", "/rooms/7#edit");
+    const after = run<{ doc: { nonce: string; href: string } }>({ op: "locate", ref: "e1" }).doc;
+    expect(after.nonce).toBe(before.nonce);            // same document: the nonce cannot tell
+    expect(after.href).toBe(location.href);
+    expect(after.href).not.toBe(before.href);
+    history.pushState({}, "", before.href);
   });
 });
 
@@ -190,6 +219,51 @@ describe("locate / focus / select", () => {
     expect(out.covered).toBeUndefined();
     expect(out.facts.tag).toBe("div");
     expect(out.hit).toMatchObject({ tag: "a", activationUrl: "javascript:x()" });
+  });
+
+  it("gives each element an opaque identity that two identical buttons do not share and the page cannot read", () => {
+    document.body.innerHTML = `<ul><li><button>Delete</button></li><li><button>Delete</button></li></ul>`;
+    const [a, b] = Array.from(document.querySelectorAll("button"));
+    const html = document.body.innerHTML;
+    snapshot();
+    const idOfRef = (ref: string) => run<{ id: string }>({ op: "locate", ref }).id;
+    expect(idOfRef("e1")).not.toBe(idOfRef("e2"));
+    // stable for the same element, also across snapshots
+    const first = idOfRef("e1");
+    snapshot();
+    expect(idOfRef("e1")).toBe(first);
+    // the id is not in the page: no attribute, no property the page can copy
+    expect(document.body.innerHTML).toBe(html);
+    expect(Object.getOwnPropertyNames(a).concat(Object.getOwnPropertyNames(b)).join()).not.toContain(first);
+    // the point resolves to the same element identity as its ref
+    document.elementFromPoint = () => a;
+    expect(run<{ id: string }>({ op: "locate", x: 1, y: 1 }).id).toBe(first);
+    document.elementFromPoint = () => b;
+    expect(run<{ id: string }>({ op: "locate", x: 1, y: 1 }).id).not.toBe(first);
+  });
+
+  it("gives focus and active the identity of the element that really has focus", () => {
+    document.body.innerHTML = `<input id="a" aria-label="Rate"><input id="b" aria-label="Rate">`;
+    snapshot();
+    const a = run<{ id: string }>({ op: "locate", ref: "e1" }).id;
+    const b = run<{ id: string }>({ op: "locate", ref: "e2" }).id;
+    expect(a).toMatch(/^el\d+$/);
+    expect(b).not.toBe(a);
+    expect(run<{ id: string }>({ op: "focus", ref: "e1", clear: false }).id).toBe(a);
+    expect(run<{ id: string }>({ op: "active" }).id).toBe(a);
+    run({ op: "focus", ref: "e2", clear: false });
+    expect(run<{ id: string }>({ op: "active" }).id).toBe(b);
+  });
+
+  it("reports the identity of the element that really receives a click as hitId", () => {
+    document.body.innerHTML = `<div role="button" id="w">Open <a href="/x" id="l">more</a></div>`;
+    snapshot();
+    document.elementFromPoint = () => document.getElementById("l");
+    const out = run<{ id: string; hitId?: string }>({ op: "locate", ref: "e1" });
+    document.elementFromPoint = () => document.getElementById("l");
+    const link = run<{ id: string }>({ op: "locate", x: 1, y: 1 }).id;
+    expect(out.hitId).toBe(link);
+    expect(out.hitId).not.toBe(out.id);
   });
 
   it("selects a native option by label, case-insensitively, and fires change", () => {

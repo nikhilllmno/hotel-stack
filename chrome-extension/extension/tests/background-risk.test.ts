@@ -91,6 +91,58 @@ describe("blocked", () => {
   });
 });
 
+describe("blocked: recipients Hermes cannot inspect", () => {
+  it.each(["iframe", "frame", "embed", "object"])("blocks typing, keys and select on <%s>, approved or not", (tag) => {
+    const frame = facts({ tag, role: "clickable", name: "Checkout" });
+    for (const approved of [false, true]) {
+      for (const action of [{ kind: "type" }, { kind: "select" }, { kind: "press", key: "a" }, { kind: "press", key: "Enter" }, { kind: "press", key: "ArrowDown" }, { kind: "press", key: "Tab" }] as const) {
+        expect(classifyAction(action, frame, approved).level).toBe("blocked");
+      }
+    }
+  });
+});
+
+describe("one value-change policy", () => {
+  const select = facts({ tag: "select", role: "combobox", name: "Room type", inForm: true });
+  const VALUE_KEYS = ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown", "Space", " ", "k", "5"];
+
+  it.each(VALUE_KEYS)("a %s press on a form select asks, as the select action does", (key) => {
+    expect(classifyAction({ kind: "select" }, select, false).level).toBe("needs_approval");
+    expect(classifyAction({ kind: "press", key }, select, false)).toMatchObject({ level: "needs_approval", reason: "changes a form field" });
+  });
+
+  it.each(VALUE_KEYS)("a %s press on a card-expiry select is blocked, as the select action is", (key) => {
+    const month = { ...select, name: "Month", autocomplete: "cc-exp-month" };
+    expect(classifyAction({ kind: "select" }, month, true).level).toBe("blocked");
+    expect(classifyAction({ kind: "press", key }, month, true).level).toBe("blocked");
+  });
+
+  it("covers listbox, radio, checkbox, range and spinbutton keys, and option clicks", () => {
+    const controls = [
+      facts({ tag: "div", role: "listbox", inForm: true }),
+      facts({ tag: "input", type: "radio", role: "radio", inForm: true }),
+      facts({ tag: "input", type: "checkbox", role: "checkbox", inForm: true }),
+      facts({ tag: "input", type: "range", role: "slider", inForm: true }),
+      facts({ tag: "div", role: "spinbutton", inForm: true }),
+    ];
+    for (const c of controls) {
+      expect(classifyAction({ kind: "press", key: "ArrowRight" }, c, false).level).toBe("needs_approval");
+      expect(classifyAction({ kind: "press", key: "ArrowRight" }, { ...c, inForm: false }, false).level).toBe("safe");
+      expect(classifyAction({ kind: "press", key: "ArrowRight" }, { ...c, autocomplete: "cc-exp-year" }, false).level).toBe("blocked");
+    }
+    const option = facts({ tag: "div", role: "option", name: "Twin", inForm: true });
+    expect(classifyAction(click, option, false).level).toBe("needs_approval");
+    expect(classifyAction(click, { ...option, search: true }, false).level).toBe("safe");
+    expect(classifyAction(click, { ...option, autocomplete: "cc-exp-month" }, false).level).toBe("blocked");
+  });
+
+  it("leaves Tab and Escape alone, and keys typed into a text field stay typing", () => {
+    for (const key of ["Tab", "Escape", "Shift+Tab", "Control+A"]) expect(classifyAction({ kind: "press", key }, select, false).level).toBe("safe");
+    const text = facts({ tag: "input", type: "text", role: "textbox", name: "Guest", inForm: true, editable: true });
+    for (const key of ["a", "Space", "ArrowLeft", "Backspace"]) expect(classifyAction({ kind: "press", key }, text, false).level).toBe("safe");
+  });
+});
+
 describe("needs_approval", () => {
   it("asks for submit controls", () => {
     expect(classifyAction(click, facts({ type: "submit" }), false)).toEqual({ level: "needs_approval", reason: "submits a form", name: "Search" });
@@ -171,11 +223,9 @@ describe("needs_approval", () => {
     expect(classifyAction(click, facts({ tag: "a", role: "link", name }), false).level).toBe("safe");
   });
 
-  it("asks for anything inside a frame it cannot read", () => {
+  it("asks before a click on a frame it cannot read", () => {
     const frame = facts({ tag: "iframe", role: "clickable", name: "" });
-    for (const action of [click, { kind: "type" } as const, { kind: "select" } as const, { kind: "press", key: "a" } as const]) {
-      expect(classifyAction(action, frame, false).level).toBe("needs_approval");
-    }
+    expect(classifyAction(click, frame, false).level).toBe("needs_approval");
     expect(classifyAction({ kind: "hover" }, frame, false).level).toBe("safe");
     expect(classifyAction({ kind: "scroll" }, frame, false).level).toBe("safe");
   });
