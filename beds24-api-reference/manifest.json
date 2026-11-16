@@ -1,0 +1,110 @@
+{
+  "retrievedDate": "2026-11-08",
+  "source": "https://beds24.com/api/v2/apiV2.yaml",
+  "documentation": "https://beds24.com/api/v2/",
+  "apiBaseUrl": "https://beds24.com/api/v2",
+  "openapiFormat": "3.0.0",
+  "sourceInfoVersion": "3.0.0",
+  "sourceSha256": "722988b381b65b25bf0889180933599d6e5ad42682403697d7576dd01d6e0a9e",
+  "methodEntries": 38,
+  "documentedCallableOperations": 33,
+  "comingSoonOperations": 4,
+  "webhookDefinitions": 1,
+  "hotel": {
+    "propertyId": 366736,
+    "rooms": {
+      "standard": 754948,
+      "deluxe": 754949,
+      "suite": 754950
+    },
+    "totalUnits": 20,
+    "fixedPriceIds": {
+      "standard": 7046325,
+      "deluxe": 7046326,
+      "suite": 7046327
+    },
+    "pricingPeriod": {
+      "firstNight": "2026-11-01",
+      "lastNight": "2026-12-31"
+    },
+    "ownerId": 182366,
+    "bookingIds": {
+      "DEMO-001": 95853447,
+      "DEMO-002": 95853671,
+      "DEMO-003": 95853699,
+      "DEMO-004": 95853717,
+      "DEMO-005": 95853636
+    }
+  },
+  "notes": [
+    "Original YAML preserved unchanged.",
+    "JSON is a representation of the downloaded YAML; dates in examples remain strings.",
+    "This is API V2. Source info.version and OpenAPI format values of 3.0.0 do not rename the service API V3.",
+    "No credentials included. Core reversible read/write workflows tested on 2026-11-08; scope and caveats are recorded in e2e-results.json."
+  ],
+  "hotelConfigurationFile": "hotel-config.json",
+  "setupNotesFile": "setup-notes.md",
+  "apiCredentialState": "Valid read-only credential created; owner182366; onlyPropertyId366736; exactly five read scopes; secrets excluded",
+  "verificationReportFile": "verification-report.json",
+  "verificationSummaryFile": "verification-report.md",
+  "liveVerification": {
+    "checkedAt": "2026-11-08T07:59:35.626470+00:00",
+    "authenticatedGetCalls": 14,
+    "passedChecks": 70,
+    "totalChecks": 70,
+    "readOnly": true
+  },
+  "endToEndResultsFile": "e2e-results.json",
+  "endToEndReportFile": "e2e-report.md",
+  "endToEndVerification": {
+    "catalogEntries": 38,
+    "documentedCallableMethods": 33,
+    "exercisedCallableMethods": 26,
+    "journaledRequests": 76,
+    "initialSetupExchangeOutsideJournal": 1,
+    "statusCounts": {
+      "passed": 18,
+      "passed_with_caveat": 2,
+      "unverified_behavior": 1,
+      "not_tested": 7,
+      "coming_soon": 4,
+      "empty_response": 5,
+      "not_tested_webhook": 1
+    }
+  },
+  "endToEndCredentials": {
+    "temporaryWriteCredentialRevoked": true,
+    "revokedRefreshRejectedWithHttp": 401,
+    "revokedAccessTokenValid": false,
+    "originalReadOnlyCredentialValid": true,
+    "secretsIncluded": false,
+    "retainedReadOnlyScopes": [
+      "read:properties",
+      "read:inventory",
+      "read:bookings",
+      "read:bookings-personal",
+      "read:bookings-financial"
+    ],
+    "revokedTestScopes": [
+      "all:bookings",
+      "read:bookings-personal",
+      "write:bookings-personal",
+      "read:bookings-financial",
+      "write:bookings-financial",
+      "read:inventory",
+      "write:inventory",
+      "read:properties",
+      "write:properties",
+      "read:channels"
+    ]
+  },
+  "endToEndCleanup": {
+    "temporaryBookingDeleted": true,
+    "temporaryMessagesRemaining": 0,
+    "propertyAndUnitSettingsRestored": true,
+    "fixedRatesRestored": true,
+    "calendarRestored": true,
+    "originalFiveBookingsUnchanged": true,
+    "availabilityAndAllocationsMatchBaseline": true
+  }
+}

@@ -1,0 +1,66 @@
+name: README Staleness Check
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  check-readme:
+    name: Check README is up to date
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for major source changes
+        id: source-changes
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            websocket-server/src/router/**
+            websocket-server/src/services/**
+            websocket-server/src/controller/**
+            websocket-server/src/migrations/**
+            docker-compose*.yml
+            websocket-server/package.json
+
+      - name: Check if README was updated
+        id: readme-changes
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            README.md
+
+      - name: Warn if README is stale
+        if: steps.source-changes.outputs.any_changed == 'true' && steps.readme-changes.outputs.any_changed == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changedFiles = `${{ steps.source-changes.outputs.all_changed_files }}`
+              .split(' ')
+              .filter(Boolean)
+              .map(f => `- \`${f}\``)
+              .join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## ⚠️ README may need updating\n\nMajor source files changed in this PR but \`README.md\` was not updated.\n\nPlease check if any of the following changes affect the README (API routes, payment flows, stack, setup instructions):\n\n${changedFiles}\n\n_If the README is already accurate, you can ignore this comment._`
+            });
+
+      - name: README is up to date
+        if: steps.source-changes.outputs.any_changed == 'true' && steps.readme-changes.outputs.any_changed == 'true'
+        run: echo "✅ README was updated alongside source changes."
+
+      - name: No major source changes
+        if: steps.source-changes.outputs.any_changed == 'false'
+        run: echo "⏭️ No major source changes detected — README check skipped."

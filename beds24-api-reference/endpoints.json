@@ -1,0 +1,3015 @@
+[
+  {
+    "method": "GET",
+    "path": "/authentication/setup",
+    "group": "Authentication",
+    "purpose": "Exchange an invite code for access and refresh tokens",
+    "stage": "Not labelled",
+    "scopeFamily": "Credential header; no resource scope",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "code",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "deviceName",
+        "in": "header",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/authentication/token",
+    "group": "Authentication",
+    "purpose": "Issue an access token from a refresh token",
+    "stage": "Not labelled",
+    "scopeFamily": "Credential header; no resource scope",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "refreshToken",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/authentication/token",
+    "group": "Authentication",
+    "purpose": "Revoke a refresh token",
+    "stage": "Not labelled",
+    "scopeFamily": "Credential header; no resource scope",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "refreshToken",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/authentication/details",
+    "group": "Authentication",
+    "purpose": "Inspect token permissions and diagnostics",
+    "stage": "Not labelled",
+    "scopeFamily": "Credential header; no resource scope",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "token",
+        "in": "header",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/bookings",
+    "group": "Bookings",
+    "purpose": "Search reservations and retrieve booking records",
+    "stage": "Not labelled",
+    "scopeFamily": "bookings",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "filter",
+        "in": "query",
+        "description": "arrivals - returns bookings arriving today <br>\ndepartures - confirmed, new and request bookings departing today  <br>\nnew - returns bookings created in the past 24 hours <br>\ncurrent - returns bookings with a check-in before or on today and a check out after or on today <br>\nBy default, filters will only return bookings with a status of of confirmed, new or request. <br>\nAll dates are in the property's time zone.\n",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "arrivals",
+            "departures",
+            "new",
+            "current"
+          ]
+        }
+      },
+      {
+        "name": "propertyId",
+        "description": "Multiple propertyIds can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "roomId",
+        "description": "Multiple roomIds can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "id",
+        "description": "The booking ID. Multiple ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "masterId",
+        "description": "Multiple masterIds can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "apiReference",
+        "description": "Multiple apiReferences can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "name": "channel",
+        "description": "The channel",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "agoda",
+            "airbnb",
+            "asiatravel",
+            "atraveode",
+            "booking",
+            "bookingpage",
+            "despegar",
+            "direct",
+            "edreamsodigeo",
+            "expedia",
+            "feratel",
+            "goibibo",
+            "hometogo",
+            "hostelworld",
+            "hotelbeds",
+            "hrs",
+            "jomres",
+            "marriott",
+            "ostrovokru",
+            "ota",
+            "tiket",
+            "tomastravel",
+            "traveloka",
+            "travia",
+            "traum",
+            "trip",
+            "tripadvisorrentals",
+            "vacationstay",
+            "vrbo",
+            "airbnbical",
+            "bedandbreakfasteu",
+            "bedandbreakfastnl",
+            "bookeasycomau",
+            "bookitconz",
+            "flipkey",
+            "googlecal",
+            "googleads",
+            "guestlinkcouk",
+            "holidaylettingscouk",
+            "hostelinternational",
+            "hostelsclub",
+            "housetripcom",
+            "icalimport1",
+            "icalimport2",
+            "icalimport3",
+            "lastminute",
+            "marriott",
+            "nzaa",
+            "reserva",
+            "rezintelnet",
+            "tablethotels",
+            "traumferienwohnungen",
+            "trivagocom",
+            "visitscotlandcom",
+            "vrboical",
+            "webroomsconz"
+          ]
+        }
+      },
+      {
+        "name": "arrival",
+        "description": "Gets bookings with an arrival date matching this. YYYY-MM-DD",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "arrivalFrom",
+        "description": "Gets bookings with an arrival date after this. YYYY-MM-DD",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "arrivalTo",
+        "description": "Gets bookings with an arrival date before this. YYYY-MM-DD",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "departure",
+        "description": "Gets bookings with an departure date matching this. YYYY-MM-DD",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "departureFrom",
+        "description": "Gets bookings with an departure date after this. YYYY-MM-DD",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "departureTo",
+        "description": "Gets bookings with an departure date before this. YYYY-MM-DD",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "bookingTimeFrom",
+        "description": "Gets bookings with a booking time after this. YYYY-MM-DDTHH:MM:SS in UTC",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      {
+        "name": "bookingTimeTo",
+        "description": "Gets bookings with a booking time before this. YYYY-MM-DDTHH:MM:SS in UTC",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      {
+        "name": "modifiedFrom",
+        "description": "Gets bookings with a modified datetime after this. When bookings are created their modified time will be set to their created time. YYYY-MM-DDTHH:MM:SS",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      {
+        "name": "modifiedTo",
+        "description": "Gets bookings with a modified datetime before this. When bookings are created their modified time will be set to their created time. YYYY-MM-DDTHH:MM:SS",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      {
+        "name": "searchString",
+        "description": "Gets bookings where the guest name, email, apiref or bookingId fields match this parameter.",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "includeInvoiceItems",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeInfoItems",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeGuests",
+        "description": "Guest data requires the bookings-personal scope",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeBookingGroup",
+        "description": "Returns the bookingGroup field, which contains IDs of other bookings in the booking group",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "status",
+        "in": "query",
+        "description": "Will default to \"confirmed\", \"request\", \"new\", \"black\" and \"inquiry\" if not specified",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "request",
+              "new",
+              "cancelled",
+              "black",
+              "inquiry"
+            ]
+          }
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/bookings",
+    "group": "Bookings",
+    "purpose": "Create or amend reservations, invoice items, and booking information",
+    "stage": "Not labelled",
+    "scopeFamily": "bookings",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Required to update an existing booking"
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/components/schemas/newBooking"
+                },
+                {
+                  "$ref": "#/components/schemas/bookingActions"
+                }
+              ]
+            }
+          },
+          "examples": {
+            "newBooking": {
+              "summary": "Create a new booking",
+              "value": [
+                {
+                  "roomId": 1234567,
+                  "status": "confirmed",
+                  "arrival": "2021-01-01",
+                  "departure": "2021-01-05",
+                  "numAdult": 2,
+                  "numChild": 1,
+                  "title": "Mr",
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "email": "johndoe@example.com",
+                  "mobile": 123456789,
+                  "address": "123 Fake st",
+                  "city": "Melbourne",
+                  "state": "Victoria",
+                  "postcode": "3000",
+                  "country": "Australia"
+                }
+              ]
+            },
+            "multipleNewBookings": {
+              "summary": "Create two new bookings and modify an existing one",
+              "value": [
+                {
+                  "roomId": 1234567,
+                  "status": "confirmed",
+                  "arrival": "2021-01-01",
+                  "departure": "2021-01-05",
+                  "comment": "This is a new booking"
+                },
+                {
+                  "roomId": 1234567,
+                  "status": "confirmed",
+                  "arrival": "2021-01-05",
+                  "departure": "2021-01-12",
+                  "comment": "This is a different new booking"
+                },
+                {
+                  "id": 7654321,
+                  "status": "cancelled",
+                  "comment": "This is an existing booking that will be cancelled"
+                }
+              ]
+            },
+            "updateBooking": {
+              "summary": "Modify the departure date of an existing booking",
+              "value": [
+                {
+                  "id": 7777777,
+                  "departure": "2021-01-10"
+                }
+              ]
+            },
+            "newInfoItem": {
+              "summary": "Info items - Add an info item to an existing booking",
+              "value": [
+                {
+                  "id": 1234567,
+                  "infoItems": [
+                    {
+                      "code": "new code",
+                      "text": "new text"
+                    }
+                  ]
+                }
+              ]
+            },
+            "modifyInfoItem": {
+              "summary": "Info items - Modify an existing info item",
+              "value": [
+                {
+                  "id": 1111111,
+                  "infoItems": [
+                    {
+                      "id": 2222222,
+                      "text": "updated text"
+                    }
+                  ]
+                }
+              ]
+            },
+            "deleteInfoItem": {
+              "summary": "Info items - Delete an info with while keeping the parent booking",
+              "value": [
+                {
+                  "id": 1111111,
+                  "infoItems": [
+                    {
+                      "id": 2222222
+                    }
+                  ]
+                }
+              ]
+            },
+            "modifyInvoiceItem": {
+              "summary": "Invoice items - Create a booking with an invoice item",
+              "value": [
+                {
+                  "roomId": 322790,
+                  "arrival": "2022-06-29",
+                  "departure": "2022-07-09",
+                  "invoiceItems": [
+                    {
+                      "type": "charge",
+                      "qty": 2,
+                      "amount": 50
+                    }
+                  ]
+                }
+              ]
+            },
+            "createInvoiceItem": {
+              "summary": "Invoice items - Modify a booking's invoice item",
+              "value": [
+                {
+                  "id": 1111111,
+                  "invoiceItems": [
+                    {
+                      "id": 2222222,
+                      "qty": 3
+                    }
+                  ]
+                }
+              ]
+            },
+            "deleteInvoiceItem": {
+              "summary": "Invoice items - Delete a booking's invoice item",
+              "value": [
+                {
+                  "id": 1111111,
+                  "invoiceItems": [
+                    {
+                      "id": 2222222
+                    }
+                  ]
+                }
+              ]
+            },
+            "bookingActions": {
+              "summary": "Booking actions - Create two new bookings and put them in a group",
+              "value": [
+                {
+                  "roomId": 1234567,
+                  "status": "confirmed",
+                  "arrival": "2021-01-01",
+                  "departure": "2021-01-05",
+                  "actions": {
+                    "makeGroup": true
+                  }
+                },
+                {
+                  "roomId": 7654321,
+                  "status": "confirmed",
+                  "arrival": "2021-01-01",
+                  "departure": "2021-01-05",
+                  "actions": {
+                    "makeGroup": true
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/bookings",
+    "group": "Bookings",
+    "purpose": "Delete reservation records by ID; use a status update for cancellation",
+    "stage": "Not labelled",
+    "scopeFamily": "bookings",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "id",
+        "description": "The booking ID. Multiple ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/bookings/messages",
+    "group": "Bookings",
+    "purpose": "Read booking conversation records",
+    "stage": "Not labelled",
+    "scopeFamily": "bookings + bookings-personal",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "id",
+        "description": "The message ID. Multiple ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "propertyId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "roomId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "bookingId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "masterId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "filter",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "read",
+            "unread"
+          ]
+        }
+      },
+      {
+        "name": "maxAge",
+        "in": "query",
+        "description": "The maximum age (in days) of messages to return. If set to 3, messages from more than 3 days ago will not be included.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 999
+        }
+      },
+      {
+        "name": "source",
+        "in": "query",
+        "description": "Returns only messages from one side of the conversation. E.g. if set to guest, only messages sent by a guest will be returned, messages sent by a host will be excluded.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "host",
+            "guest",
+            "internalNote",
+            "system"
+          ]
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/bookings/messages",
+    "group": "Bookings",
+    "purpose": "Add a message or update its read state",
+    "stage": "Not labelled",
+    "scopeFamily": "bookings + bookings-personal",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/hostMessage"
+            }
+          },
+          "examples": {
+            "newMessage": {
+              "summary": "Send a new message to a booking",
+              "value": [
+                {
+                  "bookingId": 1234567,
+                  "message": "Hello world!"
+                }
+              ]
+            },
+            "multipleMessages": {
+              "summary": "Send multiple messagages in one request",
+              "value": [
+                {
+                  "bookingId": 1111111,
+                  "message": "Hello"
+                },
+                {
+                  "bookingId": 2222222,
+                  "message": "Goodbye"
+                }
+              ]
+            },
+            "messageRead": {
+              "summary": "Set an existing message as read",
+              "value": [
+                {
+                  "id": 222222,
+                  "read": true
+                }
+              ]
+            },
+            "messageAttachment": {
+              "summary": "Send a message with an attachment",
+              "value": [
+                {
+                  "bookingId": 1234567,
+                  "message": "Please see tbe attached",
+                  "attachment": "{base64 encoded file}",
+                  "attachmentName": "map.png",
+                  "attachmentMimeType": "image/png"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/bookings/messages",
+    "group": "Bookings",
+    "purpose": "Change read state across a selected message set",
+    "stage": "Not labelled",
+    "scopeFamily": "bookings + bookings-personal",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "messageId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "propertyId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "roomId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "bookingId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "masterId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      }
+    ],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "read": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/bookings/invoices",
+    "group": "Bookings",
+    "purpose": "Retrieve invoice records",
+    "stage": "Alpha",
+    "scopeFamily": "bookings + bookings-financial",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "bookingId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/rooms/offers",
+    "group": "Inventory",
+    "purpose": "Calculate stay offers for dates and occupancy",
+    "stage": "Not labelled",
+    "scopeFamily": "inventory",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "propertyId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "roomId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "offerId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "arrival",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "departure",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "numAdults",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "numChildren",
+        "in": "query",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "includeTexts",
+        "description": "includes descriptive texts in response for specified language. Use 2 character country code: ```?includeTexts=en```",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "example": ""
+          }
+        }
+      },
+      {
+        "name": "agentCode",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/rooms/availability",
+    "group": "Inventory",
+    "purpose": "Retrieve date availability for room types",
+    "stage": "Not labelled",
+    "scopeFamily": "inventory",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "roomId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "propertyId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "startDate",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "endDate",
+        "in": "query",
+        "description": "The last night to be booked (i.e. the day before check-out)",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/rooms/unitBookings",
+    "group": "Inventory",
+    "purpose": "Read booking coverage for individual physical units",
+    "stage": "Beta",
+    "scopeFamily": "inventory",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "roomId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "propertyId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "startDate",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "endDate",
+        "in": "query",
+        "description": "The last night to be booked (i.e. the day before check-out)",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/rooms/calendar",
+    "group": "Inventory",
+    "purpose": "Read selected daily prices, inventory, and restrictions",
+    "stage": "Not labelled",
+    "scopeFamily": "inventory",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "startDate",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "endDate",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      {
+        "name": "roomId",
+        "description": "Multiple roomIds can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "propertyId",
+        "description": "Multiple propertyIds can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "includeNumAvail",
+        "description": "Include the numAvail field in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeMinStay",
+        "description": "Include the minStay field in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeMaxStay",
+        "description": "Include the maxStay field in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeMultiplier",
+        "description": "Include the multiplier field in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeOverride",
+        "description": "Include the override fields in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includePrices",
+        "description": "Include the price fields in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeLinkedPrices",
+        "description": "Include the linkedPrice fields in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeChannels",
+        "description": "Includes channel specific information in the response",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/inventory/rooms/calendar",
+    "group": "Inventory",
+    "purpose": "Write daily prices, inventory, and restrictions",
+    "stage": "Not labelled",
+    "scopeFamily": "inventory",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/calendar"
+            }
+          },
+          "examples": {
+            "changeValues": {
+              "summary": "Change the minStay, numAvail and a specific price for a date range in a room",
+              "value": [
+                {
+                  "roomId": 1234567,
+                  "calendar": [
+                    {
+                      "from": "2022-04-01",
+                      "to": "2022-05-01",
+                      "minStay": 3,
+                      "price1": 450,
+                      "numAvail": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            "deletePrice": {
+              "summary": "Delete a price within a date range for a room",
+              "value": [
+                {
+                  "roomId": 1234567,
+                  "calendar": [
+                    {
+                      "from": "2022-04-01",
+                      "to": "2022-05-01",
+                      "price1": null
+                    }
+                  ]
+                }
+              ]
+            },
+            "multiplePrices": {
+              "summary": "Change multiple prices for one room",
+              "value": [
+                {
+                  "roomId": 1234567,
+                  "calendar": [
+                    {
+                      "from": "2022-04-01",
+                      "to": "2022-05-01",
+                      "price1": 350,
+                      "price2": 300
+                    }
+                  ]
+                }
+              ]
+            },
+            "multipleRooms": {
+              "summary": "Change different values for different rooms",
+              "value": [
+                {
+                  "roomId": 1111111,
+                  "calendar": [
+                    {
+                      "from": "2022-04-01",
+                      "to": "2022-05-01",
+                      "minStay": 1
+                    }
+                  ]
+                },
+                {
+                  "roomId": 2222222,
+                  "calendar": [
+                    {
+                      "from": "2022-04-01",
+                      "to": "2022-05-01",
+                      "override": "blackout"
+                    }
+                  ]
+                }
+              ]
+            },
+            "channelBookingLimits": {
+              "summary": "Change or remove the limit on number of bookings for a specific channel",
+              "value": [
+                {
+                  "roomId": 1111111,
+                  "calendar": [
+                    {
+                      "from": "2022-04-01",
+                      "to": "2022-05-01",
+                      "channels": {
+                        "airbnb": {
+                          "maxBookings": 4
+                        },
+                        "expedia": {
+                          "maxBookings": null
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/fixedPrices",
+    "group": "Inventory",
+    "purpose": "Read fixed prices and their rules",
+    "stage": "Not labelled",
+    "scopeFamily": "inventory",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "id",
+        "description": "The ID of the fixed price, multiple can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "roomId",
+        "description": "Multiple roomIds can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "propertyId",
+        "description": "Multiple propertyIds can be included",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "includeRateCodes",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/inventory/fixedPrices",
+    "group": "Inventory",
+    "purpose": "Create or amend fixed prices",
+    "stage": "Not labelled",
+    "scopeFamily": "inventory",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/fixedPrice"
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/accounts",
+    "group": "Accounts",
+    "purpose": "Read account records and optional usage data",
+    "stage": "Alpha",
+    "scopeFamily": "accounts",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "includeSubAccounts",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeUsage",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeLanguages",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "all",
+              "en",
+              "ar",
+              "bg",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "et",
+              "fi",
+              "fr",
+              "hr",
+              "he",
+              "hu",
+              "id",
+              "is",
+              "it",
+              "ja",
+              "ko",
+              "lt",
+              "mn",
+              "my",
+              "nl",
+              "no",
+              "pl",
+              "pt",
+              "ro",
+              "ru",
+              "sk",
+              "sl",
+              "sr",
+              "sv",
+              "th",
+              "tr",
+              "vi",
+              "zh",
+              "zt"
+            ]
+          }
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/accounts",
+    "group": "Accounts",
+    "purpose": "Write account fields; subaccount creation is excluded by the current FAQ",
+    "stage": "Alpha",
+    "scopeFamily": "accounts",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/account"
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/properties",
+    "group": "Properties",
+    "purpose": "Read properties, nested room types, units, offers, and price rules",
+    "stage": "Beta",
+    "scopeFamily": "properties",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "id",
+        "description": "The property ID. Multiple ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "includeLanguages",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "all",
+              "en",
+              "ar",
+              "bg",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "et",
+              "fi",
+              "fr",
+              "hr",
+              "he",
+              "hu",
+              "id",
+              "is",
+              "it",
+              "ja",
+              "ko",
+              "lt",
+              "mn",
+              "my",
+              "nl",
+              "no",
+              "pl",
+              "pt",
+              "ro",
+              "ru",
+              "sk",
+              "sl",
+              "sr",
+              "sv",
+              "th",
+              "tr",
+              "vi",
+              "zh",
+              "zt"
+            ]
+          }
+        }
+      },
+      {
+        "name": "includeTexts",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "all",
+              "property",
+              "roomType"
+            ]
+          }
+        }
+      },
+      {
+        "name": "includePictures",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeOffers",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includePriceRules",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeUpsellItems",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeAllRooms",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeUnitDetails",
+        "in": "query",
+        "description": "By default only unit names are returned.",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "roomId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/properties",
+    "group": "Properties",
+    "purpose": "Create or amend properties and nested room configuration",
+    "stage": "Beta",
+    "scopeFamily": "properties",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/property"
+            }
+          },
+          "examples": {
+            "newProperty": {
+              "summary": "Create a new property with some basic details",
+              "value": [
+                {
+                  "name": "My New Property",
+                  "propertyType": "apartment",
+                  "currency": "USD",
+                  "address": "123 Main St",
+                  "city": "Melbourne",
+                  "state": "Victoria",
+                  "country": "Australia",
+                  "postcode": "3000",
+                  "mobile": "123456789"
+                }
+              ]
+            },
+            "newPropertyroom": {
+              "summary": "Add a room to an existing property",
+              "value": [
+                {
+                  "id": 12345678,
+                  "roomTypes": [
+                    {
+                      "name": "Standard room",
+                      "qty": 1,
+                      "maxAdult": 2,
+                      "maxChildren": 2
+                    }
+                  ]
+                }
+              ]
+            },
+            "propertyRoomRename": {
+              "summary": "Change the name of a property and a room",
+              "value": [
+                {
+                  "id": 12345678,
+                  "name": "New Property Name",
+                  "roomTypes": [
+                    {
+                      "id": 90123456,
+                      "name": "New Room Name"
+                    }
+                  ]
+                }
+              ]
+            },
+            "unitRename": {
+              "summary": "Change the name of a unit",
+              "value": [
+                {
+                  "id": 12345678,
+                  "roomTypes": [
+                    {
+                      "id": 90123456,
+                      "units": [
+                        {
+                          "id": 1,
+                          "name": "Unit A"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/properties",
+    "group": "Properties",
+    "purpose": "Planned property deletion",
+    "stage": "Coming soon",
+    "scopeFamily": "properties",
+    "callableDocumented": false,
+    "parameters": [
+      {
+        "name": "id",
+        "description": "The property ID. Multiple ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/properties/rooms",
+    "group": "Properties",
+    "purpose": "Planned standalone room retrieval; use GET /properties today",
+    "stage": "Coming soon",
+    "scopeFamily": "properties",
+    "callableDocumented": false,
+    "parameters": [
+      {
+        "name": "id",
+        "description": "The room ID. Multiple ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "propertyId",
+        "description": "Gets all rooms for the specified property. Multiples ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "includeLanguages",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "all",
+              "en",
+              "ar",
+              "bg",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "et",
+              "fi",
+              "fr",
+              "hr",
+              "he",
+              "hu",
+              "id",
+              "is",
+              "it",
+              "ja",
+              "ko",
+              "lt",
+              "mn",
+              "my",
+              "nl",
+              "no",
+              "pl",
+              "pt",
+              "ro",
+              "ru",
+              "sk",
+              "sl",
+              "sr",
+              "sv",
+              "th",
+              "tr",
+              "vi",
+              "zh",
+              "zt"
+            ]
+          }
+        }
+      },
+      {
+        "name": "includeTexts",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "all",
+              "property",
+              "roomType"
+            ]
+          }
+        }
+      },
+      {
+        "name": "includePictures",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeOffers",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includePriceRules",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeUpsellItems",
+        "in": "query",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "includeUnitDetails",
+        "in": "query",
+        "description": "By default only unit names are returned.",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Get a page of items beyond the first",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/properties/rooms",
+    "group": "Properties",
+    "purpose": "Planned room deletion",
+    "stage": "Coming soon",
+    "scopeFamily": "properties",
+    "callableDocumented": false,
+    "parameters": [
+      {
+        "name": "id",
+        "description": "The room ID. Multiple ids can be included.",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/settings",
+    "group": "Channels - settings",
+    "purpose": "Read channel configuration",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "propertyId",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "roomId",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "name": "channel",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "iCalExport",
+              "iCalImport",
+              "airbnb",
+              "vrbo"
+            ]
+          }
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/settings",
+    "group": "Channels - settings",
+    "purpose": "Amend channel configuration",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/vrboSettingsPost"
+                },
+                {
+                  "$ref": "#/components/schemas/airbnbSettingsPost"
+                },
+                {
+                  "$ref": "#/components/schemas/iCalExportSettingsPost"
+                },
+                {
+                  "$ref": "#/components/schemas/iCalImportSettingsPost"
+                }
+              ]
+            }
+          },
+          "examples": {
+            "channelSetting": {
+              "summary": "Change a channel setting",
+              "value": [
+                {
+                  "channel": "airbnb",
+                  "properties": [
+                    {
+                      "id": 12345678,
+                      "multiplier": 1.3
+                    }
+                  ]
+                }
+              ]
+            },
+            "channelRoomSetting": {
+              "summary": "Change a channel's room settings",
+              "value": [
+                {
+                  "channel": "vrbo",
+                  "properties": [
+                    {
+                      "id": 12345678,
+                      "roomTypes": [
+                        {
+                          "id": 9012345,
+                          "7DayDiscountPercent": 35,
+                          "cancellationPolicy": "noRefund"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/airbnb/users",
+    "group": "Channels - Airbnb",
+    "purpose": "List connected Airbnb account IDs",
+    "stage": "Beta",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/airbnb/listings",
+    "group": "Channels - Airbnb",
+    "purpose": "List listings for a connected Airbnb account",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "airbnbUserId",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "airbnbListingId",
+        "description": "If the airbnbListingId is not specified then all listings will be returned. Must be included to see room data.",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "airbnbApiVersion",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/airbnb/reviews",
+    "group": "Channels - Airbnb",
+    "purpose": "Read Airbnb guest reviews",
+    "stage": "Beta",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "roomId",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/airbnb",
+    "group": "Channels - Airbnb",
+    "purpose": "Import, connect, or disconnect Airbnb listings",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "airbnbUserId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "airbnbListingId": {
+                  "type": "string"
+                },
+                "roomId": {
+                  "type": "string"
+                },
+                "propertyId": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "importAsNewProperty",
+                    "importToExistingProperty",
+                    "connectToExistingRoom",
+                    "disconnectRoom"
+                  ]
+                },
+                "connect": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "inventory",
+                    "limited",
+                    "full"
+                  ]
+                },
+                "importBlockedDates": {
+                  "type": "boolean"
+                },
+                "importBookings": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "examples": {
+            "importAsNewProperty": {
+              "summary": "Import an Airbnb listing as a new property",
+              "value": [
+                {
+                  "action": "importAsNewProperty",
+                  "airbnbUserId": "123456",
+                  "airbnbListingId": "789012",
+                  "connect": "full"
+                }
+              ]
+            },
+            "importAsNewPropertyBlockedDates": {
+              "summary": "Import an Airbnb listing and blocked dates",
+              "value": [
+                {
+                  "action": "importAsNewProperty",
+                  "airbnbUserId": "123456",
+                  "airbnbListingId": "789012",
+                  "connect": "full",
+                  "importBlockedDates": true
+                }
+              ]
+            },
+            "importAsNewPropertyBookings": {
+              "summary": "Import an Airbnb listing and bookings",
+              "value": [
+                {
+                  "action": "importAsNewProperty",
+                  "airbnbUserId": "123456",
+                  "airbnbListingId": "789012",
+                  "connect": "full",
+                  "importBlockedDates": true,
+                  "importBookings": true
+                }
+              ]
+            },
+            "importToExistingProperty": {
+              "summary": "Import an Airbnb listing to an existing property",
+              "value": [
+                {
+                  "action": "importToExistingProperty",
+                  "airbnbUserId": "123456",
+                  "airbnbListingId": "789012",
+                  "connect": "full",
+                  "propertyId": 3456789
+                }
+              ]
+            },
+            "connectToExistingRoom": {
+              "summary": "Connect an Airbnb listing to an existing room",
+              "value": [
+                {
+                  "action": "connectToExistingRoom",
+                  "airbnbUserId": "123456",
+                  "airbnbListingId": "789012",
+                  "connect": "full",
+                  "roomId": 3456789
+                }
+              ]
+            },
+            "disconnectRoom": {
+              "summary": "Disconnect a room from Airbnb",
+              "value": [
+                {
+                  "action": "disconnectRoom",
+                  "roomId": 12345
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/booking",
+    "group": "Channels - Booking.com",
+    "purpose": "Report invalid cards, no-shows, or cancellation requests to Booking.com",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bookingId": {
+                  "type": "integer"
+                },
+                "action": {
+                  "type": "string",
+                  "description": "reportInvalidCard: Report an invalid card to Booking.com. Only available before check in\nreportNoShow: Report a no show to Booking.com. Only available from check in for 2 days\nreportCancel: Report a cancellation request to Booking.com. The booking will only be cancelled if all prerequisites have been fulfilled\n",
+                  "enum": [
+                    "reportInvalidCard",
+                    "reportNoShow",
+                    "reportCancel"
+                  ]
+                }
+              }
+            }
+          },
+          "examples": {
+            "reportInvalidCard": {
+              "summary": "Report a booking's card as invalid to Booking.com",
+              "value": [
+                {
+                  "action": "reportInvalidCard",
+                  "bookingId": 1234567
+                }
+              ]
+            },
+            "reportNoShow": {
+              "summary": "Report a no show booking to Booking.com",
+              "value": [
+                {
+                  "action": "reportNoShow",
+                  "bookingId": 1234567
+                }
+              ]
+            },
+            "reportCancel": {
+              "summary": "Report a booking cancellation request to Booking.com",
+              "value": [
+                {
+                  "action": "reportCancel",
+                  "bookingId": 1234567
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/booking/reviews",
+    "group": "Channels - Booking.com",
+    "purpose": "Read Booking.com guest reviews",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "propertyId",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "from",
+        "description": "Gets reviews made on or after this date. YYYY-MM-DD",
+        "required": true,
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/stripe",
+    "group": "Channels - Stripe",
+    "purpose": "Create checkout sessions and manage charges, refunds, holds, or payment methods",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/stripeCreateSession"
+                },
+                {
+                  "$ref": "#/components/schemas/stripeChargePaymentMethod"
+                },
+                {
+                  "$ref": "#/components/schemas/stripeRefundCharge"
+                },
+                {
+                  "$ref": "#/components/schemas/stripeReleaseCharge"
+                },
+                {
+                  "$ref": "#/components/schemas/stripeCaptureCharge"
+                },
+                {
+                  "$ref": "#/components/schemas/stripeAddPaymentMethod"
+                },
+                {
+                  "$ref": "#/components/schemas/stripeDetachPaymentMethod"
+                }
+              ]
+            }
+          },
+          "examples": {
+            "1": {
+              "summary": "Create a Stripe session",
+              "value": [
+                {
+                  "action": "createStripeSession",
+                  "bookingId": 123456,
+                  "line_items": [
+                    {
+                      "price_data": {
+                        "currency": "eur",
+                        "product_data": {
+                          "name": "Accomodation"
+                        },
+                        "unit_amount": 20000
+                      },
+                      "quantity": 1
+                    }
+                  ],
+                  "success_url": "https://example.com/success?session_id={CHECKOUT_SESSION_ID}",
+                  "cancel_url": "https://example.com/cancel",
+                  "capture": true
+                }
+              ]
+            },
+            "2": {
+              "summary": "Charge a payment method",
+              "value": [
+                {
+                  "action": "chargePaymentMethod",
+                  "bookingId": 123456,
+                  "stripePaymentMethodId": "123456",
+                  "capture": true,
+                  "amount": 123.45,
+                  "currency": "USD",
+                  "description": "booking fee",
+                  "moto": false,
+                  "source": "all"
+                }
+              ]
+            },
+            "3": {
+              "summary": "Refund a charge",
+              "value": [
+                {
+                  "action": "refundCharge",
+                  "bookingId": 123456,
+                  "stripeChargeId": "123456",
+                  "amount": 123.45
+                }
+              ]
+            },
+            "4": {
+              "summary": "Release a hold",
+              "value": [
+                {
+                  "action": "releaseCharge",
+                  "bookingId": 123456,
+                  "stripeChargeId": "123456"
+                }
+              ]
+            },
+            "5": {
+              "summary": "Capture funds on hold",
+              "value": [
+                {
+                  "action": "captureCharge",
+                  "bookingId": 123456,
+                  "stripeChargeId": "123456",
+                  "amount": 123.45
+                }
+              ]
+            },
+            "6": {
+              "summary": "Add a payment method",
+              "value": [
+                {
+                  "action": "addPaymentMethod",
+                  "bookingId": 123456,
+                  "card": {
+                    "number": "1234567890123456",
+                    "expiryMonth": "02",
+                    "expiryYear": "2026",
+                    "name": "John Smith",
+                    "cvc": "123",
+                    "type": "virtual"
+                  }
+                }
+              ]
+            },
+            "7": {
+              "summary": "Detach a payment method",
+              "value": [
+                {
+                  "action": "detachPaymentMethod",
+                  "bookingId": 123456,
+                  "stripePaymentMethodId": "123456"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": [
+      "201"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/stripe/paymentMethods",
+    "group": "Channels - Stripe",
+    "purpose": "Read Stripe payment methods associated with a booking",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "bookingId",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "stripePaymentMethodId",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "stripeApiVersion",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/stripe/charges",
+    "group": "Channels - Stripe",
+    "purpose": "Read Stripe charges associated with a booking",
+    "stage": "Alpha",
+    "scopeFamily": "channels",
+    "callableDocumented": true,
+    "parameters": [
+      {
+        "name": "bookingId",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "stripeChargeId",
+        "in": "query",
+        "description": "If not specified all charges will be returned",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "stripeApiVersion",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "Webhooks - bookings",
+    "group": "Webhooks",
+    "purpose": "Describe the POST payload Beds24 delivers to your webhook URL",
+    "stage": "Alpha",
+    "scopeFamily": "Webhook delivery",
+    "callableDocumented": false,
+    "parameters": [],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "timeStamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "booking": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "bookingGroup": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "master": {
+                        "type": "integer"
+                      },
+                      "ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  },
+                  "masterId": {
+                    "type": "integer"
+                  },
+                  "propertyId": {
+                    "type": "integer"
+                  },
+                  "roomId": {
+                    "type": "integer"
+                  },
+                  "unitId": {
+                    "type": "integer"
+                  },
+                  "roomQty": {
+                    "type": "integer"
+                  },
+                  "offerId": {
+                    "type": "integer"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "subStatus": {
+                    "type": "string"
+                  },
+                  "arrival": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "departure": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "numAdult": {
+                    "type": "integer"
+                  },
+                  "numChild": {
+                    "type": "integer"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "country2": {
+                    "type": "string"
+                  },
+                  "arrivalTime": {
+                    "type": "string"
+                  },
+                  "voucher": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "groupNote": {
+                    "type": "string"
+                  },
+                  "custom1": {
+                    "type": "string"
+                  },
+                  "custom2": {
+                    "type": "string"
+                  },
+                  "custom3": {
+                    "type": "string"
+                  },
+                  "custom4": {
+                    "type": "string"
+                  },
+                  "custom5": {
+                    "type": "string"
+                  },
+                  "custom6": {
+                    "type": "string"
+                  },
+                  "custom7": {
+                    "type": "string"
+                  },
+                  "custom8": {
+                    "type": "string"
+                  },
+                  "custom9": {
+                    "type": "string"
+                  },
+                  "custom10": {
+                    "type": "string"
+                  },
+                  "flagColor": {
+                    "type": "string"
+                  },
+                  "flagText": {
+                    "type": "string"
+                  },
+                  "statusCode": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "lang": {
+                    "type": "string"
+                  },
+                  "referer": {
+                    "type": "string"
+                  },
+                  "refererEditable": {
+                    "type": "string"
+                  },
+                  "reference": {
+                    "type": "string"
+                  },
+                  "channel": {
+                    "type": "string"
+                  },
+                  "apiSourceId": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "apiSource": {
+                    "type": "string"
+                  },
+                  "apiReference": {
+                    "type": "string"
+                  },
+                  "allowChannelUpdate": {
+                    "type": "string"
+                  },
+                  "allowAutoAction": {
+                    "type": "string"
+                  },
+                  "allowReview": {
+                    "type": "string"
+                  },
+                  "allowCancellation": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "invoiceeId": {
+                    "type": "string",
+                    "format": "nullable"
+                  },
+                  "bookingTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "modifiedTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "cancelTime": {
+                    "type": "string",
+                    "format": "nullable"
+                  },
+                  "price": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "deposit": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "tax": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "commission": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "rateDescription": {
+                    "type": "string"
+                  },
+                  "stripeToken": {
+                    "type": "string",
+                    "format": "nullable"
+                  },
+                  "pcibookingToken": {
+                    "type": "string",
+                    "format": "nullable"
+                  },
+                  "apiMessage": {
+                    "type": "string"
+                  }
+                }
+              },
+              "infoItems": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "bookingId": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createTime": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "invoiceItems": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/invoiceItem"
+                }
+              },
+              "messages": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/message"
+                }
+              },
+              "retries": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responseCodes": []
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/users",
+    "group": "Organizations",
+    "purpose": "Planned organization user retrieval",
+    "stage": "Coming soon",
+    "scopeFamily": "Not specified; endpoint unavailable",
+    "callableDocumented": false,
+    "parameters": [],
+    "requestBody": null,
+    "responseCodes": [
+      "200",
+      "400"
+    ]
+  }
+]

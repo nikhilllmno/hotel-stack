@@ -1,0 +1,13 @@
+{
+  "bundle_hash": "sha256:d970ca59b30cbc82220a44a2fd9412de922b916c49c2146df029d62c9e82e476",
+  "scanner_version": "skills-guard-v10",
+  "source": "official",
+  "source_url": "official/creative/social-media-content-calendar",
+  "trust_level": "builtin",
+  "verdict": "safe",
+  "findings": [],
+  "rules": [],
+  "scanned_at": "2026-11-10T21:04:22.971441+00:00",
+  "summary": "social-media-content-calendar: clean scan, no threats detected",
+  "fresh": true
+}

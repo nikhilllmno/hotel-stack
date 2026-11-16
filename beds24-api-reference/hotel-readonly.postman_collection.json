@@ -1,0 +1,565 @@
+{
+  "info": {
+    "name": "Beds24 demo hotel 366736 read only",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Concrete hotel reads. Set beds24Token privately before sending. Authentication and selected read routes were verified with a scoped credential; no credentials included. For November stays apply arrival < 2026-12-01 and departure > 2026-11-01 locally. Token diagnostics and API reads still consume usage credits."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://beds24.com/api/v2"
+    },
+    {
+      "key": "propertyId",
+      "value": "366736"
+    },
+    {
+      "key": "standardRoomId",
+      "value": "754948"
+    },
+    {
+      "key": "deluxeRoomId",
+      "value": "754949"
+    },
+    {
+      "key": "suiteRoomId",
+      "value": "754950"
+    },
+    {
+      "key": "beds24Token",
+      "value": ""
+    },
+    {
+      "key": "standardFixedPriceId",
+      "value": "7046325"
+    },
+    {
+      "key": "deluxeFixedPriceId",
+      "value": "7046326"
+    },
+    {
+      "key": "suiteFixedPriceId",
+      "value": "7046327"
+    }
+  ],
+  "item": [
+    {
+      "name": "Token diagnostics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/authentication/details",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "authentication",
+            "details"
+          ],
+          "query": []
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned."
+      },
+      "response": []
+    },
+    {
+      "name": "Hotel and room configuration",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/properties?id={{propertyId}}&includeAllRooms=true&includeUnitDetails=true&includePriceRules=true&includeOffers=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "properties"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "includeAllRooms",
+              "value": "true"
+            },
+            {
+              "key": "includeUnitDetails",
+              "value": "true"
+            },
+            {
+              "key": "includePriceRules",
+              "value": "true"
+            },
+            {
+              "key": "includeOffers",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Verified route and include flags for full room/physical-unit data. Credential remains an empty placeholder."
+      },
+      "response": []
+    },
+    {
+      "name": "November stays",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/bookings?propertyId={{propertyId}}&arrivalTo=2026-12-01&departureFrom=2026-10-31&includeInvoiceItems=true&includeInfoItems=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "arrivalTo",
+              "value": "2026-12-01"
+            },
+            {
+              "key": "departureFrom",
+              "value": "2026-10-31"
+            },
+            {
+              "key": "includeInvoiceItems",
+              "value": "true"
+            },
+            {
+              "key": "includeInfoItems",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned."
+      },
+      "response": []
+    },
+    {
+      "name": "Arrivals today",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/bookings?propertyId={{propertyId}}&filter=arrivals",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "filter",
+              "value": "arrivals"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned."
+      },
+      "response": []
+    },
+    {
+      "name": "Departures today",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/bookings?propertyId={{propertyId}}&filter=departures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "filter",
+              "value": "departures"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned."
+      },
+      "response": []
+    },
+    {
+      "name": "November calendar",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/rooms/calendar?propertyId={{propertyId}}&startDate=2026-11-01&endDate=2026-11-30&includePrices=true&includeNumAvail=true&includeMinStay=true&includeMaxStay=true&includeOverride=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "rooms",
+            "calendar"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "startDate",
+              "value": "2026-11-01"
+            },
+            {
+              "key": "endDate",
+              "value": "2026-11-30"
+            },
+            {
+              "key": "includePrices",
+              "value": "true"
+            },
+            {
+              "key": "includeNumAvail",
+              "value": "true"
+            },
+            {
+              "key": "includeMinStay",
+              "value": "true"
+            },
+            {
+              "key": "includeMaxStay",
+              "value": "true"
+            },
+            {
+              "key": "includeOverride",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned. Live check on 2026-11-08 returned 2026-11-08 through 2026-11-30 for this requested month; missing earlier inventory dates are not proof of zero historical bookings."
+      },
+      "response": []
+    },
+    {
+      "name": "November availability",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/rooms/availability?propertyId={{propertyId}}&startDate=2026-11-01&endDate=2026-11-30",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "rooms",
+            "availability"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "startDate",
+              "value": "2026-11-01"
+            },
+            {
+              "key": "endDate",
+              "value": "2026-11-30"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned. Live check on 2026-11-08 returned 2026-11-08 through 2026-11-30 for this requested month; missing earlier inventory dates are not proof of zero historical bookings."
+      },
+      "response": []
+    },
+    {
+      "name": "November physical unit bookings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/rooms/unitBookings?propertyId={{propertyId}}&startDate=2026-11-01&endDate=2026-11-30",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "rooms",
+            "unitBookings"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "startDate",
+              "value": "2026-11-01"
+            },
+            {
+              "key": "endDate",
+              "value": "2026-11-30"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned. Live check on 2026-11-08 returned 2026-11-08 through 2026-11-30 for this requested month; missing earlier inventory dates are not proof of zero historical bookings."
+      },
+      "response": []
+    },
+    {
+      "name": "Fixed price configuration",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/fixedPrices?propertyId={{propertyId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "fixedPrices"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned."
+      },
+      "response": []
+    },
+    {
+      "name": "Two adult Standard Double quote",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/rooms/offers?propertyId={{propertyId}}&roomId={{standardRoomId}}&arrival=2026-11-20&departure=2026-11-22&numAdults=2&numChildren=0",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "rooms",
+            "offers"
+          ],
+          "query": [
+            {
+              "key": "propertyId",
+              "value": "{{propertyId}}"
+            },
+            {
+              "key": "roomId",
+              "value": "{{standardRoomId}}"
+            },
+            {
+              "key": "arrival",
+              "value": "2026-11-20"
+            },
+            {
+              "key": "departure",
+              "value": "2026-11-22"
+            },
+            {
+              "key": "numAdults",
+              "value": "2"
+            },
+            {
+              "key": "numChildren",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Prepared from the official Beds24 API V2 schema. Not executed. Follow pagination where returned."
+      },
+      "response": []
+    },
+    {
+      "name": "Saved synthetic bookings with known IDs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{beds24Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/bookings?id=95853447&id=95853671&id=95853699&id=95853717&id=95853636&includeInvoiceItems=true&includeInfoItems=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "95853447"
+            },
+            {
+              "key": "id",
+              "value": "95853671"
+            },
+            {
+              "key": "id",
+              "value": "95853699"
+            },
+            {
+              "key": "id",
+              "value": "95853717"
+            },
+            {
+              "key": "id",
+              "value": "95853636"
+            },
+            {
+              "key": "includeInvoiceItems",
+              "value": "true"
+            },
+            {
+              "key": "includeInfoItems",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "All five saved booking IDs were verified in the hotel booking response. UI reference maps to reference. This ID-filtered collection request itself has not been executed."
+      },
+      "response": []
+    }
+  ]
+}

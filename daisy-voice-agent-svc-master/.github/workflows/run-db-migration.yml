@@ -1,0 +1,180 @@
+# Set the following GitHub action Repository Variables
+#
+# ECR_REPOSITORY
+#
+# PROD_AWS_ROLE
+# PROD_AWS_REGION
+#
+# DEV_AWS_ROLE
+# DEV_AWS_REGION
+
+name: Run DB Migration
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      Environment:
+        required: true
+        type: choice
+        description: Choose env
+        options:
+          - dev
+          - prod
+
+jobs:
+  prepare-env:
+    name: Prepare Env
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    outputs:
+      AWS_ROLE: ${{ steps.vars.outputs.AWS_ROLE }}
+      AWS_REGION: ${{ steps.vars.outputs.AWS_REGION }}
+      ENV: ${{ steps.vars.outputs.ENV }}
+      PROJECT_PREFIX: ${{ steps.vars.outputs.PROJECT_PREFIX }}
+      PROJECT_REGION: ${{ steps.vars.outputs.PROJECT_REGION }}
+      ECR_REPOSITORY: ${{steps.vars.outputs.ECR_REPOSITORY}}
+      ECS_CLUSTER: ${{ steps.set_env.outputs.ECS_CLUSTER }}
+      ECS_SERVICE: ${{ steps.set_env.outputs.ECS_SERVICE }}
+      ECR_IMAGE: ${{ steps.set_env.outputs.ECR_IMAGE }}
+      TASK_DEFINITION: ${{ steps.set_env.outputs.TASK_DEFINITION }}
+      CONTAINER_NAME: ${{ steps.set_env.outputs.CONTAINER_NAME }}
+      SUBNETS: ${{ steps.vars.outputs.SUBNETS }}
+      SECURITY_GROUPS: ${{ steps.vars.outputs.SECURITY_GROUPS }}
+
+    steps:
+      - id: vars
+        shell: bash
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          ENV=${{ github.event.inputs.environment }}
+          echo $BRANCH
+          if [ -z "$ENV" ]
+          then
+            case $BRANCH in
+              "develop")
+                ENV="dev"
+                ;;
+              "master")
+                ENV="prod"
+                ;;
+              *)
+                echo "ENV not configured" && exit 1
+                ;;
+            esac
+          fi
+          if [[ $ENV == 'prod' && $BRANCH == 'master' ]]
+          then
+            echo "AWS_ROLE=PROD_AWS_ROLE" >> $GITHUB_OUTPUT
+            echo "AWS_REGION=PROD_AWS_REGION" >> $GITHUB_OUTPUT
+            echo "PROJECT_PREFIX=dextr-prod-ca" >> $GITHUB_OUTPUT
+            echo "ECR_REPOSITORY=PROD_ECR_REPOSITORY" >> $GITHUB_OUTPUT
+            echo "SUBNETS=[\"subnet-0cba452498581797c\", \"subnet-0cba452498581797c\"]" >> $GITHUB_OUTPUT
+            echo "SECURITY_GROUPS=[\"sg-0a64b9d64c1c5ca1f\"]" >> $GITHUB_OUTPUT
+          elif [ $ENV == 'dev' ]
+          then
+            echo "AWS_ROLE=DEV_AWS_ROLE" >> $GITHUB_OUTPUT
+            echo "AWS_REGION=DEV_AWS_REGION" >> $GITHUB_OUTPUT
+            echo "PROJECT_PREFIX=dextr-dev-ca" >> $GITHUB_OUTPUT
+            echo "ECR_REPOSITORY=DEV_ECR_REPOSITORY" >> $GITHUB_OUTPUT
+            echo "SUBNETS=[\"subnet-022e11ea7b02160d4\", \"subnet-0479296cc39aabfe9\"]" >> $GITHUB_OUTPUT
+            echo "SECURITY_GROUPS=[\"sg-0d76ab876b3ca7777\"]" >> $GITHUB_OUTPUT
+          else
+            echo "Branch not configured!"
+            exit 1
+          fi
+          echo "ENV=$ENV"  >> $GITHUB_OUTPUT
+          echo ":rocket: Environment - $ENV " >> $GITHUB_STEP_SUMMARY
+      - name: set variables
+        id: set_env
+        run: |
+          SERVICE=daisy-agent
+          PROJECT_PREFIX=${{ steps.vars.outputs.PROJECT_PREFIX }}
+          echo "ECS_CLUSTER=$PROJECT_PREFIX-ecs-cluster"  >> $GITHUB_OUTPUT
+          echo "ECS_SERVICE=$PROJECT_PREFIX-svc-$SERVICE" >> $GITHUB_OUTPUT
+          echo "ECR_IMAGE=$PROJECT_PREFIX-ecr-$SERVICE" >> $GITHUB_OUTPUT
+          echo "TASK_DEFINITION=$PROJECT_PREFIX-td-$SERVICE" >> $GITHUB_OUTPUT
+          echo "CONTAINER_NAME=$PROJECT_PREFIX-cntr-$SERVICE" >> $GITHUB_OUTPUT
+          echo "ECR_REPOSITORY=$PROJECT_PREFIX-ecr-$SERVICE" >> $GITHUB_OUTPUT
+
+          echo ":seedling: Branch:${GITHUB_REF#refs/heads/}" >> $GITHUB_STEP_SUMMARY
+  build:
+    needs: prepare-env
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - type: svc
+            context: ./websocket-server
+          # - type: web
+          #   context: ./webapp
+    env:
+      AWS_ROLE: ${{ needs.prepare-env.outputs.AWS_ROLE }}
+      AWS_REGION: ${{ needs.prepare-env.outputs.AWS_REGION }}
+      ECR_IMAGE: ${{ needs.prepare-env.outputs.ECR_IMAGE }}
+      ECR_REPOSITORY: ${{needs.prepare-env.outputs.ECR_REPOSITORY}}
+    outputs:
+      app_image_svc: ${{ steps.build-push.outputs.app_image_svc }}
+      # app_image_web: ${{ steps.build-push.outputs.app_image_web }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars[env.AWS_ROLE] }}
+          aws-region: ${{ vars[env.AWS_REGION] }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker image
+        id: build-push
+        run: |
+          echo ${{ vars[env.ECR_REPOSITORY] }}
+          ECR_IMAGE_TAG="${ECR_IMAGE}-${{ matrix.type }}:${GITHUB_SHA::7}-$GITHUB_RUN_NUMBER"
+          # if [ "${{ matrix.type }}" = "web" ]; then
+          #   aws s3 cp s3://${{ needs.prepare-env.outputs.PROJECT_PREFIX }}-s3-environment/daisy/webapp.env ./webapp/.env
+          # fi
+          docker build -t $ECR_IMAGE_TAG ${{ matrix.context }}
+          docker tag $ECR_IMAGE_TAG ${{ vars[env.ECR_REPOSITORY] }}/$ECR_IMAGE_TAG
+          docker push ${{ vars[env.ECR_REPOSITORY] }}/$ECR_IMAGE_TAG
+          if [ "${{ matrix.type }}" = "svc" ]; then
+            echo "app_image_svc=${{ vars[env.ECR_REPOSITORY] }}/$ECR_IMAGE_TAG" >> $GITHUB_OUTPUT
+          # else
+          #   echo "app_image_web=${{ vars[env.ECR_REPOSITORY] }}/$ECR_IMAGE_TAG" >> $GITHUB_OUTPUT
+          fi
+  run-db-migration:
+    name: Run the DB migration
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: read
+    needs:
+      - prepare-env
+      - build
+    env:
+      PROJECT_PREFIX: ${{needs.prepare-env.outputs.PROJECT_PREFIX}}
+      AWS_ROLE: ${{ needs.prepare-env.outputs.AWS_ROLE }}
+      AWS_REGION: ${{ needs.prepare-env.outputs.AWS_REGION }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: run db migration
+        id: run_db_migration
+        uses: ./.github/actions/run-migration
+        with:
+          aws-region: ${{ vars[env.AWS_REGION] }}
+          aws-role: ${{ vars[env.AWS_ROLE] }}
+          task-definition: "${{ needs.prepare-env.outputs.TASK_DEFINITION }}-db-migrate"
+          container-name: "${{ needs.prepare-env.outputs.CONTAINER_NAME }}-db-migrate"
+          ecs-cluster: ${{ needs.prepare-env.outputs.ECS_CLUSTER }}
+          image: ${{ needs.build.outputs.app_image_svc }}
+          subnets: ${{ needs.prepare-env.outputs.SUBNETS }}
+          security-groups: ${{ needs.prepare-env.outputs.SECURITY_GROUPS }}

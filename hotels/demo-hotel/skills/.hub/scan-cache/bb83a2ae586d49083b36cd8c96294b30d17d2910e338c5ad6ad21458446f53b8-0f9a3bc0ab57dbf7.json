@@ -1,0 +1,13 @@
+{
+  "bundle_hash": "sha256:bb83a2ae586d49083b36cd8c96294b30d17d2910e338c5ad6ad21458446f53b8",
+  "scanner_version": "skills-guard-v10",
+  "source": "official",
+  "source_url": "official/productivity/live-dashboard",
+  "trust_level": "builtin",
+  "verdict": "safe",
+  "findings": [],
+  "rules": [],
+  "scanned_at": "2026-11-10T21:04:24.032240+00:00",
+  "summary": "live-dashboard: clean scan, no threats detected",
+  "fresh": true
+}

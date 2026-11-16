@@ -1,0 +1,3 @@
+name: hotel-trace
+version: 0.1.0
+description: Tag every LLM request with hotel, agent and session for OpenRouter Broadcast traces.

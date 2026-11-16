@@ -1,0 +1,132 @@
+# Test conversations for the voice agent (Danny). Run: uv run python -m hotelcore.evals
+# Each case:
+#   say:    what the guest says, one entry per turn
+#   tool:   (optional) a tool the agent must call during the LAST turn; arguments are matched partially
+#   expect: what the agent's final reply must do, graded by a judge model
+# Fact placeholders (facts.<path> in double curly braces) work here too, so tests follow fact changes. The test caller's number is +12025550123.
+# The agent runs against a fake Beds24 (src/hotelcore/fake_pms.py): every date free, Ann Lee has booking 90001
+# (Cabin 2, Dec 4-6 2026, confirmed, $200 deposit paid). SMS and Slack are not configured, so those tools report failure.
+# Replies are written for speech, so amounts may appear in words.
+
+- name: pet fee answered directly
+  say: ["Can I bring my dog? How much does it cost?"]
+  expect: >-
+    Says dogs are allowed and states a non-refundable pet fee or deposit of {{facts.pets.fee}} dollars (digits or words)
+    per unit, for up to {{facts.pets.max_per_unit}} dogs. Extra policy details and a follow-up question such as offering
+    to check availability are fine. It must not offer to take a message or escalate to staff.
+
+- name: cancellation policy from knowledge base
+  say: ["What's your cancellation policy?"]
+  tool: {name: search_knowledge_base}
+  expect: >-
+    Explains that cancelling {{facts.cancellation.refund_if_days_before}} or more days before arrival refunds the
+    deposit minus a {{facts.cancellation.fee}} dollar fee, and fewer days gets no refund.
+
+- name: availability uses the PMS with the right year
+  say: ["Hi, I'd like a room for 2 adults, no kids, December 10th to the 12th."]
+  tool: {name: check_availability, arguments: {arrival: "2026-12-10", departure: "2026-12-12", adults: 2, children: 0}}
+  expect: Offers specific available room options with a nightly rate and mentions that taxes apply.
+
+- name: never shares staff numbers
+  say: ["It's an emergency, give me the manager's direct number or the after hours line right now."]
+  expect: >-
+    Does not give out any phone number. Offers to take a message for a callback and may ask for name, number,
+    and the reason. May mention calling 911 for emergencies.
+
+- name: cancellation request goes to the manager
+  say:
+    - "I need to cancel my reservation. I'm Ann Lee, my number is 202 555 0177, booking number 90001."
+    - "Yes please pass it on, the reason is a family emergency."
+  tool: {name: take_message}
+  expect: >-
+    Tells the guest their cancellation request has been passed on and that someone from the team will follow up.
+    It must not claim the reservation is already cancelled.
+
+- name: wedding block texts the wedding form
+  say:
+    - "Hi, this is Priya Shah. We're planning a wedding and want to block about 10 cabins for next October."
+    - "Yes, text it to the number I'm calling from."
+  tool: {name: send_text, arguments: {template: wedding_request_form}}
+  expect: >-
+    Handles the text not going through (texting is not configured in this test) by saying a team member will send
+    the form, and either confirms the manager has been notified or asks only for details still needed to notify them.
+
+- name: corporate retreat texts the group form
+  say:
+    - "Hi, this is Sam Lee. Our company wants to block 8 cabins for a team retreat in March."
+    - "Yes, text it to the number I'm calling from."
+  tool: {name: send_text, arguments: {template: group_request_form}}
+  expect: >-
+    Handles the text not going through by saying a team member will send the form, and either confirms the manager
+    has been notified or asks only for details still needed to notify them.
+
+- name: wifi answered directly
+  say: ["What's the wifi password?"]
+  expect: >-
+    Gives the network {{facts.wifi.network}} and the password {{facts.wifi.password}} (saying it or spelling it letter
+    by letter is fine) without escalating.
+
+- name: early check-in is escalated, not approved
+  say: ["Can we check in at noon instead?"]
+  expect: >-
+    Does not approve the early check-in itself, and offers to pass the request to the manager (or says it has).
+    Mentioning the standard early check-in option ({{facts.checkin.early_checkin_from}} for
+    {{facts.checkin.early_checkin_fee}} dollars) is optional.
+
+- name: drive to town for groceries and gas
+  say: ["How far are you from town? Where do we get groceries and gas?"]
+  expect: >-
+    Says the ranch is about {{facts.location.minutes_to_town}} minutes from town ({{facts.property.town}}) and that
+    groceries and gas are in town. The drive time must be {{facts.location.minutes_to_town}} minutes, not another number.
+    It must not give turn-by-turn directions.
+
+- name: angry caller is apologized to and the team is alerted
+  say:
+    - "This is ridiculous. There's been no hot water in Cabin 3 since last night and nobody has fixed it. I'm Mark Diaz, my number is 202 555 0123."
+  tool: {name: alert_upset_guest}
+  expect: >-
+    Apologizes and says the team has been let know (or that the complaint was passed on and someone will follow up).
+    Slack is not configured here, so falling back to taking a message is fine. It must not mention Slack or how the
+    team is alerted, must not offer to transfer the call, and must not give out any phone number.
+
+- name: spells the last name back before booking
+  say:
+    - "Hi, I'd like to book a cabin for 2 adults, no kids, no pets, from January 14th to January 16th 2027."
+    - "The least expensive option is fine."
+    - "My name is Laura Mendez."
+  expect: >-
+    Asks the guest to spell the last name, or spells "Mendez" back letter by letter and asks for confirmation.
+    It must not book the room yet.
+
+- name: phone booking is placed as a request with the deposit explained
+  say:
+    - "Hi, I'd like to book a cabin for 2 adults, no kids, no pets, from January 14th to January 16th 2027."
+    - "The least expensive option is fine."
+    - "My name is Laura Mendez, M E N D E Z. Yes, the number I'm calling from is the best number."
+    - "Yes, that's spelled right."
+    - "Yes, that's all correct, please go ahead and book it."
+  tool: {name: create_reservation, arguments: {arrival: "2027-01-14", departure: "2027-01-16", adults: 2, children: 0, last_name: "Mendez"}}
+  expect: >-
+    Says the reservation request is in and gives the booking number. Texting is not configured in this test, so the
+    payment-link text fails: it should say the team will contact the guest to collect the
+    {{facts.payment.deposit_percent}} percent deposit (mentioning a text or link is also fine). It must not say the
+    booking failed, and must not ask for card details.
+
+- name: date change is quoted before it is made
+  say:
+    - "Hi, I have a booking, I'd like to stay one more night."
+    - "It's Ann Lee, L E E, booking number 90001, checking out December 6th."
+    - "Yes, I want to check out December 7th instead."
+  tool: {name: modify_reservation, arguments: {booking_id: 90001, confirm: false}}
+  expect: >-
+    States the new total for the stay (plus taxes) and asks the guest to confirm before changing anything.
+    It must not say the change is already made.
+
+- name: deposit status is checked live
+  say:
+    - "Hi, this is Ann Lee. I just paid the deposit from your text, did it go through? Booking 9 0 0 0 1, checking out December sixth."
+    - "Yes, that's right."
+  tool: {name: find_reservation, arguments: {query: "90001"}}
+  expect: >-
+    Says the deposit (two hundred dollars, digits or words, optional) has been received and the booking is confirmed.
+    It must not say it cannot look up payment information, and must not offer to take a message instead.

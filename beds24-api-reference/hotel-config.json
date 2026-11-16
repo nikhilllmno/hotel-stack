@@ -1,0 +1,357 @@
+{
+  "snapshotDate": "2026-11-08",
+  "source": "Saved Beds24 UI values observed by the coordinating agent in this setup session",
+  "propertyId": 366736,
+  "currency": "INR",
+  "timezone": "Asia/Kolkata",
+  "checkInFrom": "14:00",
+  "checkInUntil": "22:00",
+  "checkOut": "11:00",
+  "totalUnits": 20,
+  "housekeeping": {
+    "cleanUnits": 20
+  },
+  "pricingPeriod": {
+    "firstNight": "2026-11-01",
+    "lastNight": "2026-12-31",
+    "novemberFullyCovered": true
+  },
+  "roomTypes": [
+    {
+      "name": "Standard Double",
+      "roomId": 754948,
+      "quantity": 10,
+      "unitNames": [
+        "101",
+        "102",
+        "103",
+        "104",
+        "105",
+        "106",
+        "107",
+        "108",
+        "109",
+        "110"
+      ],
+      "housekeepingStatus": "clean",
+      "currency": "INR",
+      "nightlyPrice": 3000,
+      "fixedPriceId": 7046325,
+      "firstNight": "2026-11-01",
+      "lastNight": "2026-12-31",
+      "maxPeople": 2,
+      "units": [
+        {
+          "id": 1,
+          "name": "101"
+        },
+        {
+          "id": 2,
+          "name": "102"
+        },
+        {
+          "id": 3,
+          "name": "103"
+        },
+        {
+          "id": 4,
+          "name": "104"
+        },
+        {
+          "id": 5,
+          "name": "105"
+        },
+        {
+          "id": 6,
+          "name": "106"
+        },
+        {
+          "id": 7,
+          "name": "107"
+        },
+        {
+          "id": 8,
+          "name": "108"
+        },
+        {
+          "id": 9,
+          "name": "109"
+        },
+        {
+          "id": 10,
+          "name": "110"
+        }
+      ],
+      "roomPriceEnabled": true,
+      "allWeekdaysAllowed": true
+    },
+    {
+      "name": "Deluxe Double",
+      "roomId": 754949,
+      "quantity": 6,
+      "unitNames": [
+        "201",
+        "202",
+        "203",
+        "204",
+        "205",
+        "206"
+      ],
+      "housekeepingStatus": "clean",
+      "currency": "INR",
+      "nightlyPrice": 4500,
+      "fixedPriceId": 7046326,
+      "firstNight": "2026-11-01",
+      "lastNight": "2026-12-31",
+      "maxPeople": 2,
+      "units": [
+        {
+          "id": 1,
+          "name": "201"
+        },
+        {
+          "id": 2,
+          "name": "202"
+        },
+        {
+          "id": 3,
+          "name": "203"
+        },
+        {
+          "id": 4,
+          "name": "204"
+        },
+        {
+          "id": 5,
+          "name": "205"
+        },
+        {
+          "id": 6,
+          "name": "206"
+        }
+      ],
+      "roomPriceEnabled": true,
+      "allWeekdaysAllowed": true
+    },
+    {
+      "name": "Family Suite",
+      "roomId": 754950,
+      "quantity": 4,
+      "unitNames": [
+        "301",
+        "302",
+        "303",
+        "304"
+      ],
+      "housekeepingStatus": "clean",
+      "currency": "INR",
+      "nightlyPrice": 6500,
+      "fixedPriceId": 7046327,
+      "firstNight": "2026-11-01",
+      "lastNight": "2026-12-31",
+      "maxPeople": 4,
+      "units": [
+        {
+          "id": 1,
+          "name": "301"
+        },
+        {
+          "id": 2,
+          "name": "302"
+        },
+        {
+          "id": 3,
+          "name": "303"
+        },
+        {
+          "id": 4,
+          "name": "304"
+        }
+      ],
+      "roomPriceEnabled": true,
+      "allWeekdaysAllowed": true
+    }
+  ],
+  "syntheticBookings": [
+    {
+      "demoReference": "DEMO-001",
+      "bookingId": 95853447,
+      "roomId": 754948,
+      "unitName": "101",
+      "arrival": "2026-11-15",
+      "departure": "2026-11-17",
+      "price": 6000,
+      "currency": "INR",
+      "infoCodes": [],
+      "synthetic": true,
+      "guestContactFieldsEmpty": true,
+      "roomNights": 2,
+      "unitId": 1,
+      "reference": "DEMO-001"
+    },
+    {
+      "demoReference": "DEMO-002",
+      "bookingId": 95853671,
+      "roomId": 754948,
+      "unitName": "102",
+      "arrival": "2026-11-01",
+      "departure": "2026-11-03",
+      "price": 6000,
+      "currency": "INR",
+      "infoCodes": [
+        "CHECKOUT"
+      ],
+      "synthetic": true,
+      "guestContactFieldsEmpty": true,
+      "roomNights": 2,
+      "unitId": 2,
+      "reference": "DEMO-002"
+    },
+    {
+      "demoReference": "DEMO-003",
+      "bookingId": 95853699,
+      "roomId": 754949,
+      "unitName": "201",
+      "arrival": "2026-11-08",
+      "departure": "2026-11-10",
+      "price": 9000,
+      "currency": "INR",
+      "infoCodes": [
+        "CHECKIN"
+      ],
+      "synthetic": true,
+      "guestContactFieldsEmpty": true,
+      "roomNights": 2,
+      "unitId": 1,
+      "reference": "DEMO-003"
+    },
+    {
+      "demoReference": "DEMO-004",
+      "bookingId": 95853717,
+      "roomId": 754950,
+      "unitName": "301",
+      "arrival": "2026-11-23",
+      "departure": "2026-11-26",
+      "numAdult": 2,
+      "numChild": 2,
+      "price": 19500,
+      "currency": "INR",
+      "infoCodes": [],
+      "synthetic": true,
+      "guestContactFieldsEmpty": true,
+      "roomNights": 3,
+      "unitId": 1,
+      "reference": "DEMO-004"
+    },
+    {
+      "demoReference": "DEMO-005",
+      "bookingId": 95853636,
+      "roomId": 754950,
+      "unitName": "304",
+      "arrival": "2026-11-30",
+      "departure": "2026-12-01",
+      "numAdult": 4,
+      "price": 6500,
+      "currency": "INR",
+      "infoCodes": [],
+      "synthetic": true,
+      "guestContactFieldsEmpty": true,
+      "roomNights": 1,
+      "unitId": 4,
+      "reference": "DEMO-005"
+    }
+  ],
+  "sampleTotals": {
+    "bookings": 5,
+    "roomNights": 10,
+    "bookingPriceTotal": 47000,
+    "currency": "INR"
+  },
+  "paymentsRecorded": false,
+  "api": {
+    "baseUrl": "https://beds24.com/api/v2",
+    "tokenCreatedInThisTask": true,
+    "credentialsIncludedInPackage": false,
+    "authenticatedCallsVerified": true,
+    "settingsUrl": "https://beds24.com/control3.php?pagetype=apiv2",
+    "settingsVerifiedViaAuthenticatedUI": true,
+    "apiPageEnabled": true,
+    "generateInviteCodeButtonAvailable": true,
+    "credentialAccess": "readOnly",
+    "validToken": true,
+    "tokenOwnerId": 182366,
+    "onlyPropertyId": 366736,
+    "scopes": [
+      "read:properties",
+      "read:inventory",
+      "read:bookings",
+      "read:bookings-personal",
+      "read:bookings-financial"
+    ],
+    "writeScopesGranted": false,
+    "deleteScopesGranted": false,
+    "verificationDate": "2026-11-08",
+    "propertiesIncludeAllRoomsRequiredForFullDetails": true,
+    "successfulReadRoutes": [
+      "/properties",
+      "/bookings",
+      "/inventory/fixedPrices",
+      "/inventory/rooms/calendar",
+      "/inventory/rooms/availability",
+      "/inventory/rooms/unitBookings",
+      "/inventory/rooms/offers"
+    ],
+    "observedInventoryWindow": {
+      "requestedStart": "2026-11-01",
+      "requestedEnd": "2026-11-30",
+      "returnedStart": "2026-11-08",
+      "returnedEnd": "2026-11-30",
+      "endpoints": [
+        "/inventory/rooms/calendar",
+        "/inventory/rooms/availability",
+        "/inventory/rooms/unitBookings"
+      ],
+      "interpretation": "Observed behavior on verification date; no general historical retention guarantee inferred"
+    },
+    "verificationReport": "verification-report.json",
+    "verificationPassed": true,
+    "authenticatedGetCalls": 14,
+    "passedChecks": 70,
+    "totalChecks": 70,
+    "endToEndReport": "e2e-results.json",
+    "endToEndCoverage": {
+      "catalogEntries": 38,
+      "documentedCallableMethods": 33,
+      "exercisedCallableMethods": 26,
+      "journaledRequests": 76,
+      "initialSetupExchangeOutsideJournal": 1,
+      "statusCounts": {
+        "passed": 18,
+        "passed_with_caveat": 2,
+        "unverified_behavior": 1,
+        "not_tested": 7,
+        "coming_soon": 4,
+        "empty_response": 5,
+        "not_tested_webhook": 1
+      }
+    },
+    "temporaryWriteCredentialRevoked": true,
+    "allTestChangesRestored": true
+  },
+  "operationalState": "Configured demo hotel; live distribution and payment processing are not established by this configuration",
+  "notes": [
+    "CHECKIN and CHECKOUT are recorded info codes, not replacement reservation status values.",
+    "No real guest contact information or payment details are included.",
+    "Physical unit IDs are scoped to their room type: Standard1\u201310, Deluxe1\u20136, Suite1\u20134.",
+    "Booking UI reference maps to the API reference field.",
+    "Original read-only credential remains valid and is excluded from this package. A separate temporary write credential was used for reversible API testing and revoked after cleanup."
+  ],
+  "ownerId": 182366,
+  "propertyName": "Lotus Demo Hotel (TEST)",
+  "bookingRules": {
+    "bookingType": "autoConfirmed"
+  },
+  "allPaymentGatewaysDisabled": true,
+  "accountSubscriptionState": "14-day trial active",
+  "fullMonthServiceRequiresPaidContinuation": true
+}

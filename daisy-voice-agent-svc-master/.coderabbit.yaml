@@ -1,0 +1,45 @@
+# Review principles and their reasons: README/architecture/code-review-rules.md
+reviews:
+  profile: chill
+  auto_review:
+    ignore_usernames:
+      - "dependabot[bot]"
+  pre_merge_checks:
+    custom_checks:
+      - name: Shortcuts declared
+        mode: warning
+        instructions: |
+          Pass if the PR description has a "Shortcuts taken" section that either says "None" or lists at least one shortcut.
+          Fail if the section is missing or still holds only the template placeholder.
+      - name: Claimed tests exist
+        mode: warning
+        instructions: |
+          Pass if the PR description does not claim added or updated tests.
+          If it does, pass only if the diff adds or changes at least one *.test.ts or *.test.integration.ts file covering the described behaviour.
+  path_instructions:
+    - path: "websocket-server/src/**/*.ts"
+      instructions: |
+        Review against these principles. Skip style, naming and formatting nits; ESLint and Prettier own those.
+        Besides bugs, ask whether the PR leaves the code it touches better than it found it.
+
+        1. Testable by design. Dependencies come in through the constructor or parameters, not the global db or import-time singletons. Business decisions (pricing, eligibility, status transitions) live in pure functions apart from DB, PMS and gateway calls, so they can be tested without mocks.
+        2. Small, focused modules. New logic does not go into roomReservationService.ts or other files over 1000 lines; it goes into a focused module the big file calls. A touched function over 150 lines should not grow.
+        3. Clear layers, no cycles. Routers call controllers, controllers call services, services call repositories and clients, never the other way. No new import cycles, and no setter injection or in-process event emitters to dodge one; wire the graph at startup.
+        4. Fail loudly. No silent fallback to another code path, no swallowed errors, no env var with a silent default. Misconfiguration surfaces as an error, not a log line.
+        5. Side effects are safe to repeat. Anything that charges, refunds, books, cancels or handles a webhook must be safe to retry or receive twice.
+        6. Types carry the contract. Validate external input at the boundary, then trust typed values inside. No new `any` in PMS interfaces, provider clients or service signatures.
+        7. Per-hotel behaviour is config, not code. No hardcoded hotel ids or names and no heuristics like a room-name regex; it belongs in the hotel's configuration in the DB.
+        8. Reuse before adding. Use the existing helper, repository method, client or shared fake instead of a near-copy. A new abstraction must remove more complexity than it adds.
+        9. Outcomes are observable. Calls to or from an external system (PMS, payment gateway, Vapi, Alfred, Teams, SMS) and business outcomes log a count with logKpi and a KpiStat constant, for every attempt, not only failures.
+        10. Shortcuts are declared. A known limit gets a line under "Shortcuts taken" in the PR description, with when to fix it; a code comment is optional.
+    - path: "websocket-server/src/{services,authorizeNet,calry,cloudbeds,hostaway,mews,resNexus,stayntouch}/**/*.ts"
+      instructions: |
+        For code that charges, refunds or books: state is written to the DB before the gateway or PMS call, the row is claimed before acting, and an idempotency key is sent when the provider supports one.
+        Background jobs such as the stale reservation sweeper must not cancel a claimed booking that is still in flight.
+        No card data, tokens, JWTs, full gateway responses or guest PII in logs, including through httpClient request and response logging.
+        A change to how card data flows needs a test that runs the whole flow and asserts the PAN and CVV appear in no log.
+    - path: "websocket-server/src/**/*.test*.ts"
+      instructions: |
+        Tests describe behaviour through public methods, not implementation details.
+        Flag new jest.mock of modules under src/. Prefer createExternalServiceStubs, createTestRoomReservationService and shared fakes like StubPmsReservationService.
+        Flag test setup longer than the test itself; suggest growing a shared fake instead.

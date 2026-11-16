@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group Block Booking Request</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="background-color:#2980b9;padding:30px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:28px;">Group Block Booking Request</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px;">
+              <p style="font-size:16px;color:#333333;line-height:1.6;">Dear <strong>{{hotelName}}</strong> Team,</p>
+              <p style="font-size:16px;color:#333333;line-height:1.6;">
+                A guest has called in requesting to establish a new group block. Please find their details below:
+              </p>
+              <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="margin:20px 0;border:1px solid #e0e0e0;border-radius:4px;">
+                <tr style="background-color:#f9f9f9;">
+                  <td style="font-size:14px;color:#666666;font-weight:bold;width:40%;">Guest Name</td>
+                  <td style="font-size:14px;color:#333333;">{{customerName}}</td>
+                </tr>
+                <tr>
+                  <td style="font-size:14px;color:#666666;font-weight:bold;">Phone Number</td>
+                  <td style="font-size:14px;color:#333333;">{{customerNumber}}</td>
+                </tr>
+              </table>
+              <p style="font-size:16px;color:#333333;line-height:1.6;">
+                Please reach out to the guest at <strong>{{customerNumber}}</strong> to assist them with their group block.
+              </p>
+              <p style="font-size:16px;color:#333333;line-height:1.6;margin-top:30px;">
+                Regards,<br /><strong>Dextr AI</strong>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#ecf0f1;padding:20px;text-align:center;font-size:12px;color:#999999;">
+              This is an automated notification from Dextr AI.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

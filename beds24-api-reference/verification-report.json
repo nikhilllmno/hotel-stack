@@ -1,0 +1,1095 @@
+{
+  "checkedAt": "2026-11-08T07:59:35.626470+00:00",
+  "propertyId": 366736,
+  "method": "Live authenticated Beds24 API V2 GET requests using an approved property-restricted read-only credential",
+  "authenticatedGetCalls": 14,
+  "passed": true,
+  "passedChecks": 70,
+  "totalChecks": 70,
+  "checks": [
+    {
+      "check": "Token valid",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "Token restricted to dummy hotel",
+      "passed": true,
+      "actual": 366736,
+      "expected": 366736
+    },
+    {
+      "check": "Read-only scopes",
+      "passed": true,
+      "actual": [
+        "read:bookings",
+        "read:bookings-financial",
+        "read:bookings-personal",
+        "read:inventory",
+        "read:properties"
+      ],
+      "expected": [
+        "read:bookings",
+        "read:bookings-financial",
+        "read:bookings-personal",
+        "read:inventory",
+        "read:properties"
+      ]
+    },
+    {
+      "check": "Hotel identity and currency",
+      "passed": true,
+      "actual": [
+        366736,
+        "Lotus Demo Hotel (TEST)",
+        "INR"
+      ],
+      "expected": [
+        366736,
+        "Lotus Demo Hotel (TEST)",
+        "INR"
+      ]
+    },
+    {
+      "check": "Check-in and checkout settings",
+      "passed": true,
+      "actual": [
+        "14:00",
+        "22:00",
+        "11:00"
+      ],
+      "expected": [
+        "14:00",
+        "22:00",
+        "11:00"
+      ]
+    },
+    {
+      "check": "Automatic confirmation",
+      "passed": true,
+      "actual": "autoConfirmed",
+      "expected": "autoConfirmed"
+    },
+    {
+      "check": "Payment gateways disabled",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "Room type 754948: name, quantity, capacity",
+      "passed": true,
+      "actual": [
+        "Standard Double",
+        10,
+        2
+      ],
+      "expected": [
+        "Standard Double",
+        10,
+        2
+      ]
+    },
+    {
+      "check": "Room type 754948: unit names and API IDs",
+      "passed": true,
+      "actual": [
+        [
+          1,
+          "101"
+        ],
+        [
+          2,
+          "102"
+        ],
+        [
+          3,
+          "103"
+        ],
+        [
+          4,
+          "104"
+        ],
+        [
+          5,
+          "105"
+        ],
+        [
+          6,
+          "106"
+        ],
+        [
+          7,
+          "107"
+        ],
+        [
+          8,
+          "108"
+        ],
+        [
+          9,
+          "109"
+        ],
+        [
+          10,
+          "110"
+        ]
+      ],
+      "expected": [
+        [
+          1,
+          "101"
+        ],
+        [
+          2,
+          "102"
+        ],
+        [
+          3,
+          "103"
+        ],
+        [
+          4,
+          "104"
+        ],
+        [
+          5,
+          "105"
+        ],
+        [
+          6,
+          "106"
+        ],
+        [
+          7,
+          "107"
+        ],
+        [
+          8,
+          "108"
+        ],
+        [
+          9,
+          "109"
+        ],
+        [
+          10,
+          "110"
+        ]
+      ]
+    },
+    {
+      "check": "Room type 754948: housekeeping",
+      "passed": true,
+      "actual": [
+        [
+          1,
+          "clean"
+        ],
+        [
+          2,
+          "clean"
+        ],
+        [
+          3,
+          "clean"
+        ],
+        [
+          4,
+          "clean"
+        ],
+        [
+          5,
+          "clean"
+        ],
+        [
+          6,
+          "clean"
+        ],
+        [
+          7,
+          "clean"
+        ],
+        [
+          8,
+          "clean"
+        ],
+        [
+          9,
+          "clean"
+        ],
+        [
+          10,
+          "clean"
+        ]
+      ],
+      "expected": [
+        [
+          1,
+          "clean"
+        ],
+        [
+          2,
+          "clean"
+        ],
+        [
+          3,
+          "clean"
+        ],
+        [
+          4,
+          "clean"
+        ],
+        [
+          5,
+          "clean"
+        ],
+        [
+          6,
+          "clean"
+        ],
+        [
+          7,
+          "clean"
+        ],
+        [
+          8,
+          "clean"
+        ],
+        [
+          9,
+          "clean"
+        ],
+        [
+          10,
+          "clean"
+        ]
+      ]
+    },
+    {
+      "check": "Room type 754949: name, quantity, capacity",
+      "passed": true,
+      "actual": [
+        "Deluxe Double",
+        6,
+        2
+      ],
+      "expected": [
+        "Deluxe Double",
+        6,
+        2
+      ]
+    },
+    {
+      "check": "Room type 754949: unit names and API IDs",
+      "passed": true,
+      "actual": [
+        [
+          1,
+          "201"
+        ],
+        [
+          2,
+          "202"
+        ],
+        [
+          3,
+          "203"
+        ],
+        [
+          4,
+          "204"
+        ],
+        [
+          5,
+          "205"
+        ],
+        [
+          6,
+          "206"
+        ]
+      ],
+      "expected": [
+        [
+          1,
+          "201"
+        ],
+        [
+          2,
+          "202"
+        ],
+        [
+          3,
+          "203"
+        ],
+        [
+          4,
+          "204"
+        ],
+        [
+          5,
+          "205"
+        ],
+        [
+          6,
+          "206"
+        ]
+      ]
+    },
+    {
+      "check": "Room type 754949: housekeeping",
+      "passed": true,
+      "actual": [
+        [
+          1,
+          "clean"
+        ],
+        [
+          2,
+          "clean"
+        ],
+        [
+          3,
+          "clean"
+        ],
+        [
+          4,
+          "clean"
+        ],
+        [
+          5,
+          "clean"
+        ],
+        [
+          6,
+          "clean"
+        ]
+      ],
+      "expected": [
+        [
+          1,
+          "clean"
+        ],
+        [
+          2,
+          "clean"
+        ],
+        [
+          3,
+          "clean"
+        ],
+        [
+          4,
+          "clean"
+        ],
+        [
+          5,
+          "clean"
+        ],
+        [
+          6,
+          "clean"
+        ]
+      ]
+    },
+    {
+      "check": "Room type 754950: name, quantity, capacity",
+      "passed": true,
+      "actual": [
+        "Family Suite",
+        4,
+        4
+      ],
+      "expected": [
+        "Family Suite",
+        4,
+        4
+      ]
+    },
+    {
+      "check": "Room type 754950: unit names and API IDs",
+      "passed": true,
+      "actual": [
+        [
+          1,
+          "301"
+        ],
+        [
+          2,
+          "302"
+        ],
+        [
+          3,
+          "303"
+        ],
+        [
+          4,
+          "304"
+        ]
+      ],
+      "expected": [
+        [
+          1,
+          "301"
+        ],
+        [
+          2,
+          "302"
+        ],
+        [
+          3,
+          "303"
+        ],
+        [
+          4,
+          "304"
+        ]
+      ]
+    },
+    {
+      "check": "Room type 754950: housekeeping",
+      "passed": true,
+      "actual": [
+        [
+          1,
+          "clean"
+        ],
+        [
+          2,
+          "clean"
+        ],
+        [
+          3,
+          "clean"
+        ],
+        [
+          4,
+          "clean"
+        ]
+      ],
+      "expected": [
+        [
+          1,
+          "clean"
+        ],
+        [
+          2,
+          "clean"
+        ],
+        [
+          3,
+          "clean"
+        ],
+        [
+          4,
+          "clean"
+        ]
+      ]
+    },
+    {
+      "check": "Room type 754948: nightly rate and dates",
+      "passed": true,
+      "actual": [
+        true,
+        3000,
+        "2026-11-01",
+        "2026-12-31"
+      ],
+      "expected": [
+        true,
+        3000,
+        "2026-11-01",
+        "2026-12-31"
+      ]
+    },
+    {
+      "check": "Room type 754948: every weekday allowed",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "Room type 754949: nightly rate and dates",
+      "passed": true,
+      "actual": [
+        true,
+        4500,
+        "2026-11-01",
+        "2026-12-31"
+      ],
+      "expected": [
+        true,
+        4500,
+        "2026-11-01",
+        "2026-12-31"
+      ]
+    },
+    {
+      "check": "Room type 754949: every weekday allowed",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "Room type 754950: nightly rate and dates",
+      "passed": true,
+      "actual": [
+        true,
+        6500,
+        "2026-11-01",
+        "2026-12-31"
+      ],
+      "expected": [
+        true,
+        6500,
+        "2026-11-01",
+        "2026-12-31"
+      ]
+    },
+    {
+      "check": "Room type 754950: every weekday allowed",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "Five demo booking references",
+      "passed": true,
+      "actual": [
+        "DEMO-001",
+        "DEMO-002",
+        "DEMO-003",
+        "DEMO-004",
+        "DEMO-005"
+      ],
+      "expected": [
+        "DEMO-001",
+        "DEMO-002",
+        "DEMO-003",
+        "DEMO-004",
+        "DEMO-005"
+      ]
+    },
+    {
+      "check": "Booking totals",
+      "passed": true,
+      "actual": 47000,
+      "expected": 47000
+    },
+    {
+      "check": "Booked room nights",
+      "passed": true,
+      "actual": 10,
+      "expected": 10
+    },
+    {
+      "check": "DEMO-004: charges equal booking total",
+      "passed": true,
+      "actual": 19500,
+      "expected": 19500
+    },
+    {
+      "check": "DEMO-004: no payments recorded",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "check": "DEMO-004: calculated nightly total",
+      "passed": true,
+      "actual": 19500,
+      "expected": 19500
+    },
+    {
+      "check": "DEMO-004: assigned unit exists",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "DEMO-003: charges equal booking total",
+      "passed": true,
+      "actual": 9000,
+      "expected": 9000
+    },
+    {
+      "check": "DEMO-003: no payments recorded",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "check": "DEMO-003: calculated nightly total",
+      "passed": true,
+      "actual": 9000,
+      "expected": 9000
+    },
+    {
+      "check": "DEMO-003: assigned unit exists",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "DEMO-002: charges equal booking total",
+      "passed": true,
+      "actual": 6000,
+      "expected": 6000
+    },
+    {
+      "check": "DEMO-002: no payments recorded",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "check": "DEMO-002: calculated nightly total",
+      "passed": true,
+      "actual": 6000,
+      "expected": 6000
+    },
+    {
+      "check": "DEMO-002: assigned unit exists",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "DEMO-005: charges equal booking total",
+      "passed": true,
+      "actual": 6500,
+      "expected": 6500
+    },
+    {
+      "check": "DEMO-005: no payments recorded",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "check": "DEMO-005: calculated nightly total",
+      "passed": true,
+      "actual": 6500,
+      "expected": 6500
+    },
+    {
+      "check": "DEMO-005: assigned unit exists",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "DEMO-001: charges equal booking total",
+      "passed": true,
+      "actual": 6000,
+      "expected": 6000
+    },
+    {
+      "check": "DEMO-001: no payments recorded",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "check": "DEMO-001: calculated nightly total",
+      "passed": true,
+      "actual": 6000,
+      "expected": 6000
+    },
+    {
+      "check": "DEMO-001: assigned unit exists",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "Current stay CHECKIN marker",
+      "passed": true,
+      "actual": [
+        "CHECKIN"
+      ],
+      "expected": [
+        "CHECKIN"
+      ]
+    },
+    {
+      "check": "Completed stay CHECKOUT marker",
+      "passed": true,
+      "actual": [
+        "CHECKOUT"
+      ],
+      "expected": [
+        "CHECKOUT"
+      ]
+    },
+    {
+      "check": "69 room-type/date availability and restriction comparisons",
+      "passed": true,
+      "actual": [],
+      "expected": []
+    },
+    {
+      "check": "460 physical-unit/date occupancy comparisons; no overlaps",
+      "passed": true,
+      "actual": [],
+      "expected": []
+    },
+    {
+      "check": "quote-standard",
+      "passed": true,
+      "actual": [
+        6000,
+        9
+      ],
+      "expected": [
+        6000,
+        9
+      ]
+    },
+    {
+      "check": "quote-deluxe",
+      "passed": true,
+      "actual": [
+        9000,
+        6
+      ],
+      "expected": [
+        9000,
+        6
+      ]
+    },
+    {
+      "check": "quote-family",
+      "passed": true,
+      "actual": [
+        19500,
+        3
+      ],
+      "expected": [
+        19500,
+        3
+      ]
+    },
+    {
+      "check": "quote-month-end",
+      "passed": true,
+      "actual": [
+        6500,
+        3
+      ],
+      "expected": [
+        6500,
+        3
+      ]
+    },
+    {
+      "check": "Unbroken November 8\u201330 rate coverage for 754948",
+      "passed": true,
+      "actual": 69000,
+      "expected": 69000
+    },
+    {
+      "check": "Unbroken November 8\u201330 rate coverage for 754949",
+      "passed": true,
+      "actual": 103500,
+      "expected": 103500
+    },
+    {
+      "check": "Unbroken November 8\u201330 rate coverage for 754950",
+      "passed": true,
+      "actual": 149500,
+      "expected": 149500
+    },
+    {
+      "check": "Over-capacity Standard Double returns no offer",
+      "passed": true,
+      "actual": [],
+      "expected": []
+    },
+    {
+      "check": "properties: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "fixed-prices: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "bookings: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "calendar: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "availability: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "unit-bookings: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "properties-full: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "quote-standard: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "quote-deluxe: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "quote-family: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "quote-month-end: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "quote-full-remaining-month: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    },
+    {
+      "check": "quote-over-capacity: HTTP success and complete pagination",
+      "passed": true,
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "expected": [
+        200,
+        true,
+        false
+      ]
+    }
+  ],
+  "bookingIds": {
+    "DEMO-004": 95853717,
+    "DEMO-003": 95853699,
+    "DEMO-002": 95853671,
+    "DEMO-005": 95853636,
+    "DEMO-001": 95853447
+  },
+  "unitMappings": {
+    "754948": [
+      {
+        "unitId": 1,
+        "unitName": "101"
+      },
+      {
+        "unitId": 2,
+        "unitName": "102"
+      },
+      {
+        "unitId": 3,
+        "unitName": "103"
+      },
+      {
+        "unitId": 4,
+        "unitName": "104"
+      },
+      {
+        "unitId": 5,
+        "unitName": "105"
+      },
+      {
+        "unitId": 6,
+        "unitName": "106"
+      },
+      {
+        "unitId": 7,
+        "unitName": "107"
+      },
+      {
+        "unitId": 8,
+        "unitName": "108"
+      },
+      {
+        "unitId": 9,
+        "unitName": "109"
+      },
+      {
+        "unitId": 10,
+        "unitName": "110"
+      }
+    ],
+    "754949": [
+      {
+        "unitId": 1,
+        "unitName": "201"
+      },
+      {
+        "unitId": 2,
+        "unitName": "202"
+      },
+      {
+        "unitId": 3,
+        "unitName": "203"
+      },
+      {
+        "unitId": 4,
+        "unitName": "204"
+      },
+      {
+        "unitId": 5,
+        "unitName": "205"
+      },
+      {
+        "unitId": 6,
+        "unitName": "206"
+      }
+    ],
+    "754950": [
+      {
+        "unitId": 1,
+        "unitName": "301"
+      },
+      {
+        "unitId": 2,
+        "unitName": "302"
+      },
+      {
+        "unitId": 3,
+        "unitName": "303"
+      },
+      {
+        "unitId": 4,
+        "unitName": "304"
+      }
+    ]
+  },
+  "observedLimitations": [
+    "Calendar, availability and unit-booking requests for November 1\u201330 returned November 8\u201330. Past November 1\u20137 inventory was not returned; historical reservations and fixed-rate coverage were verified separately.",
+    "No booking create/update/cancel/delete API calls were performed. Credential scopes are read-only.",
+    "Charges were verified through booking invoiceItems. Issued invoice numbers, payment processing, external messages, OTA synchronization, webhooks and MCP execution were not tested.",
+    "The account remains on its 14-day trial; full-month service requires paid continuation."
+  ],
+  "documentationCorrection": "Full room details required includeAllRooms=true in addition to includeUnitDetails=true for this API response."
+}

@@ -1,0 +1,26 @@
+---
+description: Run tests for the Daisy voice agent service
+globs: **/*.test.ts, **/*.test.integration.ts
+alwaysApply: false
+---
+
+# Test Skill
+
+Run tests from the `websocket-server/` directory. Never run from the repo root.
+
+## Commands
+
+| Mode | Command |
+|------|---------|
+| Unit + pg-mem (default) | `npm test` |
+| With pattern | `npm test -- --testPathPattern="<pattern>"` |
+| Integration (Docker required) | `npm run test:integration` |
+| All | `npm run test:all` |
+| Watch | `npm run test:watch` |
+
+## Rules
+
+- **Use a pattern when possible** — running all tests is slow
+- **File naming:** `*.test.ts` for unit/pg-mem, `*.test.integration.ts` for integration. Never `*.integration.test.ts`.
+- **Docker required for integration** — if not running, fall back to unit tests
+- See `websocket-server/src/test/README.md` for stub policy and fixtures

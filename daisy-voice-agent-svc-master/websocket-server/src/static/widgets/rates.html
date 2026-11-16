@@ -1,0 +1,114 @@
+<!doctype html>
+<!--
+  Shareable rates page: /rates/<business_id>
+  Optional query parameters: book (booking page URL), accent (CSS color), theme=auto, unit (unit id).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Rates and availability</title>
+    <style>
+      :root {
+        --ink: #1c2a23;
+        --muted: #5b6a62;
+        --page: #f4f6f5;
+        --band: #e7eeea;
+        --accent: #2f5d47;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root.auto {
+          --ink: #e4ece7;
+          --muted: #9fb0a7;
+          --page: #0f1512;
+          --band: #16201b;
+          --accent: #8cc4a5;
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      header {
+        background: linear-gradient(var(--band), var(--page));
+        padding: 48px max(20px, env(safe-area-inset-left)) 28px max(20px, env(safe-area-inset-right));
+      }
+      .wrap { max-width: 1040px; margin: 0 auto; }
+      h1 {
+        margin: 0;
+        font-size: clamp(28px, 4.2vw, 40px);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        font-weight: 650;
+        text-wrap: balance;
+      }
+      .sub { margin: 10px 0 0; color: var(--muted); max-width: 56ch; }
+      .site { display: inline-block; margin-top: 14px; color: var(--accent); font-weight: 600; text-decoration: none; }
+      .site:hover { text-decoration: underline; }
+      .site[hidden] { display: none; }
+      main { padding: 0 max(20px, env(safe-area-inset-left)) 56px max(20px, env(safe-area-inset-right)); }
+      .missing { max-width: 56ch; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <h1 id="hotel">Rates and availability</h1>
+        <p class="sub">Nightly prices and open dates, straight from our booking system. Pick a night to compare stays.</p>
+        <a id="site" class="site" hidden target="_blank" rel="noopener">Visit our website</a>
+      </div>
+    </header>
+    <main>
+      <div class="wrap" id="mount"></div>
+    </main>
+    <script src="/widgets/rate-calendar.js"></script>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var match = window.location.pathname.match(/\/rates\/([^/]+)\/?$/);
+        var businessId = (match ? decodeURIComponent(match[1]) : params.get('business_id') || '').trim();
+        var mount = document.getElementById('mount');
+
+        if (params.get('theme') === 'auto') document.documentElement.classList.add('auto');
+        if (!businessId) {
+          mount.innerHTML = '<p class="missing">This link is missing the property. Ask the property for its full rates link.</p>';
+          return;
+        }
+
+        var calendar = document.createElement('dextr-rate-calendar');
+        calendar.setAttribute('business-id', businessId);
+        calendar.setAttribute('website-link', '');
+        ['book', 'accent', 'theme', 'unit'].forEach(function (name) {
+          var value = params.get(name);
+          if (value) calendar.setAttribute(name === 'book' ? 'book-url' : name, value);
+        });
+        var accent = params.get('accent');
+        if (accent && window.CSS && CSS.supports('color', accent)) {
+          document.documentElement.style.setProperty('--accent', accent);
+        }
+
+        calendar.addEventListener('dextr-rate-ready', function (event) {
+          var detail = event.detail || {};
+          if (detail.hotelName) {
+            document.getElementById('hotel').textContent = detail.hotelName;
+            document.title = 'Rates at ' + detail.hotelName;
+          }
+          if (detail.website && /^https?:\/\//i.test(detail.website)) {
+            var site = document.getElementById('site');
+            site.href = detail.website;
+            site.hidden = false;
+          }
+        });
+        mount.appendChild(calendar);
+      })();
+    </script>
+  </body>
+</html>

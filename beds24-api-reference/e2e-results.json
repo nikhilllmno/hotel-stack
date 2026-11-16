@@ -1,0 +1,1114 @@
+{
+  "generatedAt": "2026-11-08T08:49:54.238974+00:00",
+  "testDateLocal": "2026-11-08",
+  "timezone": "Asia/Kolkata",
+  "property": {
+    "id": 366736,
+    "name": "Lotus Demo Hotel (TEST)",
+    "currency": "INR",
+    "rooms": [
+      {
+        "id": 754948,
+        "name": "Standard Double",
+        "quantity": 10
+      },
+      {
+        "id": 754949,
+        "name": "Deluxe Double",
+        "quantity": 6
+      },
+      {
+        "id": 754950,
+        "name": "Family Suite",
+        "quantity": 4
+      }
+    ]
+  },
+  "baseUrl": "https://beds24.com/api/v2",
+  "documentationUrl": "https://beds24.com/api/v2/",
+  "scope": "Live reversible tests on this dummy hotel; status applies only to the operations described, not every field or downstream integration.",
+  "coverage": {
+    "catalogEntries": 38,
+    "documentedCallableMethods": 33,
+    "exercisedCallableMethods": 26,
+    "journaledRequests": 76,
+    "initialSetupExchangeOutsideJournal": 1,
+    "statusCounts": {
+      "passed": 18,
+      "passed_with_caveat": 2,
+      "unverified_behavior": 1,
+      "not_tested": 7,
+      "coming_soon": 4,
+      "empty_response": 5,
+      "not_tested_webhook": 1
+    }
+  },
+  "credentials": {
+    "temporaryWriteCredentialRevoked": true,
+    "revokedRefreshRejectedWithHttp": 401,
+    "revokedAccessTokenValid": false,
+    "originalReadOnlyCredentialValid": true,
+    "secretsIncluded": false,
+    "retainedReadOnlyScopes": [
+      "read:properties",
+      "read:inventory",
+      "read:bookings",
+      "read:bookings-personal",
+      "read:bookings-financial"
+    ],
+    "revokedTestScopes": [
+      "all:bookings",
+      "read:bookings-personal",
+      "write:bookings-personal",
+      "read:bookings-financial",
+      "write:bookings-financial",
+      "read:inventory",
+      "write:inventory",
+      "read:properties",
+      "write:properties",
+      "read:channels"
+    ]
+  },
+  "cleanup": {
+    "temporaryBookingDeleted": true,
+    "temporaryMessagesRemaining": 0,
+    "propertyAndUnitSettingsRestored": true,
+    "fixedRatesRestored": true,
+    "calendarRestored": true,
+    "originalFiveBookingsUnchanged": true,
+    "availabilityAndAllocationsMatchBaseline": true
+  },
+  "scenarios": [
+    {
+      "name": "Reservation lifecycle",
+      "status": "passed",
+      "detail": "Create, retrieve, update room/unit/dates/guest fields, cancel, delete and read-after-delete verified. Inventory decreased on creation and was released after moves/cancellation."
+    },
+    {
+      "name": "Booking financial items and information items",
+      "status": "passed",
+      "detail": "Add, retrieve, update and remove test invoice charges and booking info items; invoice endpoint reflected INR 9000 remaining base charges."
+    },
+    {
+      "name": "Internal messages",
+      "status": "partial",
+      "detail": "Internal note creation/retrieval and cleanup passed. Both read-state mutation forms returned success without changing read=null."
+    },
+    {
+      "name": "Housekeeping",
+      "status": "passed",
+      "detail": "One physical unit status/color changed, read back, restored, and compared with baseline."
+    },
+    {
+      "name": "Fixed rates",
+      "status": "passed",
+      "detail": "Standard nightly rate 3000\u21923100\u21923000; two-night offers 6000\u21926200\u21926000 INR."
+    },
+    {
+      "name": "Daily pricing and restrictions",
+      "status": "passed_with_caveat",
+      "detail": "Daily price 2500 plus following-night 3000 yielded 5500 INR; quantity 8 and minimum stay 2 enforced. minStay:null did not clear the restriction; explicit 1 restored it."
+    },
+    {
+      "name": "Sold-out inventory rejection",
+      "status": "passed",
+      "detail": "Blackout/quantity zero produced no offer; attempted reservation returned HTTP 201 with per-item success=false and no availability. No reservation was created."
+    },
+    {
+      "name": "Final cleanup",
+      "status": "passed",
+      "detail": "Original property, fixed rates, five reservations, test-date calendars, November availability and unit allocations exactly matched baseline. No test messages remained."
+    },
+    {
+      "name": "Authentication lifecycle",
+      "status": "passed",
+      "detail": "Invite exchange, token refresh, scope/validity inspection and refresh-token deletion verified. Revoked refresh returned 401; access token validToken=false. Original read-only credential remains valid."
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/authentication/setup",
+      "group": "Authentication",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Invite-code exchange created the hotel-scoped test credential; this initial exchange predates the request journal.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/authentication/token",
+      "group": "Authentication",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Refresh issued a working access token; refresh was rejected with HTTP 401 after revocation.",
+      "evidenceLabels": [
+        "auth-refresh-after-revoke",
+        "auth-refresh"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/authentication/token",
+      "group": "Authentication",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Temporary write refresh token deleted; access token subsequently reported validToken=false.",
+      "evidenceLabels": [
+        "auth-revoke"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/authentication/details",
+      "group": "Authentication",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Verified hotel scope and token validity before/after revocation; original read-only credential remains valid.",
+      "evidenceLabels": [
+        "auth-details-after-revoke",
+        "auth-refresh-details",
+        "original-readonly-auth-still-valid"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/bookings",
+      "group": "Bookings",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Read original reservations and exact test-booking changes; deleted test booking returned no records.",
+      "evidenceLabels": [
+        "baseline-bookings",
+        "booking-cancel-readback",
+        "booking-create-readback",
+        "booking-delete-readback",
+        "booking-update-readback",
+        "charge-and-info-created-readback",
+        "charge-and-info-deleted-readback",
+        "charge-and-info-updated-readback",
+        "final-bookings"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/bookings",
+      "group": "Bookings",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Created a reservation, changed room/unit/dates/guest fields, added/updated/deleted invoice charges and info items, and cancelled it. Sold-out creation correctly returned per-item success=false despite HTTP 201.",
+      "evidenceLabels": [
+        "booking-cancel",
+        "booking-create",
+        "booking-no-availability-rejection",
+        "booking-update-room-dates-personal",
+        "charge-and-info-create",
+        "charge-and-info-delete",
+        "charge-and-info-update"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/bookings",
+      "group": "Bookings",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Removed the disposable reservation and confirmed its absence.",
+      "evidenceLabels": [
+        "booking-delete"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/bookings/messages",
+      "group": "Bookings",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Retrieved the disposable internal note; no test notes remained after booking deletion.",
+      "evidenceLabels": [
+        "deleted-booking-messages",
+        "existing-messages",
+        "final-messages",
+        "internal-note-readback",
+        "message-patch-readback",
+        "message-post-unread-readback"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/bookings/messages",
+      "group": "Bookings",
+      "stage": "Not labelled",
+      "status": "passed_with_caveat",
+      "detail": "Created an internal note and read it back. An update to read=false returned success but read stayed null. No outbound guest or channel messaging tested.",
+      "evidenceLabels": [
+        "internal-note-create",
+        "message-post-unread"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/bookings/messages",
+      "group": "Bookings",
+      "stage": "Not labelled",
+      "status": "unverified_behavior",
+      "detail": "Read=true update returned HTTP 200 and [true], but internal-note read state stayed null. Real guest/channel read-state behavior is unverified.",
+      "evidenceLabels": [
+        "message-patch-read"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/bookings/invoices",
+      "group": "Bookings",
+      "stage": "Alpha",
+      "status": "passed",
+      "detail": "Retrieved invoice-item totals for original and test bookings; test invoice charges totalled INR 9000. Invoice numbering/finalization not tested.",
+      "evidenceLabels": [
+        "existing-invoices",
+        "test-booking-invoice"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "group": "Inventory",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Verified quotes, capacity, inventory consumption/release, changed prices, minimum-stay restrictions and blackout rejection.",
+      "evidenceLabels": [
+        "booking-cancel-inventory-release",
+        "booking-create-inventory",
+        "booking-pre-create-quote",
+        "calendar-blackout-quote",
+        "calendar-changed-price-quote",
+        "calendar-minstay-rejection",
+        "calendar-restored-one-night",
+        "calendar-restored-quote",
+        "fixed-price-changed-quote",
+        "fixed-price-restored-quote",
+        "new-room-occupancy",
+        "old-room-release"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/inventory/rooms/availability",
+      "group": "Inventory",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Retrieved November availability and matched the original availability snapshot after cleanup.",
+      "evidenceLabels": [
+        "final-availability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/inventory/rooms/unitBookings",
+      "group": "Inventory",
+      "stage": "Beta",
+      "status": "passed",
+      "detail": "Retrieved unit allocations and matched the original snapshot after cleanup.",
+      "evidenceLabels": [
+        "final-unit-bookings"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "group": "Inventory",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Read back daily prices, inventory, stay restrictions and blackout changes; original calendar restored.",
+      "evidenceLabels": [
+        "baseline-deluxe-calendar",
+        "baseline-standard-calendar",
+        "calendar-blackout-readback",
+        "calendar-changed-readback",
+        "calendar-explicit-restored-readback",
+        "calendar-restored-readback",
+        "final-deluxe-calendar",
+        "final-standard-calendar"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/inventory/rooms/calendar",
+      "group": "Inventory",
+      "stage": "Not labelled",
+      "status": "passed_with_caveat",
+      "detail": "Updated daily price, quantity, minimum stay and blackout; quotes enforced changes. minStay:null was ignored, so explicit minStay:1 restored the original restriction. price1:null cleared the test daily price.",
+      "evidenceLabels": [
+        "calendar-blackout",
+        "calendar-explicit-restore",
+        "calendar-price-inventory-restriction-update",
+        "calendar-restore"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/inventory/fixedPrices",
+      "group": "Inventory",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Retrieved fixed-rate definitions and verified unchanged baseline after restoration.",
+      "evidenceLabels": [
+        "baseline-fixed-prices",
+        "final-fixed-prices"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/inventory/fixedPrices",
+      "group": "Inventory",
+      "stage": "Not labelled",
+      "status": "passed",
+      "detail": "Changed Standard nightly rate from INR 3000 to 3100; two-night quote changed to INR 6200, then returned to INR 6000 after restoration. New rate creation was not tested because no deletion endpoint is documented.",
+      "evidenceLabels": [
+        "fixed-price-restore",
+        "fixed-price-update"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/accounts",
+      "group": "Accounts",
+      "stage": "Alpha",
+      "status": "not_tested",
+      "detail": "Account scope was not granted; testing was restricted to property 366736.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "POST",
+      "path": "/accounts",
+      "group": "Accounts",
+      "stage": "Alpha",
+      "status": "not_tested",
+      "detail": "Account scope was not granted; account-level mutations were outside the hotel test.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/properties",
+      "group": "Properties",
+      "stage": "Beta",
+      "status": "passed",
+      "detail": "Read hotel details, room quantities and physical units; final response matched the original baseline.",
+      "evidenceLabels": [
+        "baseline-properties",
+        "final-properties",
+        "housekeeping-restored-readback",
+        "housekeeping-updated-readback"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/properties",
+      "group": "Properties",
+      "stage": "Beta",
+      "status": "passed",
+      "detail": "Changed one unit housekeeping status/color, verified readback, then restored its original values. Property/room creation and other settings were not exhaustively tested.",
+      "evidenceLabels": [
+        "housekeeping-restore",
+        "housekeeping-update"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/properties",
+      "group": "Properties",
+      "stage": "Coming soon",
+      "status": "coming_soon",
+      "detail": "Listed as Coming soon by the official schema; not a currently callable documented route.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/properties/rooms",
+      "group": "Properties",
+      "stage": "Coming soon",
+      "status": "coming_soon",
+      "detail": "Listed as Coming soon by the official schema; not a currently callable documented route.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/properties/rooms",
+      "group": "Properties",
+      "stage": "Coming soon",
+      "status": "coming_soon",
+      "detail": "Listed as Coming soon by the official schema; not a currently callable documented route.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/channels/settings",
+      "group": "Channels - settings",
+      "stage": "Alpha",
+      "status": "passed",
+      "detail": "Read channel settings successfully. No live Airbnb or iCal connection was enabled; integration delivery was not tested.",
+      "evidenceLabels": [
+        "channel-settings"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/channels/settings",
+      "group": "Channels - settings",
+      "stage": "Alpha",
+      "status": "not_tested",
+      "detail": "Channel-write scope was not granted; no external channel settings were changed.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/channels/airbnb/users",
+      "group": "Channels - Airbnb",
+      "stage": "Beta",
+      "status": "empty_response",
+      "detail": "HTTP 200, empty data; no Airbnb account connected.",
+      "evidenceLabels": [
+        "airbnb-users"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/channels/airbnb/listings",
+      "group": "Channels - Airbnb",
+      "stage": "Alpha",
+      "status": "not_tested",
+      "detail": "No connected Airbnb user ID is available to query listings.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/channels/airbnb/reviews",
+      "group": "Channels - Airbnb",
+      "stage": "Beta",
+      "status": "empty_response",
+      "detail": "HTTP 200, empty data; no connected Airbnb review workflow verified.",
+      "evidenceLabels": [
+        "airbnb-reviews-probe"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/channels/airbnb",
+      "group": "Channels - Airbnb",
+      "stage": "Alpha",
+      "status": "not_tested",
+      "detail": "No connected Airbnb account; external channel mutations not performed.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "POST",
+      "path": "/channels/booking",
+      "group": "Channels - Booking.com",
+      "stage": "Alpha",
+      "status": "not_tested",
+      "detail": "No connected Booking.com workflow; external channel mutations not performed.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/channels/booking/reviews",
+      "group": "Channels - Booking.com",
+      "stage": "Alpha",
+      "status": "empty_response",
+      "detail": "HTTP 200, empty data; no connected Booking.com review workflow verified.",
+      "evidenceLabels": [
+        "booking-reviews-probe"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/channels/stripe",
+      "group": "Channels - Stripe",
+      "stage": "Alpha",
+      "status": "not_tested",
+      "detail": "Payment gateways are disabled; no charges, refunds or real payment actions performed.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/channels/stripe/paymentMethods",
+      "group": "Channels - Stripe",
+      "stage": "Alpha",
+      "status": "empty_response",
+      "detail": "HTTP 200, empty data; no stored payment method or connected payment workflow verified.",
+      "evidenceLabels": [
+        "stripe-methods-probe"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/channels/stripe/charges",
+      "group": "Channels - Stripe",
+      "stage": "Alpha",
+      "status": "empty_response",
+      "detail": "HTTP 200, empty data; no actual Stripe charge workflow verified.",
+      "evidenceLabels": [
+        "stripe-charges-probe"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "Webhooks - bookings",
+      "group": "Webhooks",
+      "stage": "Alpha",
+      "status": "not_tested_webhook",
+      "detail": "Documentation entry for outbound booking webhook payloads, not a callable REST path. No webhook receiver configured/tested.",
+      "evidenceLabels": []
+    },
+    {
+      "method": "GET",
+      "path": "/organizations/users",
+      "group": "Organizations",
+      "stage": "Coming soon",
+      "status": "coming_soon",
+      "detail": "Listed as Coming soon by the official schema; not a currently callable documented route.",
+      "evidenceLabels": []
+    }
+  ],
+  "requests": [
+    {
+      "label": "airbnb-reviews-probe",
+      "method": "GET",
+      "path": "/channels/airbnb/reviews",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:56.747839+00:00"
+    },
+    {
+      "label": "airbnb-users",
+      "method": "GET",
+      "path": "/channels/airbnb/users",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:45.387147+00:00"
+    },
+    {
+      "label": "auth-details-after-revoke",
+      "method": "GET",
+      "path": "/authentication/details",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:48:23.352784+00:00"
+    },
+    {
+      "label": "auth-refresh-after-revoke",
+      "method": "GET",
+      "path": "/authentication/token",
+      "httpStatus": 401,
+      "at": "2026-11-08T08:48:22.725549+00:00"
+    },
+    {
+      "label": "auth-refresh-details",
+      "method": "GET",
+      "path": "/authentication/details",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:58.775299+00:00"
+    },
+    {
+      "label": "auth-refresh",
+      "method": "GET",
+      "path": "/authentication/token",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:58.023588+00:00"
+    },
+    {
+      "label": "auth-revoke",
+      "method": "DELETE",
+      "path": "/authentication/token",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:48:21.854582+00:00"
+    },
+    {
+      "label": "baseline-bookings",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:44.185506+00:00"
+    },
+    {
+      "label": "baseline-deluxe-calendar",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:46.628873+00:00"
+    },
+    {
+      "label": "baseline-fixed-prices",
+      "method": "GET",
+      "path": "/inventory/fixedPrices",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:44.175989+00:00"
+    },
+    {
+      "label": "baseline-properties",
+      "method": "GET",
+      "path": "/properties",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:44.361707+00:00"
+    },
+    {
+      "label": "baseline-standard-calendar",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:45.991179+00:00"
+    },
+    {
+      "label": "booking-cancel-inventory-release",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:42:30.258056+00:00"
+    },
+    {
+      "label": "booking-cancel-readback",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:42:29.537168+00:00"
+    },
+    {
+      "label": "booking-cancel",
+      "method": "POST",
+      "path": "/bookings",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:42:28.841115+00:00"
+    },
+    {
+      "label": "booking-create-inventory",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:16.603422+00:00"
+    },
+    {
+      "label": "booking-create-readback",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:15.902630+00:00"
+    },
+    {
+      "label": "booking-create",
+      "method": "POST",
+      "path": "/bookings",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:41:01.053345+00:00"
+    },
+    {
+      "label": "booking-delete-readback",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:42:31.601088+00:00"
+    },
+    {
+      "label": "booking-delete",
+      "method": "DELETE",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:42:30.954858+00:00"
+    },
+    {
+      "label": "booking-no-availability-rejection",
+      "method": "POST",
+      "path": "/bookings",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:43:38.604513+00:00"
+    },
+    {
+      "label": "booking-pre-create-quote",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:00.317427+00:00"
+    },
+    {
+      "label": "booking-reviews-probe",
+      "method": "GET",
+      "path": "/channels/booking/reviews",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:56.761019+00:00"
+    },
+    {
+      "label": "booking-update-readback",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:17.912593+00:00"
+    },
+    {
+      "label": "booking-update-room-dates-personal",
+      "method": "POST",
+      "path": "/bookings",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:41:17.233847+00:00"
+    },
+    {
+      "label": "calendar-blackout-quote",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:37.943765+00:00"
+    },
+    {
+      "label": "calendar-blackout-readback",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:37.321764+00:00"
+    },
+    {
+      "label": "calendar-blackout",
+      "method": "POST",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:43:36.697592+00:00"
+    },
+    {
+      "label": "calendar-changed-price-quote",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:35.257349+00:00"
+    },
+    {
+      "label": "calendar-changed-readback",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:34.620451+00:00"
+    },
+    {
+      "label": "calendar-explicit-restore",
+      "method": "POST",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:44:04.941688+00:00"
+    },
+    {
+      "label": "calendar-explicit-restored-readback",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:05.620526+00:00"
+    },
+    {
+      "label": "calendar-minstay-rejection",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:36.000511+00:00"
+    },
+    {
+      "label": "calendar-price-inventory-restriction-update",
+      "method": "POST",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:43:33.993108+00:00"
+    },
+    {
+      "label": "calendar-restore",
+      "method": "POST",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:43:39.315216+00:00"
+    },
+    {
+      "label": "calendar-restored-one-night",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:06.979803+00:00"
+    },
+    {
+      "label": "calendar-restored-quote",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:06.318568+00:00"
+    },
+    {
+      "label": "calendar-restored-readback",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:40.506930+00:00"
+    },
+    {
+      "label": "channel-settings",
+      "method": "GET",
+      "path": "/channels/settings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:44.801048+00:00"
+    },
+    {
+      "label": "charge-and-info-create",
+      "method": "POST",
+      "path": "/bookings",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:41:37.335677+00:00"
+    },
+    {
+      "label": "charge-and-info-created-readback",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:37.948312+00:00"
+    },
+    {
+      "label": "charge-and-info-delete",
+      "method": "POST",
+      "path": "/bookings",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:41:39.966846+00:00"
+    },
+    {
+      "label": "charge-and-info-deleted-readback",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:40.631558+00:00"
+    },
+    {
+      "label": "charge-and-info-update",
+      "method": "POST",
+      "path": "/bookings",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:41:38.629290+00:00"
+    },
+    {
+      "label": "charge-and-info-updated-readback",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:39.285673+00:00"
+    },
+    {
+      "label": "deleted-booking-messages",
+      "method": "GET",
+      "path": "/bookings/messages",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:42:32.216728+00:00"
+    },
+    {
+      "label": "existing-invoices",
+      "method": "GET",
+      "path": "/bookings/invoices",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:45.029328+00:00"
+    },
+    {
+      "label": "existing-messages",
+      "method": "GET",
+      "path": "/bookings/messages",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:40:44.811084+00:00"
+    },
+    {
+      "label": "final-availability",
+      "method": "GET",
+      "path": "/inventory/rooms/availability",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:44.650703+00:00"
+    },
+    {
+      "label": "final-bookings",
+      "method": "GET",
+      "path": "/bookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:44.059188+00:00"
+    },
+    {
+      "label": "final-deluxe-calendar",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:46.161984+00:00"
+    },
+    {
+      "label": "final-fixed-prices",
+      "method": "GET",
+      "path": "/inventory/fixedPrices",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:44.016327+00:00"
+    },
+    {
+      "label": "final-messages",
+      "method": "GET",
+      "path": "/bookings/messages",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:44.629603+00:00"
+    },
+    {
+      "label": "final-properties",
+      "method": "GET",
+      "path": "/properties",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:44.247219+00:00"
+    },
+    {
+      "label": "final-standard-calendar",
+      "method": "GET",
+      "path": "/inventory/rooms/calendar",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:45.545909+00:00"
+    },
+    {
+      "label": "final-unit-bookings",
+      "method": "GET",
+      "path": "/inventory/rooms/unitBookings",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:45:44.906865+00:00"
+    },
+    {
+      "label": "fixed-price-changed-quote",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:02.954218+00:00"
+    },
+    {
+      "label": "fixed-price-restore",
+      "method": "POST",
+      "path": "/inventory/fixedPrices",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:43:03.605357+00:00"
+    },
+    {
+      "label": "fixed-price-restored-quote",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:04.251103+00:00"
+    },
+    {
+      "label": "fixed-price-update",
+      "method": "POST",
+      "path": "/inventory/fixedPrices",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:43:02.296088+00:00"
+    },
+    {
+      "label": "housekeeping-restore",
+      "method": "POST",
+      "path": "/properties",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:43:01.046054+00:00"
+    },
+    {
+      "label": "housekeeping-restored-readback",
+      "method": "GET",
+      "path": "/properties",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:01.659119+00:00"
+    },
+    {
+      "label": "housekeeping-update",
+      "method": "POST",
+      "path": "/properties",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:42:59.598017+00:00"
+    },
+    {
+      "label": "housekeeping-updated-readback",
+      "method": "GET",
+      "path": "/properties",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:43:00.283855+00:00"
+    },
+    {
+      "label": "internal-note-create",
+      "method": "POST",
+      "path": "/bookings/messages",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:41:41.257380+00:00"
+    },
+    {
+      "label": "internal-note-readback",
+      "method": "GET",
+      "path": "/bookings/messages",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:57.648014+00:00"
+    },
+    {
+      "label": "message-patch-read",
+      "method": "PATCH",
+      "path": "/bookings/messages",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:58.289982+00:00"
+    },
+    {
+      "label": "message-patch-readback",
+      "method": "GET",
+      "path": "/bookings/messages",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:58.927233+00:00"
+    },
+    {
+      "label": "message-post-unread-readback",
+      "method": "GET",
+      "path": "/bookings/messages",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:42:27.451781+00:00"
+    },
+    {
+      "label": "message-post-unread",
+      "method": "POST",
+      "path": "/bookings/messages",
+      "httpStatus": 201,
+      "at": "2026-11-08T08:42:26.825383+00:00"
+    },
+    {
+      "label": "new-room-occupancy",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:19.294468+00:00"
+    },
+    {
+      "label": "old-room-release",
+      "method": "GET",
+      "path": "/inventory/rooms/offers",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:41:18.600167+00:00"
+    },
+    {
+      "label": "original-readonly-auth-still-valid",
+      "method": "GET",
+      "path": "/authentication/details",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:48:24.007136+00:00"
+    },
+    {
+      "label": "stripe-charges-probe",
+      "method": "GET",
+      "path": "/channels/stripe/charges",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:57.355237+00:00"
+    },
+    {
+      "label": "stripe-methods-probe",
+      "method": "GET",
+      "path": "/channels/stripe/paymentMethods",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:44:57.388080+00:00"
+    },
+    {
+      "label": "test-booking-invoice",
+      "method": "GET",
+      "path": "/bookings/invoices",
+      "httpStatus": 200,
+      "at": "2026-11-08T08:42:28.131622+00:00"
+    }
+  ],
+  "limitations": [
+    "No real payment processing, guest/channel messaging, OTA synchronization or booking webhook delivery was tested.",
+    "Routes returning empty results are reachable, but their connected workflows remain unverified.",
+    "Account administration, channel writes, new property/room/rate creation, invoice numbering and every possible field combination were not tested.",
+    "This is a point-in-time functional check, not a load test or proof of production readiness.",
+    "Earlier configuration indicated a 14-day trial; continuous operation through 30 November depends on account continuation."
+  ]
+}

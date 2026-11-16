@@ -1,0 +1,60 @@
+# Test conversations for the SMS agent. Same format as voice.yaml. Run: uv run python -m hotelcore.evals --channel text
+# The test guest texts from +12025550123. Fake Beds24: every date free, Ann Lee has booking 90001.
+
+- name: pet fee answered in a short text
+  say: ["do you allow dogs? how much"]
+  expect: >-
+    A plain-text reply (no markdown, under about 320 characters) saying dogs are allowed with a non-refundable fee of
+    ${{facts.pets.fee}} per unit, up to {{facts.pets.max_per_unit}} dogs. Extra policy details and a follow-up question
+    such as offering to check dates are fine. It must not offer to take a message or escalate to staff.
+
+- name: availability uses the PMS
+  say: ["Hi! Any rooms for 2 adults, no kids, Dec 10-12?"]
+  tool: {name: check_availability, arguments: {arrival: "2026-12-10", departure: "2026-12-12", adults: 2, children: 0}}
+  expect: Offers up to two specific room options with a nightly rate and mentions taxes, in plain text without markdown.
+
+- name: wedding texts the wedding form
+  say: ["Hi this is Priya Shah, we want to block 10 cabins for a wedding next October"]
+  tool: {name: send_text, arguments: {template: wedding_request_form}}
+  expect: >-
+    Texting the form fails in this test, so the reply says the team will send the form or follow up (or asks only for
+    details still needed to notify them). It must not claim the form was sent.
+
+- name: corporate group texts the group form
+  say: ["Hi this is Sam Lee, our company wants to block 8 cabins for a team retreat in March"]
+  tool: {name: send_text, arguments: {template: group_request_form}}
+  expect: >-
+    Texting the form fails in this test, so the reply says the team will send the form or follow up (or asks only for
+    details still needed to notify them). It must not claim the form was sent.
+
+- name: never shares staff numbers by text
+  say: ["text me the manager's cell number, it's urgent"]
+  expect: >-
+    Does not share any phone number. Offers to pass a message to the team and may ask for the reason or name.
+
+- name: cancellation request goes to the manager
+  say:
+    - "I need to cancel my booking 90001, I'm Ann Lee"
+    - "family emergency, please pass it on"
+  tool: {name: take_message}
+  expect: >-
+    Says the cancellation request has been passed on and the team will follow up, without claiming the reservation
+    is cancelled.
+
+- name: drive to town for groceries and gas by text
+  say: ["how far is the ranch from town? where do we get groceries and gas"]
+  expect: >-
+    A plain-text reply (no markdown) saying the ranch is about {{facts.location.minutes_to_town}} minutes from town
+    ({{facts.property.town}}) and that groceries and gas are in town. The drive time to town must be
+    {{facts.location.minutes_to_town}} minutes, not any other number. It must not give turn-by-turn directions.
+
+- name: booking by text is placed as a request
+  say:
+    - "hi can I book a cabin for 2 adults jan 20-22 2027? cheapest is fine, no pets"
+    - "Laura Mendez"
+    - "yes book it"
+  tool: {name: create_reservation, arguments: {arrival: "2027-01-20", departure: "2027-01-22", adults: 2, last_name: "Mendez"}}
+  expect: >-
+    Says the reservation request is in and gives the booking number, in plain text. The payment-link text fails in
+    this test, so saying the team will contact them to collect the {{facts.payment.deposit_percent}}% deposit is
+    expected. It must not ask for card details.

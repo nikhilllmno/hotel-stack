@@ -1,0 +1,9 @@
+2026-11-10T21:04:15Z INSTALL excel-author official:builtin safe sha256:d6ff2fe108fcf430
+2026-11-10T21:04:17Z INSTALL pptx-author official:builtin safe sha256:34ca4f68cb06d954
+2026-11-10T21:04:18Z INSTALL watchers official:builtin safe sha256:fd551f3401b23787
+2026-11-10T21:04:20Z INSTALL rss-feeds official:builtin safe sha256:e568a0983e2a977b
+2026-11-10T21:04:21Z INSTALL scrapling official:builtin safe sha256:44b2b24646686d66
+2026-11-10T21:04:22Z INSTALL social-media-content-calendar official:builtin safe sha256:d970ca59b30cbc82
+2026-11-10T21:04:24Z INSTALL live-dashboard official:builtin safe sha256:bb83a2ae586d4908
+2026-11-10T21:04:25Z INSTALL fastmcp official:builtin safe sha256:3f8f835e0779dfff
+2026-11-10T21:05:51Z INSTALL archify official:trusted caution sha256:f6f0c506e78a36f5

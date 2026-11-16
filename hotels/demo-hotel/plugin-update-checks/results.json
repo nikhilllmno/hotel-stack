@@ -1,0 +1,28 @@
+[
+  {
+    "name": "hotel-trace",
+    "class": "manual",
+    "current": null,
+    "latest": null,
+    "update_available": null,
+    "needs_fixing": null,
+    "min_hermes": null,
+    "reason": "no provenance; not auto-updatable",
+    "checked_install": null
+  },
+  {
+    "name": "langfuse",
+    "class": "catalog",
+    "current": "e7a218f26db88426ab3e7376f0e000b6e356f5e7",
+    "latest": "e7a218f26db88426ab3e7376f0e000b6e356f5e7",
+    "update_available": false,
+    "needs_fixing": null,
+    "min_hermes": ">=0.21.7",
+    "reason": "",
+    "checked_install": {
+      "source": "https://github.com/NousResearch/hermes-official-plugins#langfuse",
+      "revision": "e7a218f26db88426ab3e7376f0e000b6e356f5e7",
+      "pinned": true
+    }
+  }
+]

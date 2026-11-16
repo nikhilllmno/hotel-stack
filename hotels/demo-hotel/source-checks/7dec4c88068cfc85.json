@@ -1,0 +1,32 @@
+{
+  "identity": {
+    "root": "/Users/nikhil/hermes/hermes-agent",
+    "home": "/Users/nikhil/hermes/hotels/demo-hotel",
+    "head": "546146a7907633b94a8307544c31713f6d931ae9",
+    "origin": "https://github.com/NousResearch/hermes-agent.git",
+    "branch": "main",
+    "channel": "stable",
+    "embedded": null,
+    "branchOverride": false,
+    "channelProtocol": 3,
+    "forwardOnly": true
+  },
+  "ts": 1794596401.6945128,
+  "status": {
+    "supported": true,
+    "hermesRoot": "/Users/nikhil/hermes/hermes-agent",
+    "behind": 0,
+    "commits": [],
+    "currentSha": "546146a7907633b94a8307544c31713f6d931ae9",
+    "currentBranch": "main",
+    "dirty": false,
+    "channel": "stable",
+    "fetchedAt": 1794596401694,
+    "targetSha": "546146a7907633b94a8307544c31713f6d931ae9",
+    "updateAvailable": false,
+    "sourceVersion": "0.23.1",
+    "buildId": null,
+    "aheadOfRelease": true,
+    "rollback": false
+  }
+}

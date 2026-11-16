@@ -1,0 +1,55 @@
+# Texts the agents can send to a guest. Hotel-written: the model only chooses WHICH one, never the wording.
+# Doss / the owner may add, edit or remove these here; nothing else needs to change. The send_text tool offers every
+# non-internal template by name + description. Keep them short; run evals after a change, then publish (voice).
+#   description  what the model reads when choosing
+#   needs_booking  true = core fills {booking_id} {room} {arrival} {departure} {guests} {total} {deposit} {pay_link}
+#                  from Beds24 and the payments table (never from the model)
+#   internal     true = sent by core itself (e.g. after payment), not offered to the agents
+# {{facts.x}} placeholders come from facts.yaml.
+
+booking_confirmation:
+  description: After creating a booking request. Confirms the details and includes the deposit payment link.
+  needs_booking: true
+  text: >-
+    {{facts.property.name}}: your booking request #{booking_id} is in. {room}, {arrival} to {departure}, {guests}.
+    Total ${total} plus taxes. To confirm it, pay the {{facts.payment.deposit_percent}}% deposit (${deposit}) here:
+    {pay_link} Reply STOP to opt out.
+
+payment_link:
+  description: Resend the deposit payment link for an existing booking request.
+  needs_booking: true
+  text: >-
+    {{facts.property.name}}: here is the link to pay the ${deposit} deposit for booking #{booking_id}: {pay_link}
+
+booking_link:
+  description: The hotel's online booking page, for guests who prefer to book themselves.
+  needs_booking: false
+  text: >-
+    {{facts.property.name}}: you can see rooms and book online here: {{facts.property.booking_portal}}
+
+directions:
+  description: Address, the best route in, and the property map.
+  needs_booking: false
+  text: >-
+    {{facts.property.name}}, {{facts.property.address}}. Best route: {{facts.location.best_route}}. Please avoid
+    {{facts.location.avoid_route}}. Property map: https://{{facts.property.website}}{{facts.property.map_path}}
+
+group_request_form:
+  description: Request form for a group or event block (not weddings).
+  needs_booking: false
+  text: >-
+    {{facts.property.name}}: here is the group and event request form: {{facts.groups.request_form}}
+
+wedding_request_form:
+  description: Wedding inquiry form.
+  needs_booking: false
+  text: >-
+    {{facts.property.name}}: here is the wedding inquiry form: {{facts.groups.wedding_form}}
+
+payment_receipt:
+  description: Sent by core after the deposit is paid.
+  needs_booking: true
+  internal: true
+  text: >-
+    {{facts.property.name}}: thank you, we received your ${deposit} deposit. Booking #{booking_id} ({room},
+    {arrival} to {departure}) is confirmed. See you soon!

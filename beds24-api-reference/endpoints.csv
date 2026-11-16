@@ -1,0 +1,39 @@
+method,path,group,purpose,stage,scopeFamily,callableDocumented
+GET,/authentication/setup,Authentication,Exchange an invite code for access and refresh tokens,Not labelled,Credential header; no resource scope,True
+GET,/authentication/token,Authentication,Issue an access token from a refresh token,Not labelled,Credential header; no resource scope,True
+DELETE,/authentication/token,Authentication,Revoke a refresh token,Not labelled,Credential header; no resource scope,True
+GET,/authentication/details,Authentication,Inspect token permissions and diagnostics,Not labelled,Credential header; no resource scope,True
+GET,/bookings,Bookings,Search reservations and retrieve booking records,Not labelled,bookings,True
+POST,/bookings,Bookings,"Create or amend reservations, invoice items, and booking information",Not labelled,bookings,True
+DELETE,/bookings,Bookings,Delete reservation records by ID; use a status update for cancellation,Not labelled,bookings,True
+GET,/bookings/messages,Bookings,Read booking conversation records,Not labelled,bookings + bookings-personal,True
+POST,/bookings/messages,Bookings,Add a message or update its read state,Not labelled,bookings + bookings-personal,True
+PATCH,/bookings/messages,Bookings,Change read state across a selected message set,Not labelled,bookings + bookings-personal,True
+GET,/bookings/invoices,Bookings,Retrieve invoice records,Alpha,bookings + bookings-financial,True
+GET,/inventory/rooms/offers,Inventory,Calculate stay offers for dates and occupancy,Not labelled,inventory,True
+GET,/inventory/rooms/availability,Inventory,Retrieve date availability for room types,Not labelled,inventory,True
+GET,/inventory/rooms/unitBookings,Inventory,Read booking coverage for individual physical units,Beta,inventory,True
+GET,/inventory/rooms/calendar,Inventory,"Read selected daily prices, inventory, and restrictions",Not labelled,inventory,True
+POST,/inventory/rooms/calendar,Inventory,"Write daily prices, inventory, and restrictions",Not labelled,inventory,True
+GET,/inventory/fixedPrices,Inventory,Read fixed prices and their rules,Not labelled,inventory,True
+POST,/inventory/fixedPrices,Inventory,Create or amend fixed prices,Not labelled,inventory,True
+GET,/accounts,Accounts,Read account records and optional usage data,Alpha,accounts,True
+POST,/accounts,Accounts,Write account fields; subaccount creation is excluded by the current FAQ,Alpha,accounts,True
+GET,/properties,Properties,"Read properties, nested room types, units, offers, and price rules",Beta,properties,True
+POST,/properties,Properties,Create or amend properties and nested room configuration,Beta,properties,True
+DELETE,/properties,Properties,Planned property deletion,Coming soon,properties,False
+GET,/properties/rooms,Properties,Planned standalone room retrieval; use GET /properties today,Coming soon,properties,False
+DELETE,/properties/rooms,Properties,Planned room deletion,Coming soon,properties,False
+GET,/channels/settings,Channels - settings,Read channel configuration,Alpha,channels,True
+POST,/channels/settings,Channels - settings,Amend channel configuration,Alpha,channels,True
+GET,/channels/airbnb/users,Channels - Airbnb,List connected Airbnb account IDs,Beta,channels,True
+GET,/channels/airbnb/listings,Channels - Airbnb,List listings for a connected Airbnb account,Alpha,channels,True
+GET,/channels/airbnb/reviews,Channels - Airbnb,Read Airbnb guest reviews,Beta,channels,True
+POST,/channels/airbnb,Channels - Airbnb,"Import, connect, or disconnect Airbnb listings",Alpha,channels,True
+POST,/channels/booking,Channels - Booking.com,"Report invalid cards, no-shows, or cancellation requests to Booking.com",Alpha,channels,True
+GET,/channels/booking/reviews,Channels - Booking.com,Read Booking.com guest reviews,Alpha,channels,True
+POST,/channels/stripe,Channels - Stripe,"Create checkout sessions and manage charges, refunds, holds, or payment methods",Alpha,channels,True
+GET,/channels/stripe/paymentMethods,Channels - Stripe,Read Stripe payment methods associated with a booking,Alpha,channels,True
+GET,/channels/stripe/charges,Channels - Stripe,Read Stripe charges associated with a booking,Alpha,channels,True
+POST,Webhooks - bookings,Webhooks,Describe the POST payload Beds24 delivers to your webhook URL,Alpha,Webhook delivery,False
+GET,/organizations/users,Organizations,Planned organization user retrieval,Coming soon,Not specified; endpoint unavailable,False

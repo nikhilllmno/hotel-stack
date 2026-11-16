@@ -1,0 +1,27 @@
+{
+  "suggestions": [
+    {
+      "id": "8d148dd3f66e",
+      "title": "Schedule 'live-dashboard'",
+      "description": "The 'live-dashboard' blueprint runs on schedule 0 8 * * *.",
+      "source": "blueprint",
+      "job_spec": {
+        "prompt": "Load the live-dashboard skill and run the refresh tick for every dashboard.json under the Hermes home directory's dashboards/ folder. Mark failed reads stale without overwriting last-known-good values, regenerate each index.html from its state file, and deliver a short summary ONLY on material change or new needs-attention items — otherwise respond with [SILENT].",
+        "schedule": "0 8 * * *",
+        "name": "blueprint:live-dashboard",
+        "deliver": "origin",
+        "skills": [
+          "live-dashboard"
+        ],
+        "model": null,
+        "provider": null,
+        "enabled_toolsets": null,
+        "no_agent": false
+      },
+      "dedup_key": "blueprint:live-dashboard:0 8 * * *",
+      "status": "pending",
+      "created_at": "2026-11-10T15:04:24.537046-06:00"
+    }
+  ],
+  "updated_at": "2026-11-10T15:04:24.537145-06:00"
+}

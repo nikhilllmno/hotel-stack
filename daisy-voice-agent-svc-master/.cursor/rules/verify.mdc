@@ -1,0 +1,22 @@
+---
+description: Validate changes before committing — build, lint, and test
+alwaysApply: false
+---
+
+# Verify Skill
+
+Run all verification steps **sequentially** from `websocket-server/`. Stop on the first failure.
+
+## Steps
+
+1. `npm run build` — compile TypeScript (stop if fails)
+2. `npm run lint` — lint source files (stop if fails)
+3. `npm test` — run unit + pg-mem tests (stop if fails)
+
+## On Success
+
+Show a summary confirming all steps passed. Safe to commit.
+
+## On Failure
+
+Stop immediately. Report which step failed, the error output, and a suggested fix. Do not continue to later steps.

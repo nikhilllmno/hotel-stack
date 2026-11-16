@@ -1,0 +1,96 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+context: |
+  ## Tech Stack
+  - **Backend**: TypeScript 5.x, Node.js, Express 4.x
+  - **Database**: PostgreSQL with Knex.js for migrations and query building
+  - **External Services**: 
+    - Twilio (Voice & SMS)
+    - Stripe (Payments with multi-account support). Other payment providers such as Shift4 can be added after decoupling Stripe with the payment service.
+    - ResNexus & Hostaway (PMS integrations. Additional PMS providers such as Stayntouch can be added)
+    - AWS S3 (File storage)
+    - Telegram (Notifications & transcripts)
+    - n8n (SMS agent is built on n8n. The tool calls, webhooks, etc. come to this repository)
+    - VAPI (Voice agent is built on Vapi. The tool calls, webhooks, etc. come to this repository)
+    - Alfred API (External integration)
+  - **Build Tools**: TypeScript compiler, ESLint, Nodemon
+  - **Utilities**: Winston (logging), Joi (validation), bcrypt (auth), axios, lodash, uuid
+
+  ## Architecture Patterns
+  - **Layered Architecture**: Router → Controller → Service → Repository → Database
+  - **Repository Pattern**: All database access through dedicated repository classes
+  - **Service Layer**: Business logic encapsulated in service classes
+  - **Factory Pattern**: Used for PMS providers, notification services
+  - **Event-Driven**: Event handlers for SMS and web reservation workflows
+  - **Middleware Chain**: Request context (AsyncLocalStorage) → Logging → Auth → Routes
+  - **DTO Pattern**: Data Transfer Objects for type-safe data handling
+
+  ## Code Organization
+  - `/src/router/` - Express route definitions
+  - `/src/controller/` - Request handlers, validation, response formatting
+  - `/src/services/` - Business logic (payment, reservation, notification, etc.)
+  - `/src/repositories/` - Database access layer
+  - `/src/models/` - TypeScript interfaces/types for domain entities
+  - `/src/dtos/` - Data Transfer Objects
+  - `/src/validators/` - Joi validation schemas
+  - `/src/middleware/` - Express middleware (auth, logging, context)
+  - `/src/migrations/` - Knex database migrations
+  - `/src/utils/` - Helper functions and utilities
+  - `/src/errors/` - Custom error classes
+  - `/src/events/` - Event handlers for async workflows
+  - `/src/pms/` - PMS provider abstraction layer
+  - `/src/resNexus/` & `/src/hostaway/` - PMS-specific implementations
+
+  ## Domain Knowledge
+  - **Hospitality Industry**: Hotel reservation management, room bookings
+  - **Voice Agent**: AI-powered phone assistant for handling reservations, modifications, cancellations
+  - **SMS Agent**: Text-based reservation assistant with conversation tracking
+  - **Multi-Hotel Support**: Each hotel can have custom configurations, Stripe accounts, phone numbers
+  - **Payment Processing**: Stripe payment links, webhook handling, multi-account support
+  - **Reservation Lifecycle**: Quote → Reservation → Payment → Check-in → Check-out
+  - **Escalation**: Calls can be escalated to human agents via n8n workflows
+  - **Discount System**: Time-based discount expiry, hotel-specific settings
+  - **Pet Policies**: Hotel-specific pet fees, capacity limits, discounted rates
+  - **Payment Policies**: Hotel-specific payment policies, deposit requirements
+
+  ## Coding Conventions
+  - **TypeScript Strict Mode**: All code must pass strict type checking, unless there's a specific reason not to
+  - **ESLint Rules**: Unused vars prefixed with `_` are allowed
+  - **Naming**: 
+    - Classes: PascalCase (e.g., `ReservationService`, `PaymentRepository`)
+    - Files: camelCase for services/controllers, PascalCase for models/DTOs
+    - Variables/Functions: camelCase
+    - Constants: UPPER_SNAKE_CASE
+  - **Error Handling**: Custom error classes with statusCode property
+  - **Logging**: Winston logger with request context (requestId via AsyncLocalStorage)
+  - **Async/Await**: Preferred over callbacks/promises
+  - **Environment Config**: Centralized in `config.ts`, loaded from `.env`
+  - **Database**: 
+    - Use Knex query builder, not raw SQL
+    - All schema changes via migrations
+    - Soft deletes with `deleted_at` timestamp
+  - **API Design**: RESTful endpoints, JSON responses, proper HTTP status codes
+  - **Validation**: Joi schemas for request validation
+  - **Authentication**: JWT-based auth, bcrypt for password hashing. For endpoints that are invoked as tool calls of AI agents, `validatePhoneNumber` and `setSessionData` middlewares are used instead of JWT authentication.
+
+  ## Special Utilities
+  - Request context middleware: Tracks requestId across async operations using AsyncLocalStorage
+
+  ## Multi-Tenancy
+  - Hotels have individual configurations stored in `hotel_configurations` table
+  - Per-hotel Stripe accounts (optional, falls back to default)
+  - Per-hotel Twilio phone numbers and settings
+  - Per-hotel PMS provider configurations (ResNexus, Hostaway, etc.)
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours

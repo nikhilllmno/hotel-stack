@@ -1,0 +1,6 @@
+---
+description: Core agent instructions — conventions and workflows
+alwaysApply: true
+---
+
+Follow the project conventions in `AGENTS.md` at the repo root.

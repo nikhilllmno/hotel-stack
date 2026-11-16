@@ -1,0 +1,584 @@
+{
+  "bundle_hash": "sha256:f6f0c506e78a36f5e08aead0348fee818d95cee154b204533cf7493cdf011c4b",
+  "scanner_version": "skills-guard-v10",
+  "source": "official",
+  "source_url": "https://github.com/tt-a1i/archify/tree/7e45f36c66de1254d5ad6ba1d878f6499ea269fd/archify",
+  "trust_level": "builtin",
+  "verdict": "caution",
+  "findings": [
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "bin/archify.mjs",
+      "line": 0,
+      "match": "282KB",
+      "description": "file is 282KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/timeline-archify-dev-activity-rendered.html",
+      "line": 0,
+      "match": "846KB",
+      "description": "file is 846KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/waterfall-checkout-request-rendered.html",
+      "line": 0,
+      "match": "813KB",
+      "description": "file is 813KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/lifecycle-agent-run.html",
+      "line": 0,
+      "match": "827KB",
+      "description": "file is 827KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/sequence-cache-miss-request.html",
+      "line": 0,
+      "match": "821KB",
+      "description": "file is 821KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/dataflow-product-analytics.html",
+      "line": 0,
+      "match": "824KB",
+      "description": "file is 824KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/class-payments-rendered.html",
+      "line": 0,
+      "match": "821KB",
+      "description": "file is 821KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/class-payment-processors-rendered.html",
+      "line": 0,
+      "match": "854KB",
+      "description": "file is 854KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/tree-payment-platform-rendered.html",
+      "line": 0,
+      "match": "820KB",
+      "description": "file is 820KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/erd-orders-rendered.html",
+      "line": 0,
+      "match": "841KB",
+      "description": "file is 841KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/web-app-rendered.html",
+      "line": 0,
+      "match": "826KB",
+      "description": "file is 826KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/workflow-agent-tool-call-rendered.html",
+      "line": 0,
+      "match": "831KB",
+      "description": "file is 831KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/tree-archify-repository-rendered.html",
+      "line": 0,
+      "match": "856KB",
+      "description": "file is 856KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/subscription-billing-rendered.html",
+      "line": 0,
+      "match": "863KB",
+      "description": "file is 863KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/waterfall-example-rebuild-rendered.html",
+      "line": 0,
+      "match": "842KB",
+      "description": "file is 842KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "examples/timeline-payment-incident-rendered.html",
+      "line": 0,
+      "match": "814KB",
+      "description": "file is 814KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "assets/template.html",
+      "line": 0,
+      "match": "768KB",
+      "description": "file is 768KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "oversized_file",
+      "severity": "medium",
+      "category": "structural",
+      "file": "renderers/shared/generated-validators.mjs",
+      "line": 0,
+      "match": "996KB",
+      "description": "file is 996KB (limit: 256KB)"
+    },
+    {
+      "pattern_id": "too_many_files",
+      "severity": "medium",
+      "category": "structural",
+      "file": "(directory)",
+      "line": 0,
+      "match": "206 files",
+      "description": "skill has 206 files (limit: 50)"
+    },
+    {
+      "pattern_id": "oversized_skill",
+      "severity": "low",
+      "category": "structural",
+      "file": "(directory)",
+      "line": 0,
+      "match": "17722KB total",
+      "description": "skill is 17722KB total (limit: 5120KB)"
+    },
+    {
+      "pattern_id": "agent_config_ref",
+      "severity": "low",
+      "category": "persistence",
+      "file": "SKILL.md",
+      "line": 137,
+      "match": "After an explainer made on request, when no `[archify explainer: ...]` line is in context, end the reply with one opt...",
+      "description": "references agent config files (informational; only modification intent is scored)"
+    },
+    {
+      "pattern_id": "unicode_escape_chain",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "schemas/common.schema.json",
+      "line": 37,
+      "match": "{ \"not\": { \"pattern\": \"[\\\\\\\\<>:\\\"|?*\\\\u0000-\\\\u001F\\\\u007F-\\\\u009F]\" } },",
+      "description": "chain of unicode escapes (possible obfuscation)"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/timeline-archify-dev-activity-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/waterfall-checkout-request-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/lifecycle-agent-run.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/sequence-cache-miss-request.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/dataflow-product-analytics.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/class-payments-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/class-payment-processors-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/tree-payment-platform-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/erd-orders-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/web-app-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/workflow-agent-tool-call-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/tree-archify-repository-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/subscription-billing-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/waterfall-example-rebuild-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "examples/timeline-payment-incident-rendered.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/reader.js",
+      "line": 373,
+      "match": "const bytes = Uint8Array.from(atob(diagram.htmlGzip),character=>character.charCodeAt(0));",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_base64",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/reader.js",
+      "line": 373,
+      "match": "const bytes = Uint8Array.from(atob(diagram.htmlGzip),character=>character.charCodeAt(0));",
+      "description": "JavaScript base64 encode/decode"
+    },
+    {
+      "pattern_id": "encoded_exfil",
+      "severity": "high",
+      "category": "exfiltration",
+      "file": "assets/template.html",
+      "line": 162,
+      "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+      "description": "base64 encoding combined with environment access"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/YAYTP6L5.js",
+      "line": 8,
+      "match": "`,o+1))s++;t=t.slice(d.length)}return t=$e(t,i),{text:He(t),title:a,config:i,withComments:t,lineOffset:s}}var Ne=/#\\w...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "backtick_subshell",
+      "severity": "medium",
+      "category": "execution",
+      "file": "explainer/vendor/pele/chunks/YAYTP6L5.js",
+      "line": 8,
+      "match": "`,o+1))s++;t=t.slice(d.length)}return t=$e(t,i),{text:He(t),title:a,config:i,withComments:t,lineOffset:s}}var Ne=/#\\w...",
+      "description": "backtick string with command substitution"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/XTDUIGUI.js",
+      "line": 8,
+      "match": "${r}`;return new p(s,\"syntax\",{type:e,...o})}var z=\"amp:38,lt:60,gt:62,quot:34,apos:39,nbsp:160,iexcl:161,cent:162,po...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "backtick_subshell",
+      "severity": "medium",
+      "category": "execution",
+      "file": "explainer/vendor/pele/chunks/XTDUIGUI.js",
+      "line": 8,
+      "match": "${r}`;return new p(s,\"syntax\",{type:e,...o})}var z=\"amp:38,lt:60,gt:62,quot:34,apos:39,nbsp:160,iexcl:161,cent:162,po...",
+      "description": "backtick string with command substitution"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/EEIX5ZYH.js",
+      "line": 1,
+      "match": "import{a as F,d as L,f as ct,g as K}from\"./GUJTEFZK.js\";import{b as G,c as z,d as J,k as Z,m as ht,n as ut,o as B}fro...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/EEIX5ZYH.js",
+      "line": 2,
+      "match": "`,e);return a===-1?this.src.length:a}next(){let e=this.src,a=e.length;for(;;){let t=this.at;if(this.start=t,this.text...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "backtick_subshell",
+      "severity": "medium",
+      "category": "execution",
+      "file": "explainer/vendor/pele/chunks/EEIX5ZYH.js",
+      "line": 2,
+      "match": "`,e);return a===-1?this.src.length:a}next(){let e=this.src,a=e.length;for(;;){let t=this.at;if(this.start=t,this.text...",
+      "description": "backtick string with command substitution"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/3DKXF73K.js",
+      "line": 1,
+      "match": "import{c as g}from\"./XTDUIGUI.js\";var b=new WeakMap;function S(n){let e=n.map((r,o)=>o),s=[];for(let r=0;r<128;r++){l...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/UKSIWDDN.js",
+      "line": 2,
+      "match": "`):void 0,axes:n,curves:i,options:a}}var ee=0,z=0;function _e(t,e){let n=e;for(let i=t.charCodeAt(n);i>=48&&i<=57;i=t...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/MSKIJHB2.js",
+      "line": 2,
+      "match": "`):void 0,showData:i.showData,sections:t}}function Ae(i,e){let t=e;for(let n=i.charCodeAt(t);n>=48&&n<=57;n=i.charCod...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/RVARI57O.js",
+      "line": 1,
+      "match": "function s(o,c,e){for(let t=0;t<e.length;t++){let n=o.charCodeAt(c+t),r=e.charCodeAt(t);if(n!==r&&!(r>=97&&r<=122&&n=...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/EJ5KOXYD.js",
+      "line": 7,
+      "match": "`),l=t.length-1;for(let n=0;n<=l;n++){let s=t[n],r=0,i=s.length;if(n>0)for(;r<i&&(s.charCodeAt(r)===32||s.charCodeAt(...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "backtick_subshell",
+      "severity": "medium",
+      "category": "execution",
+      "file": "explainer/vendor/pele/chunks/EJ5KOXYD.js",
+      "line": 12,
+      "match": "`,r);return[V(E(e.slice(t,r).trim())),u===-1?e.length:u]}r++}return[V(E(e.slice(t,r).trim())),r]}function k(e){let t=...",
+      "description": "backtick string with command substitution"
+    },
+    {
+      "pattern_id": "backtick_subshell",
+      "severity": "medium",
+      "category": "execution",
+      "file": "explainer/vendor/pele/chunks/EJ5KOXYD.js",
+      "line": 18,
+      "match": "`}function L(e,t,l){let n=t[0];if((n===\"|\"||n===\">\")&&/^[|>][-+0-9]*\\s*(?:#.*)?$/.test(t))return $(e,t,l);if(n===\"{\"|...",
+      "description": "backtick string with command substitution"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/UPTXNAXN.js",
+      "line": 1,
+      "match": "import{a as ue,b as fe}from\"./DKTLEL5E.js\";import{g as oe}from\"./GUJTEFZK.js\";import{a as Q,b as F,c as k,d as ie,k a...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/L4LY553T.js",
+      "line": 2,
+      "match": "`)}};var ie=[\"$end\",\"INVALID\",\"NEWLINE\",\"title\",\"acc_title\",\"acc_title_value\",\"acc_descr\",\"acc_descr_value\",\"acc_desc...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/L4LY553T.js",
+      "line": 3,
+      "match": "`,r);return A===-1?e:A},o=r=>{for(;r<e&&Zt(n.charCodeAt(r));)r++;return r},M=r=>{for(;at(n.charCodeAt(r));)r++;return...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "inline_shell_exec",
+      "severity": "high",
+      "category": "execution",
+      "file": "explainer/vendor/pele/chunks/L4LY553T.js",
+      "line": 2,
+      "match": "`)}};var ie=[\"$end\",\"INVALID\",\"NEWLINE\",\"title\",\"acc_title\",\"acc_title_value\",\"acc_descr\",\"acc_descr_value\",\"acc_desc...",
+      "description": "inline-shell auto-exec snippet (expands via bash -c on skill view/load)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/42UTT654.js",
+      "line": 2,
+      "match": "`)}};var mt=[\"$end\",\"INVALID\",\"NEWLINE\",\"title\",\"title_value\",\"acc_title\",\"acc_title_value\",\"acc_descr\",\"acc_descr_va...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "js_char_code",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/42UTT654.js",
+      "line": 3,
+      "match": "`,r);return E===-1?n:E},G=r=>{for(;t.charCodeAt(r)===32;)r++;return r},T=r=>{for(;r<n&&xt(t.charCodeAt(r));)r++;retur...",
+      "description": "JavaScript character code construction (possible obfuscation)"
+    },
+    {
+      "pattern_id": "hex_encoded_string",
+      "severity": "medium",
+      "category": "obfuscation",
+      "file": "explainer/vendor/pele/chunks/IZOKQ2GT.js",
+      "line": 1,
+      "match": "import{d as $,f as I}from\"./XTDUIGUI.js\";var H=/[&<>\"\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]/,P=/[&<>\"]|[\\x00-\\x08\\x0b\\x0c\\x0...",
+      "description": "hex-encoded string (possible obfuscation)"
+    },
+    {
+      "pattern_id": "backtick_subshell",
+      "severity": "medium",
+      "category": "execution",
+      "file": "explainer/vendor/pele/chunks/IZOKQ2GT.js",
+      "line": 3,
+      "match": "`)}function R(t,e,i){if(e===\"\")return;let n=$(e),s=t[t.length-1];s&&s.style===i&&s.icon===void 0?s.text+=n:t.push({te...",
+      "description": "backtick string with command substitution"
+    }
+  ],
+  "rules": [
+    "agent_config_ref",
+    "backtick_subshell",
+    "encoded_exfil",
+    "hex_encoded_string",
+    "inline_shell_exec",
+    "js_base64",
+    "js_char_code",
+    "oversized_file",
+    "oversized_skill",
+    "too_many_files",
+    "unicode_escape_chain"
+  ],
+  "scanned_at": "2026-11-10T21:05:51.304980+00:00",
+  "summary": "archify: caution \u2014 62 finding(s) in execution, exfiltration, obfuscation, persistence, structural",
+  "fresh": true
+}

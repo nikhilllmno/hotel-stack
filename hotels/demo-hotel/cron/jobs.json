@@ -1,0 +1,51 @@
+{
+  "jobs": [
+    {
+      "id": "52681794ca77",
+      "name": "Weekly report: questions Danny couldn't answer",
+      "prompt": "Weekly report for the Contigo Ranch owner: what guests asked (on calls and texts) that Danny couldn't answer over the last 7 days (the 7 days ending yesterday, Sunday; state the exact dates, America/Chicago). Use unanswered_questions(days=7), then read the real calls (get_call) and text threads (list_text_threads, get_text_thread) to find the actual questions; group similar ones, ignore hang-ups with no question. For each gap: what was asked (short quote), how often, and whether the answer already exists in the knowledge base (agent_overview). Also list callback requests Danny took instead of answering. If there were no real gaps, say so plainly in one short report. Write in plain owner language with no internal names. End with 'Suggested next steps' and, for gaps where the answer is known from hotel facts, list the exact questions the owner needs to answer or the knowledge-base additions you'd propose (do not change anything yourself). Publish with post_report(kind='kb-gaps', title='Questions Danny couldn't answer: <dates>').",
+      "skills": [
+        "kb-gap-finder"
+      ],
+      "skill": "kb-gap-finder",
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "no_agent": false,
+      "monitor_script": null,
+      "monitor_url": null,
+      "monitor_state": null,
+      "context_from": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * 1",
+        "display": "every monday 9am"
+      },
+      "schedule_display": "every monday 9am",
+      "repeat": {
+        "times": null,
+        "completed": 0
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-11-10T15:07:09.052197-06:00",
+      "next_run_at": "2026-11-16T09:00:00-06:00",
+      "last_run_at": null,
+      "last_status": null,
+      "last_error": null,
+      "last_delivery_error": null,
+      "last_delivery_unverified": null,
+      "last_failure": null,
+      "failure_streak": 0,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": null,
+      "workdir": null,
+      "timezone": "America/Chicago"
+    }
+  ],
+  "updated_at": "2026-11-10T15:07:09.061672-06:00"
+}

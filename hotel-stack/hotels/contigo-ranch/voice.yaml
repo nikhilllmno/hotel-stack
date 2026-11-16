@@ -1,0 +1,9 @@
+# Vapi voice-agent settings for this hotel. Applied by `uv run python -m hotelcore.publish`.
+assistant_name: Contigo Ranch
+first_message: "Hello, this is {{facts.property.name}}, {{facts.agent.name}} speaking on a recorded line. How can I help you?"
+end_call_message: "Thanks for calling {{facts.property.name}}. Have a great day."
+model: {provider: openai, model: gpt-4.1, temperature: 0.3}
+voice: {provider: vapi, voiceId: Elliot}
+transcriber: {provider: deepgram, model: nova-3, language: en}
+start_speaking: {waitSeconds: 0.4, smartEndpointingEnabled: livekit}
+max_duration_seconds: 900

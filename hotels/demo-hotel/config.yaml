@@ -1,0 +1,224 @@
+model:
+  provider: openrouter
+  default: anthropic/claude-opus-5.5
+  api_mode: chat_completions
+terminal:
+  backend: docker
+  docker_volumes:
+    - /Users/nikhil/hermes/hotel-stack:/repo:ro
+    - /Users/nikhil/hermes/hotels/demo-hotel/mounts/empty-env:/repo/.env:ro
+    - /Users/nikhil/hermes/hotels/demo-hotel/uploads:/uploads
+plugins:
+  enabled:
+    - hotel-trace
+    - langfuse
+  disabled: []
+_left_core_installed:
+  - langfuse
+_config_version: 53
+mcp_servers:
+  beds24:
+    command: /Users/nikhil/.local/bin/uv
+    args:
+      - run
+      - --directory
+      - /Users/nikhil/hermes/beds24-mcp
+      - python
+      - -m
+      - beds24_mcp.server
+    enabled: true
+    trust: untrusted
+  hotel:
+    command: /Users/nikhil/.local/bin/uv
+    args:
+      - run
+      - --directory
+      - /Users/nikhil/hermes/hotel-stack
+      - python
+      - -m
+      - hotelcore.doss_mcp
+    enabled: true
+    trust: untrusted
+  trivago:
+    url: https://mcp.trivago.com/mcp
+    enabled: true
+    trust: untrusted
+  composio:
+    url: ${COMPOSIO_MCP_URL}
+    headers:
+      x-api-key: ${COMPOSIO_MCP_H_X_API_KEY}
+    enabled: true
+    trust: untrusted   # Composio's hints: reads run, writes (send, create, update) ask the owner in the chat
+platform_toolsets:
+  cli:
+    - clarify
+    - code_execution
+    - cronjob
+    - delegation
+    - file
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - vision
+    - web
+  api_server:
+    - browser
+    - clarify
+    - code_execution
+    - cronjob
+    - delegation
+    - file
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - vision
+    - web
+  telegram:
+    - clarify
+    - code_execution
+    - cronjob
+    - delegation
+    - file
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - vision
+    - web
+  slack:
+    - clarify
+    - code_execution
+    - cronjob
+    - delegation
+    - file
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - vision
+    - web
+known_plugin_toolsets:
+  cli:
+    - a2a
+  api_server:
+    - a2a
+  telegram:
+    - a2a
+  slack:
+    - a2a
+known_builtin_toolsets:
+  cli:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - connections
+    - context_engine
+    - cronjob
+    - delegation
+    - discord
+    - discord_admin
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - session_search
+    - skills
+    - stt
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - x_search
+  api_server:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - connections
+    - context_engine
+    - cronjob
+    - delegation
+    - discord
+    - discord_admin
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - session_search
+    - skills
+    - stt
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - x_search
+  telegram:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - connections
+    - context_engine
+    - cronjob
+    - delegation
+    - discord
+    - discord_admin
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - session_search
+    - skills
+    - stt
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - x_search
+  slack:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - connections
+    - context_engine
+    - cronjob
+    - delegation
+    - discord
+    - discord_admin
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - session_search
+    - skills
+    - stt
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - x_search
+agent:
+  clarify_timeout: 900  # owner has 15 min to answer a question in the dashboard
+timezone: America/Chicago  # hotel time: Doss's 'now' and every scheduled job
+browser:
+  cloud_provider: browserbase  # real browsing runs in Browserbase (Startup plan), not on this Mac

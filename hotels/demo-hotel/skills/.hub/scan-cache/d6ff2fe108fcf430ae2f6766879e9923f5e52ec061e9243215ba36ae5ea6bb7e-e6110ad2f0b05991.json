@@ -1,0 +1,25 @@
+{
+  "bundle_hash": "sha256:d6ff2fe108fcf430ae2f6766879e9923f5e52ec061e9243215ba36ae5ea6bb7e",
+  "scanner_version": "skills-guard-v10",
+  "source": "official",
+  "source_url": "official/finance/excel-author",
+  "trust_level": "builtin",
+  "verdict": "safe",
+  "findings": [
+    {
+      "pattern_id": "python_subprocess",
+      "severity": "medium",
+      "category": "execution",
+      "file": "scripts/recalc.py",
+      "line": 45,
+      "match": "subprocess.run(",
+      "description": "Python subprocess execution"
+    }
+  ],
+  "rules": [
+    "python_subprocess"
+  ],
+  "scanned_at": "2026-11-10T21:04:15.727288+00:00",
+  "summary": "excel-author: safe \u2014 1 finding(s) in execution",
+  "fresh": true
+}

@@ -1,0 +1,1272 @@
+{
+  "version": 1,
+  "installed": {
+    "excel-author": {
+      "source": "official",
+      "identifier": "official/finance/excel-author",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:d6ff2fe108fcf430",
+      "install_path": "finance/excel-author",
+      "files": [
+        "SKILL.md",
+        "scripts/recalc.py"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:d6ff2fe108fcf430ae2f6766879e9923f5e52ec061e9243215ba36ae5ea6bb7e",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/finance/excel-author",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [
+          {
+            "pattern_id": "python_subprocess",
+            "severity": "medium",
+            "category": "execution",
+            "file": "scripts/recalc.py",
+            "line": 45,
+            "match": "subprocess.run(",
+            "description": "Python subprocess execution"
+          }
+        ],
+        "rules": [
+          "python_subprocess"
+        ],
+        "scanned_at": "2026-11-10T21:04:15.727288+00:00",
+        "summary": "excel-author: safe — 1 finding(s) in execution",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:15.750095+00:00",
+      "updated_at": "2026-11-10T21:04:15.750095+00:00"
+    },
+    "pptx-author": {
+      "source": "official",
+      "identifier": "official/finance/pptx-author",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:34ca4f68cb06d954",
+      "install_path": "finance/pptx-author",
+      "files": [
+        "SKILL.md"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:34ca4f68cb06d954ed2a8e4376147018f2070ca1f0063ac2e4c2e9e873389da8",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/finance/pptx-author",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [],
+        "rules": [],
+        "scanned_at": "2026-11-10T21:04:17.014326+00:00",
+        "summary": "pptx-author: clean scan, no threats detected",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:17.023333+00:00",
+      "updated_at": "2026-11-10T21:04:17.023333+00:00"
+    },
+    "watchers": {
+      "source": "official",
+      "identifier": "official/devops/watchers",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:fd551f3401b23787",
+      "install_path": "devops/watchers",
+      "files": [
+        "SKILL.md",
+        "scripts/_watermark.py",
+        "scripts/watch_rss.py",
+        "scripts/watch_http_json.py",
+        "scripts/watch_github.py"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:fd551f3401b2378745742f47466f74b8362f92ca02382e9b72eb3aa984f133d0",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/devops/watchers",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [
+          {
+            "pattern_id": "python_environ_get_secret",
+            "severity": "medium",
+            "category": "exfiltration",
+            "file": "scripts/watch_github.py",
+            "line": 118,
+            "match": "token = os.environ.get(\"GITHUB_TOKEN\") or os.environ.get(\"GH_TOKEN\")",
+            "description": "reads secret via os.environ.get() (normal API-key access; informational)"
+          }
+        ],
+        "rules": [
+          "python_environ_get_secret"
+        ],
+        "scanned_at": "2026-11-10T21:04:18.187783+00:00",
+        "summary": "watchers: safe — 1 finding(s) in exfiltration",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:18.195694+00:00",
+      "updated_at": "2026-11-10T21:04:18.195694+00:00"
+    },
+    "rss-feeds": {
+      "source": "official",
+      "identifier": "official/research/rss-feeds",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:e568a0983e2a977b",
+      "install_path": "research/rss-feeds",
+      "files": [
+        "SKILL.md",
+        "scripts/feed.py"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:e568a0983e2a977b58b93d286d1ca2b7f2d54fdc5ccaeb0b1e5c8a403e1e67c0",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/research/rss-feeds",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [],
+        "rules": [],
+        "scanned_at": "2026-11-10T21:04:20.056939+00:00",
+        "summary": "rss-feeds: clean scan, no threats detected",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:20.070565+00:00",
+      "updated_at": "2026-11-10T21:04:20.070565+00:00"
+    },
+    "scrapling": {
+      "source": "official",
+      "identifier": "official/research/scrapling",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:44b2b24646686d66",
+      "install_path": "research/scrapling",
+      "files": [
+        "SKILL.md"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:44b2b24646686d661ce8e677c0fe2be31f739dd79937c4e8f37ba6154288ab11",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/research/scrapling",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 34,
+            "match": "pip install \"scrapling[all]\"",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 40,
+            "match": "pip install scrapling",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 45,
+            "match": "pip install \"scrapling[fetchers]\"",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 331,
+            "match": "- **Browser install required**: run `scrapling install` after pip install -- without it, `DynamicFetcher` and `Stealt...",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "remote_fetch",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 77,
+            "match": "scrapling extract fetch 'https://example.com' output.md \\",
+            "description": "fetches remote resource at runtime"
+          },
+          {
+            "pattern_id": "remote_fetch",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 86,
+            "match": "scrapling extract stealthy-fetch 'https://protected-site.com' output.html \\",
+            "description": "fetches remote resource at runtime"
+          },
+          {
+            "pattern_id": "remote_fetch",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 154,
+            "match": "page = DynamicFetcher.fetch('https://example.com', headless=True)",
+            "description": "fetches remote resource at runtime"
+          },
+          {
+            "pattern_id": "remote_fetch",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 176,
+            "match": "page = session.fetch('https://example.com')",
+            "description": "fetches remote resource at runtime"
+          },
+          {
+            "pattern_id": "remote_fetch",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 192,
+            "match": "page = DynamicFetcher.fetch('https://example.com', page_action=scroll_and_click)",
+            "description": "fetches remote resource at runtime"
+          },
+          {
+            "pattern_id": "remote_fetch",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 219,
+            "match": "page1 = session.fetch('https://protected-site.com/page1')",
+            "description": "fetches remote resource at runtime"
+          },
+          {
+            "pattern_id": "remote_fetch",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 220,
+            "match": "page2 = session.fetch('https://protected-site.com/page2')",
+            "description": "fetches remote resource at runtime"
+          }
+        ],
+        "rules": [
+          "remote_fetch",
+          "unpinned_pip_install"
+        ],
+        "scanned_at": "2026-11-10T21:04:21.725266+00:00",
+        "summary": "scrapling: safe — 11 finding(s) in supply_chain",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:21.734228+00:00",
+      "updated_at": "2026-11-10T21:04:21.734228+00:00"
+    },
+    "social-media-content-calendar": {
+      "source": "official",
+      "identifier": "official/creative/social-media-content-calendar",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:d970ca59b30cbc82",
+      "install_path": "creative/social-media-content-calendar",
+      "files": [
+        "SKILL.md"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:d970ca59b30cbc82220a44a2fd9412de922b916c49c2146df029d62c9e82e476",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/creative/social-media-content-calendar",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [],
+        "rules": [],
+        "scanned_at": "2026-11-10T21:04:22.971441+00:00",
+        "summary": "social-media-content-calendar: clean scan, no threats detected",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:22.982049+00:00",
+      "updated_at": "2026-11-10T21:04:22.982049+00:00"
+    },
+    "live-dashboard": {
+      "source": "official",
+      "identifier": "official/productivity/live-dashboard",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:bb83a2ae586d4908",
+      "install_path": "productivity/live-dashboard",
+      "files": [
+        "SKILL.md"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:bb83a2ae586d49083b36cd8c96294b30d17d2910e338c5ad6ad21458446f53b8",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/productivity/live-dashboard",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [],
+        "rules": [],
+        "scanned_at": "2026-11-10T21:04:24.032240+00:00",
+        "summary": "live-dashboard: clean scan, no threats detected",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:24.039420+00:00",
+      "updated_at": "2026-11-10T21:04:24.039420+00:00"
+    },
+    "fastmcp": {
+      "source": "official",
+      "identifier": "official/mcp/fastmcp",
+      "trust_level": "builtin",
+      "scan_verdict": "safe",
+      "content_hash": "sha256:3f8f835e0779dfff",
+      "install_path": "mcp/fastmcp",
+      "files": [
+        "SKILL.md",
+        "references/fastmcp-cli.md",
+        "scripts/scaffold_fastmcp.py",
+        "templates/database_server.py",
+        "templates/api_wrapper.py",
+        "templates/file_processor.py"
+      ],
+      "metadata": {},
+      "scan_provenance": {
+        "bundle_hash": "sha256:3f8f835e0779dffff54577f4503fbdc03fee7bc68c2b3a2b96e04c64278cdec4",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "official/mcp/fastmcp",
+        "trust_level": "builtin",
+        "verdict": "safe",
+        "findings": [
+          {
+            "pattern_id": "hardcoded_ip_port",
+            "severity": "medium",
+            "category": "network",
+            "file": "SKILL.md",
+            "line": 155,
+            "match": "fastmcp list http://127.0.0.1:8000/mcp --json",
+            "description": "hardcoded IP address with port"
+          },
+          {
+            "pattern_id": "hardcoded_ip_port",
+            "severity": "medium",
+            "category": "network",
+            "file": "SKILL.md",
+            "line": 156,
+            "match": "fastmcp call http://127.0.0.1:8000/mcp search_resources query=router --json",
+            "description": "hardcoded IP address with port"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 39,
+            "match": "pip install fastmcp",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 46,
+            "match": "pip install httpx",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "SKILL.md",
+            "line": 271,
+            "match": "pip install fastmcp",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "hermes_config_ref",
+            "severity": "low",
+            "category": "persistence",
+            "file": "SKILL.md",
+            "line": 175,
+            "match": "- configure the server in `~/.hermes/config.yaml` using the `native-mcp` skill, or",
+            "description": "references Hermes configuration files (informational; only modification intent is scored)"
+          },
+          {
+            "pattern_id": "hermes_config_ref",
+            "severity": "low",
+            "category": "persistence",
+            "file": "SKILL.md",
+            "line": 296,
+            "match": "The server-building part may be correct while the Hermes config is not. Load the `native-mcp` skill and configure the...",
+            "description": "references Hermes configuration files (informational; only modification intent is scored)"
+          },
+          {
+            "pattern_id": "hardcoded_ip_port",
+            "severity": "medium",
+            "category": "network",
+            "file": "references/fastmcp-cli.md",
+            "line": 49,
+            "match": "fastmcp list http://127.0.0.1:8000/mcp --json",
+            "description": "hardcoded IP address with port"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "references/fastmcp-cli.md",
+            "line": 8,
+            "match": "pip install fastmcp",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "unpinned_pip_install",
+            "severity": "medium",
+            "category": "supply_chain",
+            "file": "references/fastmcp-cli.md",
+            "line": 12,
+            "match": "FastMCP documents `pip install fastmcp` and `fastmcp version` as the baseline installation and verification path.",
+            "description": "pip install without version pinning"
+          },
+          {
+            "pattern_id": "python_getenv_secret",
+            "severity": "medium",
+            "category": "exfiltration",
+            "file": "templates/api_wrapper.py",
+            "line": 13,
+            "match": "API_TOKEN = os.getenv(\"API_TOKEN\")",
+            "description": "reads secret via os.getenv() (normal API-key access; informational)"
+          }
+        ],
+        "rules": [
+          "hardcoded_ip_port",
+          "hermes_config_ref",
+          "python_getenv_secret",
+          "unpinned_pip_install"
+        ],
+        "scanned_at": "2026-11-10T21:04:25.067957+00:00",
+        "summary": "fastmcp: safe — 11 finding(s) in exfiltration, network, persistence, supply_chain",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:04:25.076238+00:00",
+      "updated_at": "2026-11-10T21:04:25.076238+00:00"
+    },
+    "archify": {
+      "source": "official",
+      "identifier": "official/creative/archify",
+      "trust_level": "trusted",
+      "scan_verdict": "caution",
+      "content_hash": "sha256:f6f0c506e78a36f5",
+      "install_path": "creative/archify",
+      "files": [
+        "SKILL.md",
+        "LICENSE",
+        "LICENSE-MIT",
+        "NOTICE",
+        "THIRD_PARTY_NOTICES.md",
+        "assets/JetBrainsMono-OFL.txt",
+        "assets/template.html",
+        "bin/archify.mjs",
+        "bin/delivery-update.mjs",
+        "bin/finalize.mjs",
+        "bin/open-artifact.mjs",
+        "bin/preview.mjs",
+        "bin/recover-output.mjs",
+        "bin/visual-check.mjs",
+        "brand-marks/README.md",
+        "brand-marks/catalog.json",
+        "delta/architecture-delta.mjs",
+        "examples/agent-run.lifecycle.json",
+        "examples/agent-tool-call.workflow.json",
+        "examples/archify-dev-activity.timeline.json",
+        "examples/archify-repository.tree.json",
+        "examples/async-job-roundtrip.sequence.json",
+        "examples/brand-aware-delivery.architecture.json",
+        "examples/cache-miss-request.sequence.json",
+        "examples/checkout-platform.base.architecture.json",
+        "examples/checkout-platform.head.architecture.json",
+        "examples/checkout-request.waterfall.json",
+        "examples/class-payment-processors-rendered.html",
+        "examples/class-payments-rendered.html",
+        "examples/dataflow-product-analytics.html",
+        "examples/delivery.explainer.json",
+        "examples/deployment-release.lifecycle.json",
+        "examples/erd-orders-rendered.html",
+        "examples/event-stream.dataflow.json",
+        "examples/example-rebuild.waterfall.json",
+        "examples/holiday-planning.workflow.json",
+        "examples/incident-response.workflow.json",
+        "examples/lifecycle-agent-run.html",
+        "examples/locales/de.json",
+        "examples/locales/fr.json",
+        "examples/locales/fr.partial.json",
+        "examples/locales/it.json",
+        "examples/locales/ja.json",
+        "examples/locales/pt.json",
+        "examples/locales/ru.json",
+        "examples/orders.erd.json",
+        "examples/payment-incident.timeline.json",
+        "examples/payment-platform.tree.json",
+        "examples/payment-processors.class.json",
+        "examples/payments.class.json",
+        "examples/product-analytics.dataflow.json",
+        "examples/production-deployment.architecture.json",
+        "examples/release-delivery.workflow.json",
+        "examples/sequence-cache-miss-request.html",
+        "examples/subscription-billing-rendered.html",
+        "examples/subscription-billing.erd.json",
+        "examples/timeline-archify-dev-activity-rendered.html",
+        "examples/timeline-payment-incident-rendered.html",
+        "examples/tree-archify-repository-rendered.html",
+        "examples/tree-payment-platform-rendered.html",
+        "examples/waterfall-checkout-request-rendered.html",
+        "examples/waterfall-example-rebuild-rendered.html",
+        "examples/web-app-rendered.html",
+        "examples/web-app.architecture.json",
+        "examples/workflow-agent-tool-call-rendered.html",
+        "explainer/browser-check.mjs",
+        "explainer/charts.mjs",
+        "explainer/check.mjs",
+        "explainer/diagrams.mjs",
+        "explainer/diff.mjs",
+        "explainer/inline.mjs",
+        "explainer/layout.mjs",
+        "explainer/page-bundle.mjs",
+        "explainer/parse.mjs",
+        "explainer/patch.mjs",
+        "explainer/prepare.mjs",
+        "explainer/reader.css",
+        "explainer/reader.js",
+        "explainer/render.mjs",
+        "explainer/revision.mjs",
+        "explainer/sources.mjs",
+        "explainer/validate.mjs",
+        "explainer/vendor/pele/LICENSE",
+        "explainer/vendor/pele/README.md",
+        "explainer/vendor/pele/chunks/3DKXF73K.js",
+        "explainer/vendor/pele/chunks/42UTT654.js",
+        "explainer/vendor/pele/chunks/DKTLEL5E.js",
+        "explainer/vendor/pele/chunks/EEIX5ZYH.js",
+        "explainer/vendor/pele/chunks/EJ5KOXYD.js",
+        "explainer/vendor/pele/chunks/GUJTEFZK.js",
+        "explainer/vendor/pele/chunks/IZOKQ2GT.js",
+        "explainer/vendor/pele/chunks/L4LY553T.js",
+        "explainer/vendor/pele/chunks/MSKIJHB2.js",
+        "explainer/vendor/pele/chunks/RVARI57O.js",
+        "explainer/vendor/pele/chunks/UKSIWDDN.js",
+        "explainer/vendor/pele/chunks/UPTXNAXN.js",
+        "explainer/vendor/pele/chunks/XTDUIGUI.js",
+        "explainer/vendor/pele/chunks/YAYTP6L5.js",
+        "explainer/vendor/pele/core.js",
+        "explainer/vendor/pele/diagrams/pie.js",
+        "explainer/vendor/pele/diagrams/quadrantChart.js",
+        "explainer/vendor/pele/diagrams/radar.js",
+        "explainer/vendor/pele/diagrams/sankey.js",
+        "explainer/vendor/pele/diagrams/venn.js",
+        "explainer/vendor/pele/diagrams/xychart.js",
+        "explainer/writing.mjs",
+        "locales/README.md",
+        "locales/ar.json",
+        "locales/en.json",
+        "locales/es.json",
+        "locales/ko.json",
+        "locales/manifest.json",
+        "locales/zh-CN.json",
+        "locales/zh-TW.json",
+        "migrations/workflow-v2.mjs",
+        "package-lock.json",
+        "package.json",
+        "recipes/scenarios.mjs",
+        "references/architecture-layout-repair.md",
+        "references/authoring-contract.md",
+        "references/authoring-defaults.md",
+        "references/brand-marks.md",
+        "references/delivery-contract.md",
+        "references/explainer-authoring.md",
+        "references/repository-authoring.md",
+        "references/update-awareness.md",
+        "references/viewer-runtime.md",
+        "renderers/architecture/grid.mjs",
+        "renderers/architecture/labels.mjs",
+        "renderers/architecture/render-architecture.mjs",
+        "renderers/architecture/routing.mjs",
+        "renderers/class/README.md",
+        "renderers/class/render-class.mjs",
+        "renderers/dataflow/README.md",
+        "renderers/dataflow/dataflow-compiler.mjs",
+        "renderers/dataflow/joint-label-routing.mjs",
+        "renderers/dataflow/label-capacity.mjs",
+        "renderers/dataflow/render-dataflow.mjs",
+        "renderers/erd/README.md",
+        "renderers/erd/grid.mjs",
+        "renderers/erd/render-erd.mjs",
+        "renderers/explainer/render-explainer.mjs",
+        "renderers/lifecycle/README.md",
+        "renderers/lifecycle/render-lifecycle.mjs",
+        "renderers/sequence/README.md",
+        "renderers/sequence/render-sequence.mjs",
+        "renderers/shared/atomic-output.mjs",
+        "renderers/shared/automatic-labels.mjs",
+        "renderers/shared/brand-marks.mjs",
+        "renderers/shared/cli.mjs",
+        "renderers/shared/desktop-readability.mjs",
+        "renderers/shared/diagnostics.mjs",
+        "renderers/shared/engineering-profiles.mjs",
+        "renderers/shared/generated-brand-marks.mjs",
+        "renderers/shared/generated-validators.mjs",
+        "renderers/shared/geometry.mjs",
+        "renderers/shared/i18n.mjs",
+        "renderers/shared/layout-report.mjs",
+        "renderers/shared/legend.mjs",
+        "renderers/shared/node-card-style.mjs",
+        "renderers/shared/output-path.mjs",
+        "renderers/shared/owned-temp-directory.mjs",
+        "renderers/shared/path-semantics.mjs",
+        "renderers/shared/portable-path.mjs",
+        "renderers/shared/repository-evidence.mjs",
+        "renderers/shared/repository-location.mjs",
+        "renderers/shared/route-quality.mjs",
+        "renderers/shared/sidecar-path.mjs",
+        "renderers/shared/software-notices.mjs",
+        "renderers/shared/spatial-grid.mjs",
+        "renderers/shared/svg-path-analysis.mjs",
+        "renderers/shared/text-fit.mjs",
+        "renderers/shared/utils.mjs",
+        "renderers/shared/validator.mjs",
+        "renderers/timeline/README.md",
+        "renderers/timeline/render-timeline.mjs",
+        "renderers/tree/README.md",
+        "renderers/tree/render-tree.mjs",
+        "renderers/waterfall/README.md",
+        "renderers/waterfall/render-waterfall.mjs",
+        "renderers/workflow/README.md",
+        "renderers/workflow/render-workflow.mjs",
+        "renderers/workflow/workflow-compiler.mjs",
+        "renderers/workflow/workflow-migration-geometry.mjs",
+        "renderers/workflow/workflow-placement-repair.mjs",
+        "schemas/README.md",
+        "schemas/architecture.schema.json",
+        "schemas/class.schema.json",
+        "schemas/common.schema.json",
+        "schemas/dataflow.schema.json",
+        "schemas/erd.schema.json",
+        "schemas/explainer.schema.json",
+        "schemas/lifecycle.schema.json",
+        "schemas/sequence.schema.json",
+        "schemas/timeline.schema.json",
+        "schemas/tree.schema.json",
+        "schemas/waterfall.schema.json",
+        "schemas/workflow.schema.json",
+        "scripts/check-render-output.mjs",
+        "scripts/check-update.mjs",
+        "scripts/delivery-update-child.mjs",
+        "scripts/generate-brand-marks.mjs",
+        "scripts/generate-validators.mjs",
+        "scripts/render-examples.mjs",
+        "scripts/update-contract.mjs",
+        "skill-release.json"
+      ],
+      "metadata": {
+        "source_url": "https://github.com/tt-a1i/archify/tree/7e45f36c66de1254d5ad6ba1d878f6499ea269fd/archify",
+        "source_revision": "7e45f36c66de1254d5ad6ba1d878f6499ea269fd",
+        "upstream_repo": "tt-a1i/archify",
+        "upstream_path": "archify"
+      },
+      "scan_provenance": {
+        "bundle_hash": "sha256:f6f0c506e78a36f5e08aead0348fee818d95cee154b204533cf7493cdf011c4b",
+        "scanner_version": "skills-guard-v10",
+        "source": "official",
+        "source_url": "https://github.com/tt-a1i/archify/tree/7e45f36c66de1254d5ad6ba1d878f6499ea269fd/archify",
+        "trust_level": "builtin",
+        "verdict": "caution",
+        "findings": [
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "bin/archify.mjs",
+            "line": 0,
+            "match": "282KB",
+            "description": "file is 282KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/timeline-archify-dev-activity-rendered.html",
+            "line": 0,
+            "match": "846KB",
+            "description": "file is 846KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/waterfall-checkout-request-rendered.html",
+            "line": 0,
+            "match": "813KB",
+            "description": "file is 813KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/lifecycle-agent-run.html",
+            "line": 0,
+            "match": "827KB",
+            "description": "file is 827KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/sequence-cache-miss-request.html",
+            "line": 0,
+            "match": "821KB",
+            "description": "file is 821KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/dataflow-product-analytics.html",
+            "line": 0,
+            "match": "824KB",
+            "description": "file is 824KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/class-payments-rendered.html",
+            "line": 0,
+            "match": "821KB",
+            "description": "file is 821KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/class-payment-processors-rendered.html",
+            "line": 0,
+            "match": "854KB",
+            "description": "file is 854KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/tree-payment-platform-rendered.html",
+            "line": 0,
+            "match": "820KB",
+            "description": "file is 820KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/erd-orders-rendered.html",
+            "line": 0,
+            "match": "841KB",
+            "description": "file is 841KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/web-app-rendered.html",
+            "line": 0,
+            "match": "826KB",
+            "description": "file is 826KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/workflow-agent-tool-call-rendered.html",
+            "line": 0,
+            "match": "831KB",
+            "description": "file is 831KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/tree-archify-repository-rendered.html",
+            "line": 0,
+            "match": "856KB",
+            "description": "file is 856KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/subscription-billing-rendered.html",
+            "line": 0,
+            "match": "863KB",
+            "description": "file is 863KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/waterfall-example-rebuild-rendered.html",
+            "line": 0,
+            "match": "842KB",
+            "description": "file is 842KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "examples/timeline-payment-incident-rendered.html",
+            "line": 0,
+            "match": "814KB",
+            "description": "file is 814KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "assets/template.html",
+            "line": 0,
+            "match": "768KB",
+            "description": "file is 768KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "oversized_file",
+            "severity": "medium",
+            "category": "structural",
+            "file": "renderers/shared/generated-validators.mjs",
+            "line": 0,
+            "match": "996KB",
+            "description": "file is 996KB (limit: 256KB)"
+          },
+          {
+            "pattern_id": "too_many_files",
+            "severity": "medium",
+            "category": "structural",
+            "file": "(directory)",
+            "line": 0,
+            "match": "206 files",
+            "description": "skill has 206 files (limit: 50)"
+          },
+          {
+            "pattern_id": "oversized_skill",
+            "severity": "low",
+            "category": "structural",
+            "file": "(directory)",
+            "line": 0,
+            "match": "17722KB total",
+            "description": "skill is 17722KB total (limit: 5120KB)"
+          },
+          {
+            "pattern_id": "agent_config_ref",
+            "severity": "low",
+            "category": "persistence",
+            "file": "SKILL.md",
+            "line": 137,
+            "match": "After an explainer made on request, when no `[archify explainer: ...]` line is in context, end the reply with one opt...",
+            "description": "references agent config files (informational; only modification intent is scored)"
+          },
+          {
+            "pattern_id": "unicode_escape_chain",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "schemas/common.schema.json",
+            "line": 37,
+            "match": "{ \"not\": { \"pattern\": \"[\\\\\\\\<>:\\\"|?*\\\\u0000-\\\\u001F\\\\u007F-\\\\u009F]\" } },",
+            "description": "chain of unicode escapes (possible obfuscation)"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/timeline-archify-dev-activity-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/waterfall-checkout-request-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/lifecycle-agent-run.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/sequence-cache-miss-request.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/dataflow-product-analytics.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/class-payments-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/class-payment-processors-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/tree-payment-platform-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/erd-orders-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/web-app-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/workflow-agent-tool-call-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/tree-archify-repository-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/subscription-billing-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/waterfall-example-rebuild-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "examples/timeline-payment-incident-rendered.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/reader.js",
+            "line": 373,
+            "match": "const bytes = Uint8Array.from(atob(diagram.htmlGzip),character=>character.charCodeAt(0));",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_base64",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/reader.js",
+            "line": 373,
+            "match": "const bytes = Uint8Array.from(atob(diagram.htmlGzip),character=>character.charCodeAt(0));",
+            "description": "JavaScript base64 encode/decode"
+          },
+          {
+            "pattern_id": "encoded_exfil",
+            "severity": "high",
+            "category": "exfiltration",
+            "file": "assets/template.html",
+            "line": 162,
+            "match": "src: url(data:font/woff2;base64,d09GMgABAAAAAC1MABIAAAAAdAQAACzjAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoJLG4ouHIM+BmA/U1RBV...",
+            "description": "base64 encoding combined with environment access"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/YAYTP6L5.js",
+            "line": 8,
+            "match": "`,o+1))s++;t=t.slice(d.length)}return t=$e(t,i),{text:He(t),title:a,config:i,withComments:t,lineOffset:s}}var Ne=/#\\w...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "backtick_subshell",
+            "severity": "medium",
+            "category": "execution",
+            "file": "explainer/vendor/pele/chunks/YAYTP6L5.js",
+            "line": 8,
+            "match": "`,o+1))s++;t=t.slice(d.length)}return t=$e(t,i),{text:He(t),title:a,config:i,withComments:t,lineOffset:s}}var Ne=/#\\w...",
+            "description": "backtick string with command substitution"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/XTDUIGUI.js",
+            "line": 8,
+            "match": "${r}`;return new p(s,\"syntax\",{type:e,...o})}var z=\"amp:38,lt:60,gt:62,quot:34,apos:39,nbsp:160,iexcl:161,cent:162,po...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "backtick_subshell",
+            "severity": "medium",
+            "category": "execution",
+            "file": "explainer/vendor/pele/chunks/XTDUIGUI.js",
+            "line": 8,
+            "match": "${r}`;return new p(s,\"syntax\",{type:e,...o})}var z=\"amp:38,lt:60,gt:62,quot:34,apos:39,nbsp:160,iexcl:161,cent:162,po...",
+            "description": "backtick string with command substitution"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/EEIX5ZYH.js",
+            "line": 1,
+            "match": "import{a as F,d as L,f as ct,g as K}from\"./GUJTEFZK.js\";import{b as G,c as z,d as J,k as Z,m as ht,n as ut,o as B}fro...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/EEIX5ZYH.js",
+            "line": 2,
+            "match": "`,e);return a===-1?this.src.length:a}next(){let e=this.src,a=e.length;for(;;){let t=this.at;if(this.start=t,this.text...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "backtick_subshell",
+            "severity": "medium",
+            "category": "execution",
+            "file": "explainer/vendor/pele/chunks/EEIX5ZYH.js",
+            "line": 2,
+            "match": "`,e);return a===-1?this.src.length:a}next(){let e=this.src,a=e.length;for(;;){let t=this.at;if(this.start=t,this.text...",
+            "description": "backtick string with command substitution"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/3DKXF73K.js",
+            "line": 1,
+            "match": "import{c as g}from\"./XTDUIGUI.js\";var b=new WeakMap;function S(n){let e=n.map((r,o)=>o),s=[];for(let r=0;r<128;r++){l...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/UKSIWDDN.js",
+            "line": 2,
+            "match": "`):void 0,axes:n,curves:i,options:a}}var ee=0,z=0;function _e(t,e){let n=e;for(let i=t.charCodeAt(n);i>=48&&i<=57;i=t...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/MSKIJHB2.js",
+            "line": 2,
+            "match": "`):void 0,showData:i.showData,sections:t}}function Ae(i,e){let t=e;for(let n=i.charCodeAt(t);n>=48&&n<=57;n=i.charCod...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/RVARI57O.js",
+            "line": 1,
+            "match": "function s(o,c,e){for(let t=0;t<e.length;t++){let n=o.charCodeAt(c+t),r=e.charCodeAt(t);if(n!==r&&!(r>=97&&r<=122&&n=...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/EJ5KOXYD.js",
+            "line": 7,
+            "match": "`),l=t.length-1;for(let n=0;n<=l;n++){let s=t[n],r=0,i=s.length;if(n>0)for(;r<i&&(s.charCodeAt(r)===32||s.charCodeAt(...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "backtick_subshell",
+            "severity": "medium",
+            "category": "execution",
+            "file": "explainer/vendor/pele/chunks/EJ5KOXYD.js",
+            "line": 12,
+            "match": "`,r);return[V(E(e.slice(t,r).trim())),u===-1?e.length:u]}r++}return[V(E(e.slice(t,r).trim())),r]}function k(e){let t=...",
+            "description": "backtick string with command substitution"
+          },
+          {
+            "pattern_id": "backtick_subshell",
+            "severity": "medium",
+            "category": "execution",
+            "file": "explainer/vendor/pele/chunks/EJ5KOXYD.js",
+            "line": 18,
+            "match": "`}function L(e,t,l){let n=t[0];if((n===\"|\"||n===\">\")&&/^[|>][-+0-9]*\\s*(?:#.*)?$/.test(t))return $(e,t,l);if(n===\"{\"|...",
+            "description": "backtick string with command substitution"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/UPTXNAXN.js",
+            "line": 1,
+            "match": "import{a as ue,b as fe}from\"./DKTLEL5E.js\";import{g as oe}from\"./GUJTEFZK.js\";import{a as Q,b as F,c as k,d as ie,k a...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/L4LY553T.js",
+            "line": 2,
+            "match": "`)}};var ie=[\"$end\",\"INVALID\",\"NEWLINE\",\"title\",\"acc_title\",\"acc_title_value\",\"acc_descr\",\"acc_descr_value\",\"acc_desc...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/L4LY553T.js",
+            "line": 3,
+            "match": "`,r);return A===-1?e:A},o=r=>{for(;r<e&&Zt(n.charCodeAt(r));)r++;return r},M=r=>{for(;at(n.charCodeAt(r));)r++;return...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "inline_shell_exec",
+            "severity": "high",
+            "category": "execution",
+            "file": "explainer/vendor/pele/chunks/L4LY553T.js",
+            "line": 2,
+            "match": "`)}};var ie=[\"$end\",\"INVALID\",\"NEWLINE\",\"title\",\"acc_title\",\"acc_title_value\",\"acc_descr\",\"acc_descr_value\",\"acc_desc...",
+            "description": "inline-shell auto-exec snippet (expands via bash -c on skill view/load)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/42UTT654.js",
+            "line": 2,
+            "match": "`)}};var mt=[\"$end\",\"INVALID\",\"NEWLINE\",\"title\",\"title_value\",\"acc_title\",\"acc_title_value\",\"acc_descr\",\"acc_descr_va...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "js_char_code",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/42UTT654.js",
+            "line": 3,
+            "match": "`,r);return E===-1?n:E},G=r=>{for(;t.charCodeAt(r)===32;)r++;return r},T=r=>{for(;r<n&&xt(t.charCodeAt(r));)r++;retur...",
+            "description": "JavaScript character code construction (possible obfuscation)"
+          },
+          {
+            "pattern_id": "hex_encoded_string",
+            "severity": "medium",
+            "category": "obfuscation",
+            "file": "explainer/vendor/pele/chunks/IZOKQ2GT.js",
+            "line": 1,
+            "match": "import{d as $,f as I}from\"./XTDUIGUI.js\";var H=/[&<>\"\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]/,P=/[&<>\"]|[\\x00-\\x08\\x0b\\x0c\\x0...",
+            "description": "hex-encoded string (possible obfuscation)"
+          },
+          {
+            "pattern_id": "backtick_subshell",
+            "severity": "medium",
+            "category": "execution",
+            "file": "explainer/vendor/pele/chunks/IZOKQ2GT.js",
+            "line": 3,
+            "match": "`)}function R(t,e,i){if(e===\"\")return;let n=$(e),s=t[t.length-1];s&&s.style===i&&s.icon===void 0?s.text+=n:t.push({te...",
+            "description": "backtick string with command substitution"
+          }
+        ],
+        "rules": [
+          "agent_config_ref",
+          "backtick_subshell",
+          "encoded_exfil",
+          "hex_encoded_string",
+          "inline_shell_exec",
+          "js_base64",
+          "js_char_code",
+          "oversized_file",
+          "oversized_skill",
+          "too_many_files",
+          "unicode_escape_chain"
+        ],
+        "scanned_at": "2026-11-10T21:05:51.304980+00:00",
+        "summary": "archify: caution — 62 finding(s) in execution, exfiltration, obfuscation, persistence, structural",
+        "fresh": true
+      },
+      "installed_at": "2026-11-10T21:05:51.428060+00:00",
+      "updated_at": "2026-11-10T21:05:51.428060+00:00"
+    }
+  }
+}

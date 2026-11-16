@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RemoteLock Connected</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #F7F7F7;
+    --surface: #FFFFFF;
+    --surface-2: #F1F0EC;
+    --ink: #1B1000;
+    --ink-muted: #5B5245;
+    --border: #EAE7E0;
+    --line: #E3DFD5;
+    --success: #2F8F5B;
+    --success-bg: rgba(47,143,91,0.10);
+    --cta-bg: #000000;
+    --cta-ink: #FFFFFF;
+    --cta2-bg: #FFFFFF;
+    --cta2-border: #E3E0D8;
+    --shadow: rgba(27,16,0,0.08);
+    --grad-a: #8B5CF6;
+    --grad-b: #60A5FA;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #131210;
+      --surface: #1B1916;
+      --surface-2: #232019;
+      --ink: #F5F1E8;
+      --ink-muted: #A89C89;
+      --border: #2E2A24;
+      --line: #29251F;
+      --success: #57C98A;
+      --success-bg: rgba(87,201,138,0.14);
+      --cta-bg: #F5F1E8;
+      --cta-ink: #141311;
+      --cta2-bg: #1B1916;
+      --cta2-border: #34302A;
+      --shadow: rgba(0,0,0,0.45);
+      --grad-a: #A78BFA;
+      --grad-b: #7DAEFB;
+    }
+  }
+
+  :root[data-theme="dark"]{
+    --bg: #131210;
+    --surface: #1B1916;
+    --surface-2: #232019;
+    --ink: #F5F1E8;
+    --ink-muted: #A89C89;
+    --border: #2E2A24;
+    --line: #29251F;
+    --success: #57C98A;
+    --success-bg: rgba(87,201,138,0.14);
+    --cta-bg: #F5F1E8;
+    --cta-ink: #141311;
+    --cta2-bg: #1B1916;
+    --cta2-border: #34302A;
+    --shadow: rgba(0,0,0,0.45);
+    --grad-a: #A78BFA;
+    --grad-b: #7DAEFB;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ margin:0; padding:0; }
+
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Host Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display:flex;
+    flex-direction:column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .field{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image: repeating-linear-gradient(90deg, var(--line) 0, var(--line) 1px, transparent 1px, transparent 64px);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .field{ opacity: 0.4; }
+  }
+  :root[data-theme="dark"] .field{ opacity: 0.4; }
+
+  header.top{
+    position: relative;
+    z-index: 1;
+    display:flex;
+    align-items:center;
+    padding: 28px clamp(20px, 5vw, 56px);
+  }
+
+  .logo{
+    display:flex;
+    align-items:center;
+    color: var(--ink);
+  }
+  .logo svg{ height: 19px; width: auto; display:block; }
+  .logo svg path{ fill: currentColor; }
+
+  main{
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 24px clamp(20px, 6vw, 56px) 64px;
+  }
+
+  .card{
+    width: 100%;
+    max-width: 600px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: clamp(32px, 5vw, 52px);
+    box-shadow: 0 24px 60px -24px var(--shadow);
+  }
+
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap: 8px;
+    padding: 7px 16px 7px 12px;
+    border-radius: 999px;
+    background: var(--success-bg);
+    color: var(--success);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .status-pill .dot{
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2.2s ease-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .status-pill .dot{ animation: none; }
+  }
+  @keyframes pulse{
+    0%   { box-shadow: 0 0 0 0 rgba(47,143,91,0.45); }
+    70%  { box-shadow: 0 0 0 7px rgba(47,143,91,0); }
+    100% { box-shadow: 0 0 0 0 rgba(47,143,91,0); }
+  }
+
+  .diagram{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin: 30px 0 28px;
+  }
+  .node{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 9px;
+    width: 108px;
+  }
+  .node .icon{
+    width: 54px; height:54px;
+    border-radius: 15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  .node .icon svg{ width: 26px; height: 26px; }
+  .node .label{
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    letter-spacing: 0.01em;
+  }
+  .link{
+    flex: 1;
+    max-width: 110px;
+    height: 2px;
+    position: relative;
+    background: var(--line);
+    margin: 0 -2px;
+    top: -12px;
+  }
+  .link::after{
+    content:"";
+    position:absolute;
+    top: -3px; left: 0;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--grad-a), var(--grad-b));
+    animation: travel 2.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .link::after{ animation: none; left: 46%; }
+  }
+  @keyframes travel{
+    0%   { left: 0%; opacity: 0; }
+    8%   { opacity: 1; }
+    92%  { opacity: 1; }
+    100% { left: 92%; opacity: 0; }
+  }
+
+  h1{
+    font-family: "Host Grotesk", sans-serif;
+    font-weight: 500;
+    font-size: clamp(27px, 4vw, 33px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+    text-wrap: balance;
+    text-align: center;
+    color: var(--ink);
+  }
+
+  p.sub{
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--ink-muted);
+    text-align: center;
+    max-width: 42ch;
+    margin: 0 auto 34px;
+  }
+  p.sub b{ color: var(--ink); font-weight: 500; }
+
+  .actions{
+    display:flex;
+    flex-wrap: wrap;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+  }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap: 8px;
+    padding: 14px 22px;
+    border-radius: 50px;
+    font-family:"Host Grotesk", sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    border: 2px solid transparent;
+    transition: opacity 0.15s ease, transform 0.1s ease, background 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:active{ transform: translateY(1px); }
+  .btn:focus-visible{ outline: 2px solid var(--grad-b); outline-offset: 3px; }
+  .btn svg{ width: 15px; height: 15px; }
+
+  .btn-primary{
+    background: var(--cta-bg);
+    color: var(--cta-ink);
+  }
+  .btn-primary:hover{ opacity: 0.86; }
+
+  .btn-secondary{
+    background: var(--cta2-bg);
+    color: var(--ink);
+    border-color: var(--cta2-border);
+  }
+  .btn-secondary:hover{ background: var(--surface-2); }
+
+  footer{
+    position: relative;
+    z-index: 1;
+    text-align:center;
+    padding: 0 20px 32px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+  }
+  footer a{ color: var(--ink-muted); text-decoration: underline; text-decoration-color: var(--line); }
+  footer a:hover{ color: var(--ink); }
+
+  @media (max-width: 480px){
+    .link{ max-width: 56px; }
+    .node{ width: 82px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field" aria-hidden="true"></div>
+
+<header class="top">
+  <span class="logo" aria-label="Dextr">
+    <svg width="123" height="20" viewBox="0 0 123 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M119.793 18.9449V0.0078125H122.228V18.9449H119.793Z"/>
+      <path d="M100.957 18.9449L107.937 0.0078125H110.534L117.513 18.9449H114.943L108.694 1.49572H109.776L103.527 18.9449H100.957ZM104.203 14.1294L104.88 12.1816H113.591L114.267 14.1294H104.203Z"/>
+      <path d="M84.1406 18.9483V5.53009H86.5754V7.64021C86.882 6.93684 87.2968 6.39578 87.8198 6.01704C88.3428 5.62026 88.9831 5.42188 89.7406 5.42188H91.7425V7.69432H89.4971C88.92 7.69432 88.406 7.85664 87.9551 8.18127C87.5222 8.50591 87.1796 9.02893 86.9271 9.75034C86.6926 10.4537 86.5754 11.3916 86.5754 12.5638V18.9483H84.1406Z"/>
+      <path d="M79.5156 18.9417C78.7581 18.9417 78.1179 18.8515 77.5948 18.6711C77.0718 18.4727 76.675 18.112 76.4045 17.589C76.152 17.066 76.0258 16.3265 76.0258 15.3707V7.57943H73.6992V5.5234H76.0258V2.25H78.4605V5.5234H82.2479V7.57943H78.4605V14.9919C78.4605 15.5691 78.5056 15.9929 78.5958 16.2634C78.686 16.5339 78.8753 16.7053 79.1639 16.7774C79.4525 16.8315 79.8673 16.8586 80.4083 16.8586H82.0586V18.9417H79.5156Z"/>
+      <path d="M59.7734 18.9417L64.4536 12.2326L59.7734 5.52344H62.3976L66.1038 10.9611L69.8371 5.52344H72.4342L67.7541 12.2326L72.4342 18.9417H69.8371L66.1038 13.504L62.3976 18.9417H59.7734Z"/>
+      <path d="M52.3855 19.2706C51.0869 19.2706 49.9327 18.9821 48.9227 18.405C47.9308 17.8098 47.1462 16.9892 46.5691 15.9431C46.01 14.8971 45.7305 13.6707 45.7305 12.2639C45.7305 10.8391 46.01 9.60373 46.5691 8.55769C47.1282 7.49361 47.9127 6.673 48.9227 6.09587C49.9327 5.50071 51.096 5.20312 52.4125 5.20312C53.7291 5.20312 54.8563 5.50071 55.7942 6.09587C56.75 6.673 57.4805 7.4395 57.9854 8.39537C58.5085 9.35124 58.77 10.3973 58.77 11.5335C58.77 11.7139 58.77 11.9123 58.77 12.1287C58.77 12.3271 58.761 12.5435 58.7429 12.7779H47.543V10.9925H56.3623C56.3082 9.82016 55.9024 8.90036 55.1449 8.23305C54.4054 7.56575 53.4766 7.23209 52.3584 7.23209C51.601 7.23209 50.8976 7.40343 50.2483 7.7461C49.599 8.07073 49.076 8.5667 48.6792 9.23401C48.3005 9.88328 48.1111 10.6949 48.1111 11.6688V12.3992C48.1111 13.4633 48.3095 14.356 48.7063 15.0774C49.1031 15.7989 49.6261 16.3399 50.2754 16.7006C50.9246 17.0613 51.619 17.2417 52.3584 17.2417C53.2602 17.2417 54.0177 17.0343 54.6309 16.6195C55.2441 16.2046 55.695 15.6365 55.9835 14.9151H58.3912C58.1568 15.7267 57.769 16.4662 57.228 17.1335C56.6869 17.8008 56.0016 18.3238 55.1719 18.7025C54.3604 19.0813 53.4315 19.2706 52.3855 19.2706Z"/>
+      <path d="M29.1094 18.9449V0.0078125H34.9799C37.2162 0.0078125 39.0468 0.395572 40.4716 1.17109C41.9144 1.92857 42.9785 3.01971 43.6638 4.44449C44.3672 5.86928 44.7189 7.55558 44.7189 9.50339C44.7189 11.4512 44.3672 13.1285 43.6638 14.5352C42.9785 15.942 41.9144 17.0331 40.4716 17.8086C39.0468 18.5661 37.2162 18.9449 34.9799 18.9449H29.1094ZM31.5441 16.8888H34.9258C36.7293 16.8888 38.1541 16.6003 39.2001 16.0231C40.2642 15.428 41.0307 14.5803 41.4996 13.4802C41.9685 12.362 42.203 11.0364 42.203 9.50339C42.203 7.97039 41.9685 6.6448 41.4996 5.52661C41.0307 4.40842 40.2642 3.55175 39.2001 2.95658C38.1541 2.34338 36.7293 2.03678 34.9258 2.03678H31.5441V16.8888Z"/>
+      <path d="M3.15031 9.47266L6.02171 6.20897C8.0527 3.9005 6.617 -2.1276e-07 3.7456 -3.38272e-07L-0.00121975 -5.02051e-07L-0.00122058 18.9453L11.4844 18.9453L3.15031 9.47266Z"/>
+      <path d="M15.8283 9.47266L12.9421 12.7363C10.9007 15.0448 12.3438 18.9453 15.23 18.9453L18.9961 18.9453L18.9961 0L7.45129 -5.04639e-07L15.8283 9.47266Z"/>
+    </svg>
+  </span>
+</header>
+
+<main>
+  <div class="card" role="status" aria-live="polite">
+    <div style="display:flex; justify-content:center;">
+      <span class="status-pill"><span class="dot" aria-hidden="true"></span>Connected</span>
+    </div>
+
+    <div class="diagram" aria-hidden="true">
+      <div class="node">
+        <div class="icon dextr">
+          <svg viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--ink)">
+            <path d="M3.15031 9.47266L6.02171 6.20897C8.0527 3.9005 6.617 -2.1276e-07 3.7456 -3.38272e-07L-0.00121975 -5.02051e-07L-0.00122058 18.9453L11.4844 18.9453L3.15031 9.47266Z" fill="currentColor"/>
+            <path d="M15.8283 9.47266L12.9421 12.7363C10.9007 15.0448 12.3438 18.9453 15.23 18.9453L18.9961 18.9453L18.9961 0L7.45129 -5.04639e-07L15.8283 9.47266Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="label">Dextr</div>
+      </div>
+      <div class="link"></div>
+      <div class="node">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-muted)"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-muted)"/>
+            <circle cx="12" cy="15" r="1.6" fill="var(--grad-a)"/>
+          </svg>
+        </div>
+        <div class="label">RemoteLock</div>
+      </div>
+    </div>
+
+    <h1>RemoteLock is connected to Dextr</h1>
+    <p class="sub">RemoteLock's universal access control is now linked to <b>Dextr</b>. Guest and staff access codes are created, tracked, and revoked automatically as your AI workforce runs day-to-day operations — no shared codes, no manual entry.</p>
+
+    <div class="actions">
+      <a class="btn btn-primary" id="primaryCta" href="https://www.dextr.ai">
+        <span id="primaryLabel">Book a demo</span>
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn btn-secondary" id="secondaryCta" href="https://dashboard.dextr.ai/">
+        <span id="secondaryLabel">Log in</span>
+      </a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="https://www.dextr.ai">www.dextr.ai</a>
+</footer>
+
+<script>
+  // Best-effort session check. This page has no first-party access to the
+  // dashboard's auth cookie from most contexts, so it degrades safely to the
+  // signed-out state (Book a demo / Log in) whenever the check is inconclusive.
+  // Wire this up to a real same-site session lookup once deployed on a
+  // domain that shares auth with dashboard.dextr.ai.
+  (function () {
+    var primary = document.getElementById('primaryCta');
+    var primaryLabel = document.getElementById('primaryLabel');
+    var secondary = document.getElementById('secondaryCta');
+    var secondaryLabel = document.getElementById('secondaryLabel');
+
+    function setLoggedIn() {
+      primary.href = 'https://dashboard.dextr.ai/';
+      primaryLabel.textContent = 'Go to dashboard';
+      secondary.href = 'https://www.dextr.ai';
+      secondaryLabel.textContent = 'Visit dextr.ai';
+    }
+
+    function setLoggedOut() {
+      primary.href = 'https://www.dextr.ai';
+      primaryLabel.textContent = 'Book a demo';
+      secondary.href = 'https://dashboard.dextr.ai/';
+      secondaryLabel.textContent = 'Log in';
+    }
+
+    function hasLocalSessionHint() {
+      try {
+        if (localStorage.getItem('dextr_session') || localStorage.getItem('dextr_token')) return true;
+      } catch (e) {}
+      return /(^|;\s*)dextr_session=/.test(document.cookie);
+    }
+
+    if (hasLocalSessionHint()) {
+      setLoggedIn();
+    } else {
+      setLoggedOut();
+    }
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daisy Architecture — Voice, Reservations & Dashboard</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  :root {
+    --bg: #eef1f5;
+    --panel: #ffffff;
+    --panel-2: #f6f8fb;
+    --ink: #18202e;
+    --muted: #5d6775;
+    --faint: #8a93a1;
+    --line: #d9dee6;
+    --line-strong: #c2cad4;
+
+    /* node kinds */
+    --ext: #3f6d8f;        /* external systems */
+    --ext-bg: #eaf1f6;
+    --edge: #0e7c76;       /* http seams / endpoints — the key accent */
+    --edge-bg: #e2f2f0;
+    --svc: #4b3f8f;        /* repo internals */
+    --svc-bg: #eeecf7;
+    --data: #a8681c;       /* datastores / pms */
+    --data-bg: #f6eede;
+
+    --accent: #0e7c76;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --shadow: 0 1px 2px rgba(24,32,46,.05), 0 3px 12px rgba(24,32,46,.05);
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1219;
+      --panel: #151d29;
+      --panel-2: #111823;
+      --ink: #e6eaf0;
+      --muted: #9aa5b3;
+      --faint: #6d7887;
+      --line: #26303e;
+      --line-strong: #34404f;
+
+      --ext: #7fb0d0;   --ext-bg: #172530;
+      --edge: #4fd0c4;  --edge-bg: #102a28;
+      --svc: #a99cf0;   --svc-bg: #1c1a2e;
+      --data: #e0a75a;  --data-bg: #2a2113;
+
+      --accent: #4fd0c4;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg:#eef1f5; --panel:#fff; --panel-2:#f6f8fb; --ink:#18202e; --muted:#5d6775; --faint:#8a93a1;
+    --line:#d9dee6; --line-strong:#c2cad4;
+    --ext:#3f6d8f; --ext-bg:#eaf1f6; --edge:#0e7c76; --edge-bg:#e2f2f0;
+    --svc:#4b3f8f; --svc-bg:#eeecf7; --data:#a8681c; --data-bg:#f6eede; --accent:#0e7c76;
+    --shadow:0 1px 2px rgba(24,32,46,.05),0 3px 12px rgba(24,32,46,.05);
+  }
+  :root[data-theme="dark"] {
+    --bg:#0d1219; --panel:#151d29; --panel-2:#111823; --ink:#e6eaf0; --muted:#9aa5b3; --faint:#6d7887;
+    --line:#26303e; --line-strong:#34404f;
+    --ext:#7fb0d0; --ext-bg:#172530; --edge:#4fd0c4; --edge-bg:#102a28;
+    --svc:#a99cf0; --svc-bg:#1c1a2e; --data:#e0a75a; --data-bg:#2a2113; --accent:#4fd0c4;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ---- header ---- */
+  header { margin-bottom: 40px; }
+  .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(28px, 4.4vw, 44px); line-height: 1.08; margin: 10px 0 0;
+    letter-spacing: -0.02em; text-wrap: balance; font-weight: 700;
+  }
+  .lede { margin: 16px 0 0; max-width: 62ch; color: var(--muted); font-size: 17px; }
+
+  /* ---- legend ---- */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px 26px; margin-top: 26px;
+    padding: 16px 20px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .legend-item { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); }
+  .swatch { width: 13px; height: 13px; border-radius: 4px; flex: none; border: 1.5px solid; }
+  .sw-ext  { background: var(--ext-bg);  border-color: var(--ext); }
+  .sw-edge { background: var(--edge-bg); border-color: var(--edge); }
+  .sw-svc  { background: var(--svc-bg);  border-color: var(--svc); }
+  .sw-data { background: var(--data-bg); border-color: var(--data); }
+
+  /* ---- section ---- */
+  section { margin-top: 46px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
+  .sec-num {
+    font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent);
+    border: 1.5px solid var(--accent); border-radius: 6px; padding: 2px 8px; line-height: 1.3;
+  }
+  h2 { font-size: clamp(21px, 2.6vw, 27px); margin: 0; letter-spacing: -0.01em; font-weight: 700; }
+  .sec-sub { color: var(--muted); margin: 8px 0 22px; max-width: 74ch; font-size: 15px; }
+
+  .board {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 26px; box-shadow: var(--shadow); overflow-x: auto;
+  }
+
+  /* ---- flow band ---- */
+  .flow { display: flex; align-items: stretch; gap: 0; min-width: min-content; }
+  .flow.wrapok { flex-wrap: wrap; gap: 14px 0; }
+  .node {
+    background: var(--panel-2); border: 1.5px solid var(--line-strong);
+    border-radius: 11px; padding: 12px 14px; min-width: 132px; max-width: 200px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .node .tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    font-weight: 600; opacity: .85;
+  }
+  .node .name { font-weight: 650; font-size: 14.5px; line-height: 1.25; }
+  .node .desc { font-size: 12px; color: var(--muted); line-height: 1.35; }
+  .node code { font-family: var(--mono); font-size: 11.5px; background: transparent; padding: 0; }
+
+  .n-ext  { border-color: var(--ext);  background: var(--ext-bg); }
+  .n-ext .tag  { color: var(--ext); }
+  .n-edge { border-color: var(--edge); background: var(--edge-bg); }
+  .n-edge .tag { color: var(--edge); }
+  .n-svc  { border-color: var(--svc);  background: var(--svc-bg); }
+  .n-svc .tag  { color: var(--svc); }
+  .n-data { border-color: var(--data); background: var(--data-bg); }
+  .n-data .tag { color: var(--data); }
+
+  .arrow {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; padding: 0 10px; flex: none; align-self: center; min-width: 58px;
+  }
+  .arrow .glyph { color: var(--line-strong); font-size: 20px; line-height: 1; }
+  .arrow .lbl {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .04em; color: var(--faint);
+    text-align: center; text-transform: uppercase;
+  }
+  .arrow.back .glyph { color: var(--data); }
+
+  /* ---- branch layout for the two vapi channels ---- */
+  .branch { display: grid; gap: 16px; margin-top: 22px; }
+  @media (min-width: 720px) { .branch { grid-template-columns: 1fr 1fr; } }
+  .lane {
+    border: 1px dashed var(--line-strong); border-radius: 12px; padding: 16px;
+    background: var(--panel-2);
+  }
+  .lane-title {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .lane-title b { color: var(--ink); font-weight: 700; letter-spacing: normal; text-transform: none; font-size: 13px; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .stack .arrow { flex-direction: row; min-width: 0; padding: 0; justify-content: flex-start; }
+  .stack .arrow .glyph { transform: rotate(90deg); font-size: 15px; }
+
+  /* ---- action dispatch chips ---- */
+  .callout {
+    margin-top: 22px; display: grid; gap: 16px; grid-template-columns: 1fr;
+  }
+  @media (min-width: 820px) { .callout.two { grid-template-columns: 1.15fr 1fr; } }
+  .card {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px;
+  }
+  .card h3 { margin: 0 0 4px; font-size: 15px; letter-spacing: -.01em; }
+  .card h3 code { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .card p.k { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: 7px;
+    border: 1.5px solid var(--edge); background: var(--edge-bg); color: var(--edge); font-weight: 600;
+    display: flex; align-items: baseline; gap: 7px;
+  }
+  .chip span { color: var(--muted); font-weight: 500; font-family: var(--sans); font-size: 11.5px; }
+
+  ul.dot { margin: 0; padding-left: 18px; }
+  ul.dot li { font-size: 13.5px; color: var(--muted); margin: 7px 0; }
+  ul.dot li b { color: var(--ink); font-weight: 650; }
+  ul.dot code, p code, td code { font-family: var(--mono); font-size: 12.5px; color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 10%, transparent); padding: 1px 5px; border-radius: 5px; }
+
+  /* ---- dashboard fan ---- */
+  .fan { display: grid; gap: 12px; margin-top: 20px; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); }
+  .res {
+    border: 1.5px solid var(--data); background: var(--data-bg); border-radius: 10px; padding: 12px 13px;
+  }
+  .res .r-ep { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--data); }
+  .res .r-d { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+
+  .authbar {
+    margin-top: 20px; border: 1.5px solid var(--edge); background: var(--edge-bg); border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .authbar h3 { margin: 0 0 6px; font-size: 15px; color: var(--edge); }
+  .authbar p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .authbar p + p { margin-top: 8px; }
+
+  /* ---- glossary table ---- */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); font-weight: 600; }
+  td:first-child { white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+
+  .converge { text-align:center; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin:18px 0 4px; }
+  .warn { margin-top:16px; padding:12px 16px; border-radius:10px; border:1.5px solid var(--data); background:var(--data-bg); color:var(--ink); font-size:13px; line-height:1.45; }
+  .note { font-size: 12.5px; color: var(--faint); margin-top: 14px; font-style: italic; }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12.5px; }
+  footer code { font-family: var(--mono); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">System Architecture · New-Hire Onboarding</div>
+    <h1>How Daisy Turns a Phone Call Into a Reservation</h1>
+    <p class="lede">
+      Daisy is an AI agent for hotels. A guest <b>phones or texts</b> in and books, changes, cancels, or
+      checks a reservation through Daisy; hotel staff watch every conversation, booking, and payment
+      from a web dashboard. Both worlds are served by one Node/TypeScript service — the repo confusingly
+      named <code style="font-family:var(--mono)">websocket-server</code>, which is in fact plain REST/Express — the name is
+      a leftover from an earlier OpenAI Realtime API (WebSocket-based) prototype that was replaced by Vapi but never renamed.
+    </p>
+
+    <div class="warn" style="margin-top:20px">
+      <b>Daisy vs Danny.</b> The agent is called <b>Danny</b> with a male voice and <b>Daisy</b> otherwise —
+      same agent, same backend. The name is purely cosmetic; this page says "Daisy" to mean either.
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="swatch sw-ext"></span> External system (3rd-party / caller)</div>
+      <div class="legend-item"><span class="swatch sw-edge"></span> HTTP seam — where the outside world meets this repo</div>
+      <div class="legend-item"><span class="swatch sw-svc"></span> Repo internals (controllers &amp; services)</div>
+      <div class="legend-item"><span class="swatch sw-data"></span> Data store / PMS of record</div>
+    </div>
+  </header>
+
+  <!-- ============ SECTION 1 ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>Voice &amp; Text → Daisy → Reservation CRUD</h2>
+    </div>
+    <p class="sec-sub">
+      Two front-ends — a Vapi <b>voice</b> agent and the <b>text</b> agents in <code>dextr-support-ops-svc</code> —
+      both arrive over Twilio webhooks and call the same <code>/daisy</code> HTTP endpoints like tools. Neither
+      touches the database directly; they ask this service to do the work.
+    </p>
+
+    <div class="board">
+      <!-- two entry points -->
+      <div class="lane-title" style="margin-bottom:14px">Two ways in — both call the same <b style="font-family:var(--mono)">/daisy</b> endpoints</div>
+      <div class="branch">
+        <div class="lane">
+          <div class="lane-title">Voice · <b>Vapi</b></div>
+          <div class="stack">
+            <div class="node n-ext" style="max-width:none"><span class="tag">Caller</span><span class="name">Guest phone</span><span class="desc">Calls the hotel's number</span></div>
+            <div class="arrow"><span class="glyph">→</span><span class="lbl">Twilio webhook</span></div>
+            <div class="node n-ext" style="max-width:none"><span class="tag">Voice AI</span><span class="name">Vapi assistant "Daisy"</span><span class="desc">Speech ↔ LLM. Knowledge base lives inside Vapi. Decides which tool to call</span></div>
+          </div>
+        </div>
+        <div class="lane">
+          <div class="lane-title">Text · <b>dextr-support-ops-svc</b></div>
+          <div class="stack">
+            <div class="node n-ext" style="max-width:none"><span class="tag">Guest</span><span class="name">SMS / chat</span><span class="desc">Texts the hotel</span></div>
+            <div class="arrow"><span class="glyph">→</span><span class="lbl">Twilio webhook</span></div>
+            <div class="node n-ext" style="max-width:none"><span class="tag">Text AI</span><span class="name">Text agents (separate repo)</span><span class="desc">Live in <code>dextr-support-ops-svc</code>; hit the same Daisy endpoints as voice</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="converge">both call ↓</div>
+
+      <!-- main pipeline -->
+      <div class="flow">
+        <div class="node n-edge">
+          <span class="tag">Endpoint</span>
+          <span class="name"><code>/daisy/*</code> router</span>
+          <span class="desc">Identity = guest's phone number (no API key)</span>
+        </div>
+        <div class="arrow"><span class="glyph">→</span></div>
+
+        <div class="node n-svc">
+          <span class="tag">Controller</span>
+          <span class="name">roomReservationController</span>
+          <span class="desc">Dispatches by <code>action</code> field</span>
+        </div>
+        <div class="arrow"><span class="glyph">→</span></div>
+
+        <div class="node n-svc">
+          <span class="tag">Service</span>
+          <span class="name">RoomReservationService</span>
+          <span class="desc">Orchestrates DB, payment &amp; PMS. The brain.</span>
+        </div>
+        <div class="arrow"><span class="glyph">→</span></div>
+
+        <div class="node n-svc">
+          <span class="tag">Abstraction</span>
+          <span class="name">PMSServiceFactory</span>
+          <span class="desc">Picks provider from <code>hotel.pms_provider</code></span>
+        </div>
+        <div class="arrow"><span class="glyph">→</span></div>
+
+        <div class="node n-data">
+          <span class="tag">PMS of record</span>
+          <span class="name">Cloudbeds · Stayntouch · Mews · Hostaway · ResNexus</span>
+          <span class="desc">The hotel's real booking system</span>
+        </div>
+      </div>
+
+      <!-- guest booking journey -->
+      <div class="card" style="margin-top:22px">
+        <h3>The guest booking journey — read before write</h3>
+        <p class="k">A guest doesn't jump straight to a reservation. Daisy walks them through it, and each step is a separate <code>/daisy</code> tool call.</p>
+        <div style="overflow-x:auto">
+          <div class="flow" style="margin-top:6px">
+            <div class="node n-edge"><span class="tag">Step 1 · read</span><span class="name">What rooms do you have?</span><span class="desc"><code>GET /daisy/rooms</code> — static room info, no availability/pricing</span></div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-edge"><span class="tag">Step 2 · read</span><span class="name">Available? How much?</span><span class="desc"><code>GET /daisy/availability-lite</code> — availability + pricing (also <code>/room-type-rates</code>)</span></div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-svc"><span class="tag">Step 3 · write</span><span class="name">Book it</span><span class="desc"><code>POST /daisy/reservation</code> → payment lifecycle below</span></div>
+          </div>
+        </div>
+        <p class="note" style="margin-top:14px">Steps 1–2 are <b>read-only</b> — they create nothing. The reservation comes into existence only at step 3, and isn't confirmed until payment clears.</p>
+      </div>
+
+      <!-- action dispatch -->
+      <div class="callout">
+        <div class="card">
+          <h3>The action dispatch — one endpoint, four verbs</h3>
+          <p class="k"><code>POST /daisy/reservation</code> — <code>switchReservationBasedOnAction()</code></p>
+          <div class="chips">
+            <div class="chip">GET <span>fetch details</span></div>
+            <div class="chip">POST <span>create</span></div>
+            <div class="chip">UPDATE <span>modify dates / room</span></div>
+            <div class="chip">CANCEL <span>cancel booking</span></div>
+          </div>
+          <p class="note" style="margin-top:14px">
+            Availability &amp; pricing are read-only siblings: <code>/daisy/availability-lite</code>,
+            <code>/daisy/rooms</code>, <code>/daisy/room-type-rates</code>. Multi-room bookings use <code>/daisy/multi-reservation</code>.
+          </p>
+        </div>
+      </div>
+
+      <!-- reservation & payment lifecycle -->
+      <div class="card" style="margin-top:22px">
+        <h3>Reservation &amp; payment lifecycle — how a booking becomes <em>confirmed</em></h3>
+        <p class="k">A created reservation is <b>not</b> a confirmed one. The PMS write happens only <b>after</b> payment clears — not at creation.</p>
+        <div style="overflow-x:auto">
+          <div class="flow" style="margin-top:6px">
+            <div class="node n-data"><span class="tag">Step 1</span><span class="name">Created in Daisy DB</span><span class="desc"><code>unconfirmed</code> — exists only here</span></div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-svc"><span class="tag">Step 2</span><span class="name">Payment link sent to guest</span><span class="desc">Stripe or Shift4</span></div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-ext"><span class="tag">Step 3</span><span class="name">Guest pays</span><span class="desc">See the two providers below</span></div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-svc"><span class="tag">Step 4</span><span class="name">Daisy alerted → payment status updated</span></div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-data"><span class="tag">Step 5</span><span class="name">Reservation created in PMS</span></div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-edge"><span class="tag">Step 6</span><span class="name">Reservation ACTIVE</span><span class="desc"><code>confirmed</code> ✓ in Daisy + PMS</span></div>
+          </div>
+        </div>
+
+        <div class="branch" style="margin-top:18px">
+          <div class="lane">
+            <div class="lane-title">Stripe · <b>webhook-driven</b></div>
+            <ul class="dot" style="margin:0">
+              <li>Guest pays via a Stripe checkout link</li>
+              <li>Stripe fires a <b>webhook</b> on success / failure</li>
+              <li>Daisy reacts to the webhook to complete step&nbsp;4</li>
+            </ul>
+          </div>
+          <div class="lane">
+            <div class="lane-title">Shift4 · <b>realtime, no webhook</b></div>
+            <ul class="dot" style="margin:0">
+              <li>Payment <b>iframe embedded in our own site</b></li>
+              <li>We call Shift4 <b>APIs in realtime</b> to charge</li>
+              <li>Result returns on the API call — no webhook</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="warn">Until step&nbsp;6, the reservation exists <b>only in Daisy and is not confirmed</b> — it has not yet been written to the hotel's PMS.</div>
+      </div>
+
+      <!-- the two other vapi channels -->
+      <div class="branch">
+        <div class="lane">
+          <div class="lane-title">Channel B · <b>Call lifecycle webhooks</b></div>
+          <div class="stack">
+            <div class="node n-ext" style="max-width:none">
+              <span class="tag">Vapi</span>
+              <span class="name">Call events</span>
+              <span class="desc">status-update · transcript · end-of-call-report · transfer-request</span>
+            </div>
+            <div class="arrow"><span class="glyph">→</span><span class="lbl">x-vapi-secret</span></div>
+            <div class="node n-edge" style="max-width:none">
+              <span class="tag">Endpoint</span>
+              <span class="name"><code>POST /webhook/vapi/event</code> → vapi.webhook.service</span>
+              <span class="desc">Persists conversations &amp; recordings — <em>not</em> reservation CRUD</span>
+            </div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-data" style="max-width:none">
+              <span class="tag">Session lifecycle</span>
+              <span class="name">call&nbsp;starts → <code>IN&#95;PROGRESS</code>&nbsp;&nbsp;·&nbsp;&nbsp;call&nbsp;ends → <code>ENDED</code></span>
+              <span class="desc">A session row is created when the call begins and updated to ended on the end-of-call report</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lane">
+          <div class="lane-title">Channel C · <b>Outbound + PMS webhooks</b></div>
+          <div class="stack">
+            <div class="node n-svc" style="max-width:none">
+              <span class="tag">This repo</span>
+              <span class="name"><code>POST /vapi/outbound-call</code></span>
+              <span class="desc">Tells Vapi to place a call back to a guest</span>
+            </div>
+            <div class="arrow"><span class="glyph">→</span></div>
+            <div class="node n-data" style="max-width:none">
+              <span class="tag">PMS → us</span>
+              <span class="name"><code>/webhooks/{cloudbeds,stayntouch,mews,…}</code></span>
+              <span class="desc">PMS-side changes sync back into our DB (see Section 4)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 2 ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>The Hotel Dashboard → <code style="font-size:.7em;color:var(--accent);font-family:var(--mono)">/api</code></h2>
+    </div>
+    <p class="sec-sub">
+      Every property has its own dashboard account. Staff log in and see all the data Daisy generated for
+      their hotel — calls, bookings, payments, escalations. It's pure REST over <code>/api</code>; despite the
+      repo name there is <b>no websocket to the browser</b> (the SMS inbox simply polls).
+    </p>
+
+    <div class="board">
+      <div class="flow wrapok">
+        <div class="node n-ext">
+          <span class="tag">Frontend</span>
+          <span class="name">Hotel dashboard (per property)</span>
+          <span class="desc">One account = one hotel</span>
+        </div>
+        <div class="arrow"><span class="lbl">login</span><span class="glyph">→</span></div>
+
+        <div class="node n-edge">
+          <span class="tag">Auth</span>
+          <span class="name"><code>POST /auth/login</code></span>
+          <span class="desc">Returns a Daisy JWT carrying <code>hotel_id</code></span>
+        </div>
+        <div class="arrow"><span class="lbl">Bearer JWT</span><span class="glyph">→</span></div>
+
+        <div class="node n-svc">
+          <span class="tag">Middleware</span>
+          <span class="name">authMiddleware</span>
+          <span class="desc">Scopes each request to the caller's <code>hotel_id</code></span>
+        </div>
+        <div class="arrow"><span class="glyph">→</span></div>
+
+        <div class="node n-edge">
+          <span class="tag">Endpoint</span>
+          <span class="name"><code>/api/*</code> — coreRoutes</span>
+          <span class="desc">5 resource routers</span>
+        </div>
+        <div class="arrow"><span class="glyph">→</span></div>
+
+        <div class="node n-svc">
+          <span class="tag">Shared core</span>
+          <span class="name">Same services &amp; repositories</span>
+          <span class="desc">Reads the data the voice path wrote</span>
+        </div>
+      </div>
+
+      <div class="authbar">
+        <h3>How a dashboard account is bound to one property</h3>
+        <p>A dashboard user is a <code>User</code> row with a <code>role</code> and a <code>hotel_id</code>. On login that <code>hotel_id</code> is baked into the JWT, and <code>authMiddleware</code> refuses any request where <code>user.hotel_id ≠ token.hotel_id</code> — so a hotel only ever sees its own data. <code>SUPERADMIN</code> is the exception and spans all properties.</p>
+        <p>Selected onboarded routes also accept an external <b>Core JWT</b> (SSO), validated against remote JWKS; the property is then resolved from the token's <code>businessEnts</code> claim. If Core auth fails, it falls back to the Daisy JWT.</p>
+      </div>
+
+      <p class="note" style="margin-top:22px;font-style:normal;color:var(--muted);font-size:13px;">What the dashboard reads from <code>/api</code>:</p>
+      <div class="fan">
+        <div class="res"><div class="r-ep">/api/sessions</div><div class="r-d">Call &amp; chat history, transcripts, intents, KPI summaries + trends, SMS inbox</div></div>
+        <div class="res"><div class="r-ep">/api/reservations</div><div class="r-d">Booking lists &amp; detail, payment summary, manual charge / refund / auto-charge</div></div>
+        <div class="res"><div class="r-ep">/api/payments</div><div class="r-d">Payment lookup by id</div></div>
+        <div class="res"><div class="r-ep">/api/escalations</div><div class="r-d">Escalations raised on calls — list, detail, resolve</div></div>
+        <div class="res"><div class="r-ep">/api/hotel</div><div class="r-d">Hotel + configuration CRUD, VAPI recording backfill to S3</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 3 : shared foundation ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>The Shared Spine</h2>
+    </div>
+    <p class="sec-sub">
+      The mental model that makes everything click: the <b>voice path writes</b> data and the
+      <b>dashboard reads</b> it — through the same service layer and the same Postgres database.
+    </p>
+    <div class="board">
+      <div class="flow" style="align-items:center;justify-content:center;">
+        <div class="node n-ext" style="border-style:solid"><span class="tag">Writes ↓</span><span class="name">Voice + text AI agents</span><span class="desc">Section 1 — create &amp; change bookings via <code>/daisy</code></span></div>
+        <div class="arrow"><span class="glyph">↘</span></div>
+        <div class="node n-data" style="min-width:190px"><span class="tag">System of record</span><span class="name">Dextr PostgreSQL + hotel PMS</span><span class="desc">Reservations, payments, sessions, conversations, escalations</span></div>
+        <div class="arrow back"><span class="glyph">↗</span></div>
+        <div class="node n-ext" style="border-style:solid"><span class="tag">Reads ↑</span><span class="name">Hotel dashboard</span><span class="desc">Section 2 — views everything per property</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 4 : pms webhooks & alfred ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>PMS Webhooks &amp; the Concierge Sibling (Alfred)</h2>
+    </div>
+    <p class="sec-sub">
+      So far the PMS has been a destination we write to. It also calls <b>back</b> into us: every PMS
+      <b>except ResNexus</b> supports webhooks, firing when something changes on their side.
+    </p>
+
+    <div class="callout two">
+      <div class="card">
+        <h3>PMS webhooks — who consumes them</h3>
+        <ul class="dot" style="margin-top:6px">
+          <li>Consumed <b>mainly by <code>alfred-core-svc</code></b> (separate repo — see right)</li>
+          <li><b>Daisy also consumes them as needed</b></li>
+          <li>e.g. a reservation <b>cancelled in Cloudbeds</b> → Daisy is alerted → updates the status in its own DB so the two stay in sync</li>
+        </ul>
+        <p class="note" style="margin-top:12px">All providers except <b>ResNexus</b> support webhooks.</p>
+      </div>
+      <div class="card">
+        <h3>Alfred — post-reservation concierge <span style="font-weight:400;color:var(--muted);font-size:13px">(<code>alfred-core-svc</code>)</span></h3>
+        <p class="k" style="margin-bottom:10px">Alfred is primarily an <b>AI concierge</b> for the guest experience <b>after</b> a booking is made — a separate repo, and the primary consumer of the webhooks on the left. Guests chat with Alfred to:</p>
+        <div class="chips">
+          <div class="chip">requests</div>
+          <div class="chip">escalations</div>
+          <div class="chip">complaints</div>
+          <div class="chip">preferences</div>
+          <div class="chip">upsells <span>early check-in · late check-out · property add-ons</span></div>
+          <div class="chip">DND requests</div>
+        </div>
+        <p class="note" style="margin-top:12px">Alfred also sends <b>scheduled messages</b> to guests and <b>collects feedback</b>. Daisy = getting the booking made (pre-stay); Alfred = the stay itself (post-booking).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ glossary ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>Where to Look in the Code</h2>
+    </div>
+    <div class="board" style="padding:8px 8px;">
+      <table>
+        <thead><tr><th>Concept</th><th>File(s)</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>Route map</code></td><td>src/router/index.ts</td><td>Every mount point + which middleware guards it</td></tr>
+          <tr><td>Voice tools</td><td>src/router/roomReservationRouter.ts</td><td>The <code>/daisy/*</code> endpoints Vapi calls as tools</td></tr>
+          <tr><td>Action dispatch</td><td>src/controller/roomReservationController.ts</td><td><code>switchReservationBasedOnAction</code> → GET/POST/UPDATE/CANCEL</td></tr>
+          <tr><td>Orchestration</td><td>src/services/roomReservation/roomReservationService.ts</td><td>DB dual-write + PMS calls; the core of CRUD</td></tr>
+          <tr><td>PMS abstraction</td><td>src/pms/PMSServiceFactory.ts · pms/types/IPMSReservationService.ts</td><td>One interface, five provider implementations</td></tr>
+          <tr><td>Call lifecycle</td><td>src/services/vapi/webhook/vapi.webhook.service.ts</td><td>Handles <code>/webhook/vapi/event</code> — sessions, transcripts, recordings</td></tr>
+          <tr><td>Dashboard API</td><td>src/router/api/coreRoutes.ts</td><td>Mounts hotel · sessions · reservations · payments · escalations</td></tr>
+          <tr><td>Auth &amp; scoping</td><td>src/middleware/authMiddleware.ts · services/auth/authService.ts</td><td>Daisy JWT + Core JWT; <code>hotel_id</code> isolation</td></tr>
+          <tr><td>Text agents</td><td><em>separate repo</em> · dextr-support-ops-svc</td><td>SMS / chat AI; calls the same <code>/daisy</code> endpoints — not in this codebase</td></tr>
+          <tr><td>Alfred</td><td><em>separate repo</em> · alfred-core-svc</td><td>Post-reservation AI concierge; primary consumer of PMS webhooks — not in this codebase</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 5 : environments ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>Environments, Consoles &amp; Test Resources</h2>
+    </div>
+    <p class="sec-sub">Quick reference for finding your way around the running system.</p>
+
+    <div class="callout two">
+      <div class="card">
+        <h3>Consoles</h3>
+        <table style="margin-top:6px">
+          <tbody>
+            <tr><td>Dashboard · <b>prod</b></td><td><code>dashboard.dextr.ai</code></td></tr>
+            <tr><td>Dashboard · <b>dev</b></td><td><code>dashboard.dev.dextr.ai</code></td></tr>
+            <tr><td>Vapi · voice config</td><td><code>dashboard.vapi.ai</code></td></tr>
+            <tr><td>Twilio · numbers &amp; webhooks</td><td><code>console.twilio.com</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Test calling numbers <span style="font-weight:400;color:var(--muted);font-size:13px">(Google Voice)</span></h3>
+        <p class="k">Two numbers for <b>placing test calls</b> into a property. To test a property, call its Twilio number from one of these:</p>
+        <table>
+          <tbody>
+            <tr><td><code>+1 408 320 5093</code></td><td>linked to <code>devops.dextr.ai</code></td></tr>
+            <tr><td><code>+1 408 404 8097</code></td><td>linked to <code>no-reply@dextr.ai</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout two" style="margin-top:16px">
+      <div class="card">
+        <h3>Property phone numbers</h3>
+        <p class="k" style="margin-bottom:0"><b>Each property has its own phone number</b>, purchased or ported into <b>Twilio</b>. That number's inbound webhook routes a guest's call/text into Daisy (Section 1). So in the running system, <b>a property = a hotel record + its dedicated Twilio number</b>.</p>
+      </div>
+      <div class="card">
+        <h3>PMS coverage in dev</h3>
+        <p class="k" style="margin-bottom:0">For <b>each PMS</b> (Cloudbeds, Stayntouch, Mews, Hostaway, ResNexus) we keep <b>test properties in the dev environment</b>, so every provider integration can be exercised end-to-end against <code>dashboard.dev.dextr.ai</code> without touching production.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Daisy Voice Agent Service · architecture overview for onboarding · reflects <code>develop</code> as read from source.
+    Boxes are components, not servers — most run inside one ECS service.
+  </footer>
+</div>
+</body>
+</html>
