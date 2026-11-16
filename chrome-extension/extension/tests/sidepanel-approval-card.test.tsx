@@ -24,7 +24,7 @@ const unreadable = (): Approval => ({ ...whole(), command: CHROME_HEAD + "not js
 const card = (a: Approval, onAnswer = vi.fn()) => render(<ApprovalCard approval={a} expired={false} onAnswer={onAnswer} />);
 const approve = () => screen.getByRole("button", { name: "Approve" }) as HTMLButtonElement;
 const deny = () => screen.getByRole("button", { name: "Deny" }) as HTMLButtonElement;
-const CUT_OFF = "Arguments were cut off, so this action cannot be checked. Deny it and ask Doss to retry with a shorter reason.";
+const CUT_OFF = "Arguments were cut off, so this action cannot be checked. Deny it and ask Hermes to retry with a shorter reason.";
 
 describe("ApprovalCard for a Chrome action", () => {
   it("shows what Chrome will do and the page from the service worker's record, with the reason, when it was found", async () => {

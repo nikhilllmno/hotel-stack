@@ -59,7 +59,7 @@ export function ApprovalCard({ approval, state, expired, onAnswer }: Props) {
               {(s.chromeAct ? unchecked : s.truncated) && (
                 <p role="note" className="flex items-start gap-1.5 text-xs font-medium text-destructive">
                   <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                  {s.chromeAct ? "Arguments were cut off, so this action cannot be checked. Deny it and ask Doss to retry with a shorter reason." : "Arguments were cut off. Check the text below before approving."}
+                  {s.chromeAct ? "Arguments were cut off, so this action cannot be checked. Deny it and ask Hermes to retry with a shorter reason." : "Arguments were cut off. Check the text below before approving."}
                 </p>
               )}
               {s.truncated && <pre className="max-h-32 overflow-auto rounded-md bg-muted px-2 py-1 font-mono text-[11px] whitespace-pre-wrap break-all">{s.raw}</pre>}
