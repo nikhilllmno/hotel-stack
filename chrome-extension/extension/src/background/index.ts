@@ -3,8 +3,8 @@ import { watchAgentTab } from "./agent-tab";
 import { BridgeClient } from "./bridge";
 import { watchDebuggerDetach } from "./debugger";
 import { runCommand } from "./dispatch";
-import { loadSettings } from "./settings";
 import { updateStatus } from "./status";
+import { loadSettings } from "../lib/settings";
 import { SETTINGS_KEY } from "../shared/protocol";
 
 const ALARM = "hermes-bridge-wakeup";

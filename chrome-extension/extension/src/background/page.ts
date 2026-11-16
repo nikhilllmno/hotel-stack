@@ -25,21 +25,51 @@ export type SnapshotData = {
   textLeft: number;         // characters of visible text cut off by max_text
 };
 
+/**
+ * Identifies the document, the snapshot and the address an element belongs to; an approval is bound to all three.
+ * `href` changes with a same-document route change (history.pushState, a hash), which the nonce does not see.
+ */
+export type DocId = { nonce: string; generation: number; href: string };
+
 export type LocateData =
   | { found: false; reason: "gone" | "no-element" }
-  | { found: true; x: number; y: number; facts: ElementFacts; covered?: string };
+  | {
+      found: true;
+      x: number;
+      y: number;
+      facts: ElementFacts;
+      /** The element that really receives the click when it is not `facts` (a link inside a div[role=button], a parent of a transparent overlay). */
+      hit?: ElementFacts;
+      covered?: string;
+      doc: DocId;
+      /** Opaque identity of `facts`' element and of `hit`'s: the same element has the same id for the life of the document. */
+      id: string;
+      hitId?: string;
+    };
+
+export type FocusData =
+  | { found: false }
+  | { found: true; onTarget: boolean; hadText: boolean; facts: ElementFacts; doc: DocId; id: string };
+
+/** The option a select would pick. `label` and `value` are whole, never cut. */
+export type PickedOption = { id: string; label: string; value: string };
+export type PickData = { found: boolean; native: boolean; option?: PickedOption; options: string[] };
 
 export type PageOps = {
   snapshot: { args: { maxText: number }; result: SnapshotData };
-  /** Scroll the element (or the element at x,y) into view and report where to click and what it is. */
+  /**
+   * Scroll the element into view and report where to click and what it is. For x,y the element is the actionable
+   * ancestor of whatever is at the point (a span inside a submit button is that button), or the frame element itself.
+   */
   locate: { args: { ref?: string; x?: number; y?: number }; result: LocateData };
-  /** Facts of the focused element (the page body when nothing is focused). */
-  active: { args: Record<never, never>; result: ElementFacts };
-  focus: { args: { ref: string; clear: boolean }; result: { found: boolean; hadText: boolean } };
-  select: {
-    args: { ref: string; text: string };
-    result: { found: boolean; native: boolean; label?: string; options: string[] };
-  };
+  /** The element that really has keyboard focus (the body when nothing is focused; an iframe element when focus is inside a frame). */
+  active: { args: Record<never, never>; result: { facts: ElementFacts; doc: DocId; id: string } };
+  /** Focus the element and report which element has focus afterwards: it can differ when the target is not focusable. */
+  focus: { args: { ref: string; clear: boolean }; result: FocusData };
+  /** Read-only: which option of a native dropdown `text` names, in full (label as shown, value) and by identity. Nothing is changed. */
+  pick: { args: { ref: string; text: string }; result: PickData };
+  /** Choose the option. With `expect`, only if it is still the option with that identity: the owner approved that one. */
+  select: { args: { ref: string; text: string; expect?: string }; result: PickData & { changed: boolean } };
   text: { args: Record<never, never>; result: string };
 };
 
@@ -47,8 +77,27 @@ export type PageRequest = { [K in keyof PageOps]: { op: K } & PageOps[K]["args"]
 export type PageResult<R extends PageRequest> = PageOps[R["op"]]["result"];
 
 export function hermesPage(req: PageRequest): unknown {
-  const w = globalThis as unknown as { __hermesRefs?: Map<string, Element> };
-  const refs = (w.__hermesRefs ??= new Map<string, Element>());
+  type State = { nonce: string; generation: number; refs: Map<string, Element>; ids: WeakMap<Element, string>; nextId: number };
+  const w = globalThis as unknown as { __hermes?: State };
+  // Lives as long as this document: a new page starts with a new nonce, and every snapshot starts a new generation.
+  const state = (w.__hermes ??= {
+    nonce: Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, "0")).join(""),
+    generation: 0,
+    refs: new Map<string, Element>(),
+    ids: new WeakMap<Element, string>(),
+    nextId: 0,
+  });
+  const refs = state.refs;
+  const doc = (): DocId => ({ nonce: state.nonce, generation: state.generation, href: location.href });
+  /**
+   * Opaque identity of an element, kept in a WeakMap in this isolated world: the page cannot read or copy it, unlike
+   * an attribute. Two identical "Delete" buttons in different rows get different ids.
+   */
+  const idOf = (el: Element): string => {
+    let id = state.ids.get(el);
+    if (!id) state.ids.set(el, (id = `el${++state.nextId}`));
+    return id;
+  };
   const SELECTOR =
     'a[href],button,input:not([type=hidden]),select,textarea,summary,[contenteditable=""],[contenteditable=true],[onclick],' +
     "[role=button],[role=link],[role=tab],[role=menuitem],[role=checkbox],[role=radio],[role=switch],[role=option],[role=combobox]";
@@ -114,21 +163,115 @@ export function hermesPage(req: PageRequest): unknown {
     return el instanceof HTMLElement && el.isContentEditable;
   };
 
+  const STRONG = "a,area,button,input,select,textarea,summary,label";
+  const WEAK =
+    '[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=switch],[role=radio],[role=combobox],[onclick],[contenteditable=""],[contenteditable=true]';
+  const OPAQUE = "iframe,frame,embed,object";
+
+  /** What a click on `hit` activates: the nearest real control around it (a label gives its control), else the frame or the hit itself. */
+  const resolveTarget = (hit: Element): Element => {
+    if (hit.matches(OPAQUE)) return hit;
+    const el = hit.closest(STRONG) ?? hit.closest(WEAK) ?? hit;
+    return el instanceof HTMLLabelElement && el.control ? el.control : el;
+  };
+
+  const hitAt = (x: number, y: number): Element | null => {
+    let hit = document.elementFromPoint(x, y);
+    while (hit?.shadowRoot) {
+      const inner = hit.shadowRoot.elementFromPoint(x, y);
+      if (!inner || inner === hit) break;
+      hit = inner;
+    }
+    return hit;
+  };
+
+  const focusedElement = (): Element => {
+    let el = document.activeElement ?? document.body;
+    while (el.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
+    return el;
+  };
+
+  const absolute = (raw: string) => {
+    try {
+      return new URL(raw, location.href).href;
+    } catch {
+      return raw;
+    }
+  };
+
+  /** Where a click or Enter on this element goes: a link's href, a submit control's formaction, else its form's action. */
+  const activationUrlOf = (el: Element, form: Element | null): string | undefined => {
+    const href = el.matches("a[href],area[href]") ? attr(el, "href") : undefined;
+    const raw = href ?? attr(el, "formaction") ?? (form ? attr(form, "action") : undefined);
+    return raw ? absolute(raw) : undefined;
+  };
+
+  /** The form the element submits: its own form attribute counts, so a field outside the <form> tag is still in that form. */
+  const formOf = (el: Element): HTMLFormElement | null => {
+    const owner = (el as HTMLInputElement).form;
+    return owner instanceof HTMLFormElement ? owner : el.closest("form");
+  };
+
+  /** Every button and input that belongs to the form: inside it, tied to it with form="id", or reporting it as its .form. */
+  const controlsOf = (form: Element): Element[] => {
+    const all = new Set<Element>(form.querySelectorAll("button, input"));
+    if (form.id) for (const c of document.querySelectorAll("button, input")) if (attr(c, "form") === form.id) all.add(c);
+    for (const c of document.querySelectorAll("button, input")) if ((c as HTMLButtonElement).form === form) all.add(c);
+    return [...all];
+  };
+
+  /** Controls that submit the form: button with type submit or none, input type submit or image. <input type=image> is not in form.elements. */
+  const isSubmitter = (c: Element) => {
+    if (c instanceof HTMLButtonElement) {
+      const type = attr(c, "type")?.trim().toLowerCase();
+      return type !== "button" && type !== "reset";
+    }
+    return c instanceof HTMLInputElement && ["submit", "image"].includes(c.type);
+  };
+
+  /**
+   * A search exception: Enter here only reads. A field outside any form qualifies when it is type=search or inside
+   * role=search. A field in a form qualifies only when the form is GET and no submitter overrides that with
+   * formmethod, however the field is marked: Enter in a POST form submits it.
+   */
+  const isSearch = (el: Element, form: Element | null) => {
+    const marked = inputType(el) === "search" || el.closest("[role=search]") !== null;
+    if (!form) return marked;
+    const controls = controlsOf(form);
+    if (controls.some((c) => inputType(c) === "password")) return false;
+    const method = (attr(form, "method") ?? "get").trim().toLowerCase();
+    const overridden = controls.some((c) => isSubmitter(c) && (attr(c, "formmethod") ?? "get").trim().toLowerCase() !== "get");
+    if (method !== "get" || overridden) return false;
+    const fieldWords = `${attr(el, "name") ?? ""} ${el.id}`;
+    return marked || /(^|[\s_-])(q|s|query|search|keywords?)($|[\s_-])/i.test(fieldWords);
+  };
+
   const factsOf = (el: Element): ElementFacts => {
     const tag = el.tagName.toLowerCase();
-    const form = el.closest("form");
+    const form = formOf(el);
+    // An option takes the facts of the dropdown it belongs to, so a card-expiry option is as sensitive as the field.
+    const field = tag === "option" || attr(el, "role") === "option" ? (el.closest("select,[role=listbox],[role=combobox]") ?? el) : el;
+    const control = el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement;
+    const captionInput = el instanceof HTMLInputElement && ["button", "submit", "reset", "image"].includes(el.type);
     return {
       tag,
-      type: tag === "button" ? attr(el, "type")?.toLowerCase() : inputType(el),
+      type: tag === "button" ? attr(el, "type")?.toLowerCase() : inputType(field),
       role: roleOf(el),
       name: nameOf(el),
+      text: control ? undefined : clean((el as HTMLElement).innerText || el.textContent, 200) || undefined,
+      ariaLabel: clean(attr(el, "aria-label")) || undefined,
+      title: clean(attr(el, "title")) || undefined,
+      value: captionInput ? clean((el as HTMLInputElement).value) || undefined : tag === "button" ? clean(attr(el, "value")) || undefined : undefined,
       inForm: form !== null,
       formAction: form ? attr(form, "action") : undefined,
-      autocomplete: attr(el, "autocomplete"),
-      fieldName: attr(el, "name"),
-      fieldId: el.id || undefined,
+      formMethod: form ? (attr(form, "method") ?? "get").toLowerCase() : undefined,
+      activationUrl: activationUrlOf(el, form),
+      autocomplete: attr(field, "autocomplete"),
+      fieldName: attr(field, "name"),
+      fieldId: field.id || undefined,
       pageHost: location.hostname,
       editable: isEditable(el),
+      search: isSearch(el, form),
     };
   };
 
@@ -153,6 +296,7 @@ export function hermesPage(req: PageRequest): unknown {
 
   const snapshot = (maxText: number): SnapshotData => {
     refs.clear();
+    state.generation++;
     const found: Element[] = [];
     let scanned = 0;
     for (const el of document.body.querySelectorAll("*")) {
@@ -197,12 +341,43 @@ export function hermesPage(req: PageRequest): unknown {
       const r = el.getBoundingClientRect();
       const cx = (Math.max(r.left, 0) + Math.min(r.right, innerWidth)) / 2;
       const cy = (Math.max(r.top, 0) + Math.min(r.bottom, innerHeight)) / 2;
-      const hit = document.elementFromPoint(cx, cy);
+      const hit = hitAt(cx, cy);
       const covered = hit && !el.contains(hit) && !hit.contains(el) ? nameOf(hit) || hit.tagName.toLowerCase() : undefined;
-      return { found: true, x: cx, y: cy, facts: factsOf(el), covered };
+      const receiver = hit && !covered ? resolveTarget(hit) : undefined;
+      return {
+        found: true,
+        x: cx,
+        y: cy,
+        facts: factsOf(el),
+        hit: receiver && receiver !== el ? factsOf(receiver) : undefined,
+        covered,
+        doc: doc(),
+        id: idOf(el),
+        hitId: receiver && receiver !== el ? idOf(receiver) : undefined,
+      };
     }
-    const hit = document.elementFromPoint(x ?? 0, y ?? 0);
-    return hit ? { found: true, x: x ?? 0, y: y ?? 0, facts: factsOf(hit) } : { found: false, reason: "no-element" };
+    const hit = hitAt(x ?? 0, y ?? 0);
+    if (!hit) return { found: false, reason: "no-element" };
+    const target = resolveTarget(hit);
+    return { found: true, x: x ?? 0, y: y ?? 0, facts: factsOf(target), doc: doc(), id: idOf(target) };
+  };
+
+  const whole = (t: string | null | undefined) => (t ?? "").replace(/\s+/g, " ").trim();
+
+  /** Finds the option of a native dropdown that `text` names (label as shown or value, else a label containing it). */
+  const pick = (ref: string, text: string) => {
+    const el = refs.get(ref);
+    if (!el || !el.isConnected) return { data: { found: false, native: false, options: [] } as PickData };
+    if (!(el instanceof HTMLSelectElement)) return { data: { found: true, native: false, options: [] } as PickData };
+    const options = Array.from(el.options);
+    const want = text.trim().toLowerCase();
+    const shown = (o: HTMLOptionElement) => whole(o.label || o.textContent).toLowerCase();
+    const same = (o: HTMLOptionElement) => shown(o) === want || whole(o.textContent).toLowerCase() === want || o.value.toLowerCase() === want;
+    const option = options.find(same) ?? options.find((o) => shown(o).includes(want));
+    const labels = options.slice(0, 20).map((o) => clean(o.label || o.textContent));
+    const data: PickData = { found: true, native: true, options: labels };
+    if (option) data.option = { id: idOf(option), label: whole(option.label || option.textContent), value: option.value };
+    return { data, el, option };
   };
 
   switch (req.op) {
@@ -210,33 +385,33 @@ export function hermesPage(req: PageRequest): unknown {
       return snapshot(req.maxText);
     case "locate":
       return locate(req);
-    case "active":
-      return factsOf(document.activeElement ?? document.body);
+    case "active": {
+      const el = focusedElement();
+      return { facts: factsOf(el), doc: doc(), id: idOf(el) };
+    }
     case "focus": {
       const el = refs.get(req.ref);
-      if (!el || !el.isConnected) return { found: false, hadText: false };
+      if (!el || !el.isConnected) return { found: false };
       (el as HTMLElement).focus();
+      const actual = focusedElement();
+      const onTarget = actual === el;
       const hadText = ((el as HTMLInputElement).value ?? el.textContent ?? "").length > 0;
-      if (req.clear && hadText) {
+      if (onTarget && req.clear && hadText) {
         if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select();
         else getSelection()?.selectAllChildren(el);
       }
-      return { found: true, hadText };
+      return { found: true, onTarget, hadText, facts: factsOf(actual), doc: doc(), id: idOf(actual) };
     }
+    case "pick":
+      return pick(req.ref, req.text).data;
     case "select": {
-      const el = refs.get(req.ref);
-      if (!el || !el.isConnected) return { found: false, native: false, options: [] };
-      if (!(el instanceof HTMLSelectElement)) return { found: true, native: false, options: [] };
-      const options = Array.from(el.options);
-      const want = req.text.trim().toLowerCase();
-      const same = (o: HTMLOptionElement) => clean(o.textContent, 200).toLowerCase() === want || o.value.toLowerCase() === want;
-      const option = options.find(same) ?? options.find((o) => clean(o.textContent, 200).toLowerCase().includes(want));
-      const labels = options.slice(0, 20).map((o) => clean(o.textContent));
-      if (!option) return { found: true, native: true, options: labels };
-      el.value = option.value;
+      const { data, el, option } = pick(req.ref, req.text);
+      if (!el || !option || !data.option) return { ...data, changed: false };
+      if (req.expect !== undefined && data.option.id !== req.expect) return { ...data, changed: false };
+      (el as HTMLSelectElement).selectedIndex = option.index;  // this very option, even when another one has the same value
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
-      return { found: true, native: true, label: clean(option.textContent), options: labels };
+      return { ...data, changed: true };
     }
     case "text":
       return document.body.innerText;

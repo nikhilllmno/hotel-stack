@@ -1,6 +1,6 @@
 import type { CommandMessage, ResultMessage } from "../shared/protocol";
 import { handlers } from "./commands";
-import { CommandError, errorMessage } from "./errors";
+import { CommandError, errorMessage, type IsCurrent } from "./errors";
 import { getStatus, updateStatus } from "./status";
 
 const SUMMARY_CHARS = 120;
@@ -15,12 +15,12 @@ async function publishLastAction(msg: CommandMessage, summary: string, status: N
 }
 
 /** Run one bridge command in Chrome and turn the outcome (or failure) into the ResultMessage to send back. */
-export async function runCommand(msg: CommandMessage): Promise<ResultMessage> {
+export async function runCommand(msg: CommandMessage, isCurrent: IsCurrent = () => true): Promise<ResultMessage> {
   try {
     // Only act_with_approval may carry the owner's approval, whatever the message says.
     const handler = handlers[msg.name];
     if (!handler) throw new CommandError(`This extension does not know the command '${msg.name}'. Update the Hermes for Chrome extension.`);
-    const out = await handler(msg.args, msg.name === "act_with_approval" && msg.approved);
+    const out = await handler(msg.args, msg.name === "act_with_approval" && msg.approved, isCurrent);
     const status = out.status ?? "done";
     await publishLastAction(msg, out.text.split("\n")[0], status);
     return { type: "result", id: msg.id, ok: true, status, text: out.text, image: out.image };

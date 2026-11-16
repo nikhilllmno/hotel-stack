@@ -126,19 +126,31 @@ export function useChat(settings: Settings) {
     let id = sessionId;
     if (!id) {
       const epoch = epochRef.current;
+      // Stop works while the session is being created too: the same controller cancels the request and, if the
+      // answer was already on its way, keeps the run from starting.
+      const controller = new AbortController();
+      abortRef.current = controller;
       setRunning(true);
       setTurns([...history, { user: message, text: "", steps: [], approvals: [], status: "running" }]);
+      const ended = (patch: Partial<Turn>) => setTurns([...history, { user: message, text: "", steps: [], approvals: [], status: "failed", ...patch }]);
       try {
-        id = (await client.createSession(title)).id;
+        id = (await client.createChat(title, controller.signal)).id;
       } catch (e) {
         if (epoch !== epochRef.current) return;
-        const err = noteError(e);
-        setTurns([...history, { user: message, text: "", steps: [], approvals: [], status: "failed", error: err.message, errorKind: err.kind }]);
+        abortRef.current = null;
+        if (controller.signal.aborted) ended({ status: "cancelled", error: "Stopped" });
+        else { const err = noteError(e); ended({ error: err.message, errorKind: err.kind }); }
         setRunning(false);
         return;
       }
       if (epoch !== epochRef.current) return;
-      setSessionId(id);
+      setSessionId(id);  // kept even when stopped: the next message goes into this chat instead of creating another
+      if (controller.signal.aborted) {
+        abortRef.current = null;
+        ended({ status: "cancelled", error: "Stopped" });
+        setRunning(false);
+        return;
+      }
     }
     await runTurn(id, message, history);
   }, [client, noteError, runTurn, sessionId]);

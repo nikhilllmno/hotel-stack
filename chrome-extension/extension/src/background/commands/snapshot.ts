@@ -12,7 +12,7 @@ function elementLine(e: SnapshotElement): string {
   const { facts } = e;
   const parts = [`[${e.ref}] ${facts.role}`];
   if (facts.name) parts.push(quoted(facts.name));
-  if (isSensitiveField(facts)) parts.push("(password or card field: Hermes never types here, ask the owner)");
+  if (isSensitiveField(facts)) parts.push("(password, one-time-code or card field: Hermes never types here, ask the owner)");
   else if (e.value) parts.push(`value=${quoted(e.value.length > 80 ? e.value.slice(0, 79) + "…" : e.value)}`);
   if (e.href) parts.push(`-> ${e.href}`);
   if (e.disabled) parts.push("(disabled)");

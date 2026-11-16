@@ -1,5 +1,5 @@
 import { adoptTab, type Tab } from "../agent-tab";
-import { CommandError } from "../errors";
+import { CommandError, ensureCurrent, type IsCurrent } from "../errors";
 import { classifyUrl } from "../risk";
 import { getStatus } from "../status";
 import { waitForLoad } from "../tab-load";
@@ -22,10 +22,11 @@ export async function tabs(): Promise<CommandOutput> {
 
 const describe = (t: chrome.tabs.Tab) => `[tab ${t.id}] "${t.title ?? ""}" ${t.url ?? ""}`;
 
-export async function useTab(args: { tab_id?: number; url?: string }): Promise<CommandOutput> {
+export async function useTab(args: { tab_id?: number; url?: string }, isCurrent: IsCurrent = () => true): Promise<CommandOutput> {
   if (args.tab_id !== undefined) {
     const tab = await chrome.tabs.get(args.tab_id).catch(() => undefined);
     if (!tab) throw new CommandError(`There is no tab with id ${args.tab_id}. Call tabs to see the open tabs.`);
+    ensureCurrent(isCurrent);
     await chrome.tabs.update(args.tab_id, { active: true });
     await adoptTab(tab as Tab);
     return { text: `Now working in ${describe(tab)}.` };
@@ -34,6 +35,7 @@ export async function useTab(args: { tab_id?: number; url?: string }): Promise<C
   const url = withScheme(args.url);
   const risk = classifyUrl(url);
   if (risk.level === "blocked") return { status: "blocked", text: risk.reason };
+  ensureCurrent(isCurrent);
   const created = await chrome.tabs.create({ url, active: true });
   const tab = await waitForLoad(created.id as number);
   await adoptTab(tab);

@@ -1,13 +1,12 @@
 import { getWorkableTab } from "../agent-tab";
 import { CommandError } from "../errors";
 import { callPage } from "../page-call";
+import { sleep } from "../tab-load";
 import type { CommandOutput } from "./types";
 
 const MAX_MS = 10_000;
 const MAX_TEXT_TIMEOUT_MS = 30_000;
 const POLL_MS = 250;
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function wait(args: { ms?: number; text?: string; timeout_ms?: number }): Promise<CommandOutput> {
   if (args.text) return waitForText(args.text, Math.min(args.timeout_ms ?? 10_000, MAX_TEXT_TIMEOUT_MS));

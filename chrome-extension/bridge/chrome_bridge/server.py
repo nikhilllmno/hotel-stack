@@ -19,7 +19,7 @@ from mcp.server.mcpserver.utilities.types import Image
 from mcp.types import ToolAnnotations
 
 from chrome_bridge.hub import BridgeError, ExtensionHub
-from chrome_bridge.protocol import CommandName
+from chrome_bridge.protocol import CommandName, Result
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
@@ -53,19 +53,26 @@ mcp = MCPServer(
 READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
 NEEDS_APPROVAL = ToolAnnotations(readOnlyHint=False, destructiveHint=True, openWorldHint=True)
 
+MAX_REASON = 200
+
 Action = Literal["click", "type", "press", "scroll", "select", "hover"]
 Direction = Literal["up", "down", "left", "right"]
 
 
-async def run(name: CommandName, args: dict[str, Any], timeout: float = 60.0) -> str:
-    """Send a command and turn the result into the text the model reads."""
+async def call(name: CommandName, args: dict[str, Any], timeout: float = 60.0) -> Result:
+    """Send a command; a failure becomes a ToolError the model reads."""
     try:
         result = await hub.call(name, {k: v for k, v in args.items() if v is not None}, timeout)
     except BridgeError as exc:
         raise ToolError(str(exc)) from exc
     if not result.ok:
         raise ToolError(result.error or f"Chrome could not run '{name}'.")
-    return result.text
+    return result
+
+
+async def run(name: CommandName, args: dict[str, Any], timeout: float = 60.0) -> str:
+    """Send a command and return the text the model reads."""
+    return (await call(name, args, timeout)).text
 
 
 @mcp.tool(annotations=READ_ONLY)
@@ -103,12 +110,9 @@ async def snapshot(max_text: int = 6000) -> str:
 async def screenshot() -> list[Image | str]:
     """A PNG of the visible part of the agent tab. Use it when layout, images or charts matter; use snapshot for refs.
     Coordinates in the image are viewport CSS pixels after scaling, as stated in the caption."""
-    try:
-        result = await hub.call("screenshot", {})
-    except BridgeError as exc:
-        raise ToolError(str(exc)) from exc
-    if not result.ok or not result.image_data:
-        raise ToolError(result.error or "Chrome returned no screenshot.")
+    result = await call("screenshot", {})
+    if not result.image_data:
+        raise ToolError("Chrome returned no screenshot.")
     fmt = "jpeg" if result.image_mime == "image/jpeg" else "png"
     return [Image(data=base64.b64decode(result.image_data), format=fmt), result.text]
 
@@ -121,6 +125,8 @@ def act_args(action: Action, ref: str | None, x: float | None, y: float | None, 
         raise ToolError(f"'{action}' needs text.")
     if action == "press" and not key:
         raise ToolError("'press' needs key, for example Enter, Tab, Escape, ArrowDown or Control+A.")
+    if action == "press" and (x is not None or y is not None):
+        raise ToolError("'press' takes a ref (or nothing for the focused element), not x and y.")
     return {"action": action, "ref": ref, "x": x, "y": y, "text": text, "clear": clear, "key": key,
             "direction": direction, "amount": amount}
 
@@ -130,23 +136,34 @@ async def act(action: Action, ref: str | None = None, x: float | None = None, y:
               text: str | None = None, clear: bool | None = None, key: str | None = None,
               direction: Direction | None = None, amount: int | None = None) -> str:
     """Do one thing in the agent tab with real mouse and keyboard input.
-    click / hover: ref (or x, y). type: ref + text (clear=false appends). press: key (e.g. Enter, Control+A).
+    click / hover: ref (or x, y). type: ref + text (clear=false appends). press: key (e.g. Enter, Control+A),
+    optionally with a ref to focus first.
     scroll: direction (+ amount in pixels, default one screen). select: ref + text (option label or value).
-    Risky actions (submitting forms, paying, booking, sending, deleting, cancelling) are NOT done: the result says
-    the action needs the owner's approval, and you then call act_with_approval with the same arguments and a reason.
+    Risky actions (submitting or saving forms, paying, booking, sending, deleting, cancelling) are NOT done: the
+    result says the action needs the owner's approval and gives an approval_id. Then call act_with_approval with
+    that approval_id, the same arguments and a reason.
     Typing into password or payment-card fields is always refused: ask the owner to do it."""
     return await run("act", act_args(action, ref, x, y, text, clear, key, direction, amount))
 
 
 @mcp.tool(annotations=NEEDS_APPROVAL)
-async def act_with_approval(reason: str, action: Action, ref: str | None = None, x: float | None = None,
-                            y: float | None = None, text: str | None = None, clear: bool | None = None,
-                            key: str | None = None, direction: Direction | None = None,
+async def act_with_approval(approval_id: str, reason: str, action: Action, ref: str | None = None,
+                            x: float | None = None, y: float | None = None, text: str | None = None,
+                            clear: bool | None = None, key: str | None = None, direction: Direction | None = None,
                             amount: int | None = None) -> str:
-    """The same as act, for an action that act refused as risky. Hermes asks the owner first; the action runs only
-    if they approve. reason: one plain sentence the owner reads, e.g. "Submit the rate change for Nov 20-22 to $189"."""
+    """Do an action that act refused as risky. Hermes asks the owner first; the action runs only if they approve.
+    approval_id: the id from act's needs_approval result. Pass the same action arguments act got.
+    reason: one plain sentence (under 200 characters) the owner reads, e.g. "Submit the rate change for Nov 20-22 to $189".
+    The id is single use and is tied to the page and element: if the page changed, nothing is done and you get a
+    new approval_id to ask with again."""
+    if not approval_id.strip():
+        raise ToolError("Give the approval_id from act's needs_approval result. Call act first.")
+    if not reason.strip():
+        raise ToolError("Give a reason the owner can read.")
+    if len(reason) > MAX_REASON:
+        raise ToolError(f"Keep reason under {MAX_REASON} characters: Hermes cuts long approval requests off.")
     return await run("act_with_approval", {**act_args(action, ref, x, y, text, clear, key, direction, amount),
-                                           "reason": reason})
+                                           "reason": reason, "approval_id": approval_id})
 
 
 @mcp.tool(annotations=READ_ONLY)

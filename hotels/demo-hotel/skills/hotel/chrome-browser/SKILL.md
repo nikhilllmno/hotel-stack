@@ -26,9 +26,11 @@ does not need to see.
 
 ## Approvals and limits
 - `act` refuses risky actions (submit, save, pay, book, send, delete, cancel, confirm) with "needs the owner's
-  approval". Then call `act_with_approval` with the same arguments and one plain sentence for `reason` that says
-  exactly what will happen ("Save the new Saturday rate of $189 for Cabin 2 on Booking.com"). The owner sees Approve
-  and Deny. If they deny, stop and ask what to change.
+  approval" and an `approval_id`. Then call `act_with_approval` with that `approval_id`, the same arguments, and one
+  plain sentence for `reason` that says exactly what will happen ("Save the new Saturday rate of $189 for Cabin 2 on
+  Booking.com"). The owner sees Approve and Deny. If they deny, stop and ask what to change.
+- An `approval_id` works once, for 10 minutes, on the same page and element. If the page changed, the result gives a
+  new `approval_id`: snapshot, check the values again, and ask again with the new id.
 - Before an approval, state the values you entered, so the owner can check them.
 - Passwords, one-time codes and card details are always refused. Ask the owner to type them and tell you when done.
   A login page means: ask the owner to log in, then `snapshot` again.

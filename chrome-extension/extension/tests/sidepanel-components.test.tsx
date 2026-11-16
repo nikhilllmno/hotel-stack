@@ -16,7 +16,16 @@ describe("ApprovalCard", () => {
     render(<ApprovalCard approval={approval} expired={false} onAnswer={() => {}} />);
     expect(screen.getByText("Hermes wants to:")).toBeTruthy();
     expect(screen.getByText("Click element e7")).toBeTruthy();
-    expect(screen.getByText("Reason: Send the reply")).toBeTruthy();
+    expect(screen.getByText("Send the reply")).toBeTruthy();
+  });
+
+  it("leads with the reason, then the action, and shows the approval id small", () => {
+    const withId: Approval = { ...approval, command: `Arguments:\n{"action":"click","ref":"e7","reason":"Send the reply","approval_id":"ap-77"}` };
+    const { container } = render(<ApprovalCard approval={withId} expired={false} onAnswer={() => {}} />);
+    const text = container.textContent ?? "";
+    expect(text.indexOf("Send the reply")).toBeGreaterThan(-1);
+    expect(text.indexOf("Send the reply")).toBeLessThan(text.indexOf("Click element e7"));
+    expect(screen.getByText("Approval ap-77")).toBeTruthy();
   });
 
   it("sends the choice, and does not claim Approved before Hermes answered", () => {
