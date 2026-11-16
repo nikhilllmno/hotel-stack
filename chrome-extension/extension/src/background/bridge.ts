@@ -38,25 +38,42 @@ export class BridgeClient {
   private backoff = BACKOFF_MIN_MS;
   private unauthorized = false;
   private queue: Promise<void> = Promise.resolve();
+  /**
+   * Bumped whenever a connection starts, is dropped or closes. A socket, a queued command or a half-finished connect
+   * that carries an older number is stale and must do nothing: it may not run commands, send results or touch state.
+   */
+  private generation = 0;
+  private inflight: Promise<void> | undefined;
 
   constructor(private deps: BridgeDeps) {}
 
-  /** Connect unless a connection or a retry is already underway. Safe to call from alarms and on every wake-up. */
-  async ensureConnected(): Promise<void> {
-    if (this.socket && this.socket.readyState <= OPEN) return;
+  /** Connect unless a connection, a connect in progress or a retry is already underway. Safe to call from alarms and on every wake-up. */
+  ensureConnected(): Promise<void> {
+    if (this.socket && this.socket.readyState <= OPEN) return Promise.resolve();
+    if (this.inflight) return this.inflight;
     clearTimeout(this.retryTimer);
-    await this.connect();
+    return this.startConnect();
   }
 
   /** Drop the current connection and connect again with the latest settings. */
-  async reconnect(): Promise<void> {
+  reconnect(): Promise<void> {
     this.disconnect();
     this.backoff = BACKOFF_MIN_MS;
     this.unauthorized = false;
-    await this.connect();
+    return this.startConnect();
+  }
+
+  private startConnect(): Promise<void> {
+    const p: Promise<void> = this.connect().finally(() => {
+      if (this.inflight === p) this.inflight = undefined;
+    });
+    this.inflight = p;
+    return p;
   }
 
   private disconnect(): void {
+    this.generation++;
+    this.queue = Promise.resolve();
     clearTimeout(this.retryTimer);
     clearInterval(this.pingTimer);
     const old = this.socket;
@@ -68,7 +85,9 @@ export class BridgeClient {
   }
 
   private async connect(): Promise<void> {
+    const gen = ++this.generation;
     const settings = await this.deps.loadSettings();
+    if (gen !== this.generation) return;
     if (!settings.bridgeToken) {
       await this.deps.setBridgeState("disconnected");
       return;
@@ -76,44 +95,61 @@ export class BridgeClient {
     const url = new URL(settings.bridgeUrl);
     url.searchParams.set("token", settings.bridgeToken);
     if (!this.unauthorized) await this.deps.setBridgeState("connecting");
+    if (gen !== this.generation) return;
     const socket = this.deps.openSocket(url.toString());
     this.socket = socket;
+    this.queue = Promise.resolve();
     let opened = false;
+    const current = () => gen === this.generation && this.socket === socket;
     socket.onopen = () => {
+      if (!current()) return;
       opened = true;
       this.backoff = BACKOFF_MIN_MS;
       this.unauthorized = false;
       const hello: ExtensionToBridge = { type: "hello", protocol: PROTOCOL_VERSION, ...this.deps.hello() };
       socket.send(JSON.stringify(hello));
-      this.pingTimer = setInterval(() => socket.send(JSON.stringify({ type: "ping" })), PING_MS);
+      clearInterval(this.pingTimer);
+      this.pingTimer = setInterval(() => {
+        if (current() && socket.readyState === OPEN) socket.send(JSON.stringify({ type: "ping" }));
+      }, PING_MS);
       void this.deps.setBridgeState("connected");
     };
-    socket.onmessage = (e) => this.onMessage(socket, String(e.data));
-    socket.onclose = (e) => void this.onClose(socket, url, opened, e.code);
+    socket.onmessage = (e) => {
+      if (current()) this.onMessage(socket, gen, String(e.data));
+    };
+    socket.onclose = (e) => {
+      if (current()) void this.onClose(socket, url, opened, e.code);
+    };
   }
 
-  private onMessage(socket: SocketLike, raw: string): void {
+  private onMessage(socket: SocketLike, gen: number, raw: string): void {
     const msg = JSON.parse(raw) as BridgeToExtension;
     if (msg.type === "ping") socket.send(JSON.stringify({ type: "pong" }));
     if (msg.type !== "command") return;
     this.queue = this.queue.then(async () => {
+      // The connection may have closed while this command waited: its owner is gone, so do not run it.
+      if (gen !== this.generation) return;
       const result = await this.deps.runCommand(msg);
-      if (socket.readyState === OPEN) socket.send(JSON.stringify(result));
+      if (gen === this.generation && socket.readyState === OPEN) socket.send(JSON.stringify(result));
     });
   }
 
   private async onClose(socket: SocketLike, url: URL, opened: boolean, code: number): Promise<void> {
     if (this.socket !== socket) return;
+    const closedGen = ++this.generation;
     clearInterval(this.pingTimer);
     this.socket = undefined;
+    this.queue = Promise.resolve();
     // A refused handshake and a bridge that is down both end as code 1006; only the HTTP status tells them apart.
-    if (UNAUTHORIZED_CLOSE_CODES.includes(code) || (!opened && (await this.refusedByBridge(url)))) {
+    const refused = UNAUTHORIZED_CLOSE_CODES.includes(code) || (!opened && (await this.refusedByBridge(url)));
+    if (this.generation !== closedGen) return;  // a reconnect started while the probe ran
+    if (refused) {
       this.unauthorized = true;
       await this.deps.setBridgeState("unauthorized");
     } else {
       await this.deps.setBridgeState("disconnected");
     }
-    if (code === REPLACED) return;
+    if (this.generation !== closedGen || code === REPLACED) return;
     this.retryTimer = setTimeout(() => void this.ensureConnected(), this.backoff);
     this.backoff = Math.min(this.backoff * 2, BACKOFF_MAX_MS);
   }

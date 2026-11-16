@@ -25,17 +25,35 @@ export type SnapshotData = {
   textLeft: number;         // characters of visible text cut off by max_text
 };
 
+/** Identifies the document and the snapshot an element belongs to; an approval is bound to both. */
+export type DocId = { nonce: string; generation: number };
+
 export type LocateData =
   | { found: false; reason: "gone" | "no-element" }
-  | { found: true; x: number; y: number; facts: ElementFacts; covered?: string };
+  | {
+      found: true;
+      x: number;
+      y: number;
+      facts: ElementFacts;
+      /** The element that really receives the click when it is not `facts` (a link inside a div[role=button], a parent of a transparent overlay). */
+      hit?: ElementFacts;
+      covered?: string;
+      doc: DocId;
+    };
+
+export type FocusData = { found: false } | { found: true; onTarget: boolean; hadText: boolean; facts: ElementFacts; doc: DocId };
 
 export type PageOps = {
   snapshot: { args: { maxText: number }; result: SnapshotData };
-  /** Scroll the element (or the element at x,y) into view and report where to click and what it is. */
+  /**
+   * Scroll the element into view and report where to click and what it is. For x,y the element is the actionable
+   * ancestor of whatever is at the point (a span inside a submit button is that button), or the frame element itself.
+   */
   locate: { args: { ref?: string; x?: number; y?: number }; result: LocateData };
-  /** Facts of the focused element (the page body when nothing is focused). */
-  active: { args: Record<never, never>; result: ElementFacts };
-  focus: { args: { ref: string; clear: boolean }; result: { found: boolean; hadText: boolean } };
+  /** The element that really has keyboard focus (the body when nothing is focused; an iframe element when focus is inside a frame). */
+  active: { args: Record<never, never>; result: { facts: ElementFacts; doc: DocId } };
+  /** Focus the element and report which element has focus afterwards: it can differ when the target is not focusable. */
+  focus: { args: { ref: string; clear: boolean }; result: FocusData };
   select: {
     args: { ref: string; text: string };
     result: { found: boolean; native: boolean; label?: string; options: string[] };
@@ -47,8 +65,16 @@ export type PageRequest = { [K in keyof PageOps]: { op: K } & PageOps[K]["args"]
 export type PageResult<R extends PageRequest> = PageOps[R["op"]]["result"];
 
 export function hermesPage(req: PageRequest): unknown {
-  const w = globalThis as unknown as { __hermesRefs?: Map<string, Element> };
-  const refs = (w.__hermesRefs ??= new Map<string, Element>());
+  type State = { nonce: string; generation: number; refs: Map<string, Element> };
+  const w = globalThis as unknown as { __hermes?: State };
+  // Lives as long as this document: a new page starts with a new nonce, and every snapshot starts a new generation.
+  const state = (w.__hermes ??= {
+    nonce: Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, "0")).join(""),
+    generation: 0,
+    refs: new Map<string, Element>(),
+  });
+  const refs = state.refs;
+  const doc = (): DocId => ({ nonce: state.nonce, generation: state.generation });
   const SELECTOR =
     'a[href],button,input:not([type=hidden]),select,textarea,summary,[contenteditable=""],[contenteditable=true],[onclick],' +
     "[role=button],[role=link],[role=tab],[role=menuitem],[role=checkbox],[role=radio],[role=switch],[role=option],[role=combobox]";
@@ -114,21 +140,83 @@ export function hermesPage(req: PageRequest): unknown {
     return el instanceof HTMLElement && el.isContentEditable;
   };
 
+  const STRONG = "a,area,button,input,select,textarea,summary,label";
+  const WEAK =
+    '[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=switch],[role=radio],[role=combobox],[onclick],[contenteditable=""],[contenteditable=true]';
+  const OPAQUE = "iframe,frame,embed,object";
+
+  /** What a click on `hit` activates: the nearest real control around it (a label gives its control), else the frame or the hit itself. */
+  const resolveTarget = (hit: Element): Element => {
+    if (hit.matches(OPAQUE)) return hit;
+    const el = hit.closest(STRONG) ?? hit.closest(WEAK) ?? hit;
+    return el instanceof HTMLLabelElement && el.control ? el.control : el;
+  };
+
+  const hitAt = (x: number, y: number): Element | null => {
+    let hit = document.elementFromPoint(x, y);
+    while (hit?.shadowRoot) {
+      const inner = hit.shadowRoot.elementFromPoint(x, y);
+      if (!inner || inner === hit) break;
+      hit = inner;
+    }
+    return hit;
+  };
+
+  const focusedElement = (): Element => {
+    let el = document.activeElement ?? document.body;
+    while (el.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
+    return el;
+  };
+
+  const absolute = (raw: string) => {
+    try {
+      return new URL(raw, location.href).href;
+    } catch {
+      return raw;
+    }
+  };
+
+  /** Where a click or Enter on this element goes: a link's href, a submit control's formaction, else its form's action. */
+  const activationUrlOf = (el: Element, form: Element | null): string | undefined => {
+    const href = el.matches("a[href],area[href]") ? attr(el, "href") : undefined;
+    const raw = href ?? attr(el, "formaction") ?? (form ? attr(form, "action") : undefined);
+    return raw ? absolute(raw) : undefined;
+  };
+
+  const isSearch = (el: Element, form: Element | null) => {
+    if (inputType(el) === "search" || el.closest("[role=search]")) return true;
+    if (!form || form.querySelector("input[type=password]")) return false;
+    const method = (attr(form, "method") ?? "get").toLowerCase();
+    const fieldWords = `${attr(el, "name") ?? ""} ${el.id}`;
+    return method === "get" && /(^|[\s_-])(q|s|query|search|keywords?)($|[\s_-])/i.test(fieldWords);
+  };
+
   const factsOf = (el: Element): ElementFacts => {
     const tag = el.tagName.toLowerCase();
     const form = el.closest("form");
+    // An option takes the facts of the dropdown it belongs to, so a card-expiry option is as sensitive as the field.
+    const field = tag === "option" || attr(el, "role") === "option" ? (el.closest("select,[role=listbox],[role=combobox]") ?? el) : el;
+    const control = el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement;
+    const captionInput = el instanceof HTMLInputElement && ["button", "submit", "reset", "image"].includes(el.type);
     return {
       tag,
-      type: tag === "button" ? attr(el, "type")?.toLowerCase() : inputType(el),
+      type: tag === "button" ? attr(el, "type")?.toLowerCase() : inputType(field),
       role: roleOf(el),
       name: nameOf(el),
+      text: control ? undefined : clean((el as HTMLElement).innerText || el.textContent, 200) || undefined,
+      ariaLabel: clean(attr(el, "aria-label")) || undefined,
+      title: clean(attr(el, "title")) || undefined,
+      value: captionInput ? clean((el as HTMLInputElement).value) || undefined : tag === "button" ? clean(attr(el, "value")) || undefined : undefined,
       inForm: form !== null,
       formAction: form ? attr(form, "action") : undefined,
-      autocomplete: attr(el, "autocomplete"),
-      fieldName: attr(el, "name"),
-      fieldId: el.id || undefined,
+      formMethod: form ? (attr(form, "method") ?? "get").toLowerCase() : undefined,
+      activationUrl: activationUrlOf(el, form),
+      autocomplete: attr(field, "autocomplete"),
+      fieldName: attr(field, "name"),
+      fieldId: field.id || undefined,
       pageHost: location.hostname,
       editable: isEditable(el),
+      search: isSearch(el, form),
     };
   };
 
@@ -153,6 +241,7 @@ export function hermesPage(req: PageRequest): unknown {
 
   const snapshot = (maxText: number): SnapshotData => {
     refs.clear();
+    state.generation++;
     const found: Element[] = [];
     let scanned = 0;
     for (const el of document.body.querySelectorAll("*")) {
@@ -197,12 +286,21 @@ export function hermesPage(req: PageRequest): unknown {
       const r = el.getBoundingClientRect();
       const cx = (Math.max(r.left, 0) + Math.min(r.right, innerWidth)) / 2;
       const cy = (Math.max(r.top, 0) + Math.min(r.bottom, innerHeight)) / 2;
-      const hit = document.elementFromPoint(cx, cy);
+      const hit = hitAt(cx, cy);
       const covered = hit && !el.contains(hit) && !hit.contains(el) ? nameOf(hit) || hit.tagName.toLowerCase() : undefined;
-      return { found: true, x: cx, y: cy, facts: factsOf(el), covered };
+      const receiver = hit && !covered ? resolveTarget(hit) : undefined;
+      return {
+        found: true,
+        x: cx,
+        y: cy,
+        facts: factsOf(el),
+        hit: receiver && receiver !== el ? factsOf(receiver) : undefined,
+        covered,
+        doc: doc(),
+      };
     }
-    const hit = document.elementFromPoint(x ?? 0, y ?? 0);
-    return hit ? { found: true, x: x ?? 0, y: y ?? 0, facts: factsOf(hit) } : { found: false, reason: "no-element" };
+    const hit = hitAt(x ?? 0, y ?? 0);
+    return hit ? { found: true, x: x ?? 0, y: y ?? 0, facts: factsOf(resolveTarget(hit)), doc: doc() } : { found: false, reason: "no-element" };
   };
 
   switch (req.op) {
@@ -211,17 +309,19 @@ export function hermesPage(req: PageRequest): unknown {
     case "locate":
       return locate(req);
     case "active":
-      return factsOf(document.activeElement ?? document.body);
+      return { facts: factsOf(focusedElement()), doc: doc() };
     case "focus": {
       const el = refs.get(req.ref);
-      if (!el || !el.isConnected) return { found: false, hadText: false };
+      if (!el || !el.isConnected) return { found: false };
       (el as HTMLElement).focus();
+      const actual = focusedElement();
+      const onTarget = actual === el;
       const hadText = ((el as HTMLInputElement).value ?? el.textContent ?? "").length > 0;
-      if (req.clear && hadText) {
+      if (onTarget && req.clear && hadText) {
         if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select();
         else getSelection()?.selectAllChildren(el);
       }
-      return { found: true, hadText };
+      return { found: true, onTarget, hadText, facts: factsOf(actual), doc: doc() };
     }
     case "select": {
       const el = refs.get(req.ref);

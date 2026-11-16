@@ -23,12 +23,18 @@ let states: string[];
 let current: Settings;
 let probe: number | undefined;
 let run: (m: CommandMessage) => Promise<ResultMessage>;
+let hold: Promise<void> | undefined;  // makes the next loadSettings wait; it still answers with the settings of the moment it was called
+let probeGate: Promise<void> | undefined;
 
 const client = () => {
   const deps: BridgeDeps = {
-    loadSettings: async () => current,
+    loadSettings: async () => {
+      const mine = current;
+      if (hold) { const h = hold; hold = undefined; await h; }
+      return mine;
+    },
     openSocket: (url) => { const s = new FakeSocket(url); sockets.push(s); return s as unknown as SocketLike; },
-    probeHttpStatus: async () => probe,
+    probeHttpStatus: async () => { await probeGate; return probe; },
     runCommand: (m) => run(m),
     setBridgeState: async (s) => { states.push(s); },
     hello: () => ({ extension_version: "0.1.0", user_agent: "UA" }),
@@ -39,7 +45,7 @@ const last = () => sockets[sockets.length - 1];
 
 beforeEach(() => {
   vi.useFakeTimers();
-  sockets = []; states = []; current = settings(); probe = undefined;
+  sockets = []; states = []; current = settings(); probe = undefined; hold = undefined; probeGate = undefined;
   run = async (m) => ({ type: "result", id: m.id, ok: true, text: "ok" });
 });
 afterEach(() => vi.useRealTimers());
@@ -146,6 +152,143 @@ describe("BridgeClient", () => {
     last().drop(4000);
     await vi.advanceTimersByTimeAsync(60_000);
     expect(sockets).toHaveLength(1);
+    await c.ensureConnected();
+    expect(sockets).toHaveLength(2);
+  });
+});
+
+const command = (id: string) => ({ type: "command", id, name: "tabs", args: {}, approved: false });
+const gate = () => { let open!: () => void; const p = new Promise<void>((r) => { open = r; }); return { p, open }; };
+
+describe("BridgeClient connection generations", () => {
+  it("does not run commands that were queued on a connection that has since closed", async () => {
+    const started: string[] = [];
+    const slow = gate();
+    run = async (m) => {
+      started.push(m.id);
+      if (m.id === "1") await slow.p;
+      return { type: "result", id: m.id, ok: true, text: m.id };
+    };
+    const c = client();
+    await c.ensureConnected();
+    const a = last();
+    a.open();
+    a.receive(command("1"));
+    a.receive(command("2"));
+    a.receive(command("3"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(started).toEqual(["1"]);
+    a.drop();
+    await vi.advanceTimersByTimeAsync(1_000);   // retry connects a new socket
+    expect(sockets).toHaveLength(2);
+    slow.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(started).toEqual(["1"]);             // 2 and 3 belonged to the closed connection
+    expect(a.sent.filter((m) => m.type === "result")).toHaveLength(0);
+    expect(last().sent.filter((m) => m.type === "result")).toHaveLength(0);
+  });
+
+  it("does not make the new connection wait behind a command of the old one", async () => {
+    const never = gate();
+    run = async (m) => (m.id === "old" ? never.p.then(() => ({ type: "result", id: m.id, ok: true, text: "" }) as ResultMessage) : { type: "result", id: m.id, ok: true, text: m.id });
+    const c = client();
+    await c.ensureConnected();
+    last().open();
+    last().receive(command("old"));
+    await vi.advanceTimersByTimeAsync(0);
+    last().drop();
+    await vi.advanceTimersByTimeAsync(1_000);
+    last().open();
+    last().receive(command("new"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(last().sent.filter((m) => m.type === "result").map((m) => m.id)).toEqual(["new"]);
+  });
+
+  it("does not send the result of a command that finished after reconnect, nor run later ones", async () => {
+    const slow = gate();
+    const started: string[] = [];
+    run = async (m) => { started.push(m.id); await slow.p; return { type: "result", id: m.id, ok: true, text: m.id }; };
+    const c = client();
+    await c.ensureConnected();
+    const a = last();
+    a.open();
+    a.receive(command("1"));
+    a.receive(command("2"));
+    await vi.advanceTimersByTimeAsync(0);
+    await c.reconnect();
+    last().open();
+    slow.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(started).toEqual(["1"]);
+    expect(last().sent.filter((m) => m.type === "result")).toHaveLength(0);
+  });
+
+  it("ignores messages, opens and closes from a socket that was replaced", async () => {
+    const c = client();
+    await c.ensureConnected();
+    const a = last();
+    await c.reconnect();
+    const b = last();
+    b.open();
+    a.open();
+    a.receive(command("1"));
+    a.receive({ type: "ping" });
+    a.drop(1008);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(a.sent).toEqual([]);
+    expect(states.at(-1)).toBe("connected");
+    expect(sockets).toHaveLength(2);
+  });
+
+  it("a close whose HTTP probe is still running does not overwrite a newer connection or schedule a retry", async () => {
+    const g = gate();
+    probeGate = g.p;
+    probe = 401;
+    const c = client();
+    await c.ensureConnected();
+    const a = last();
+    a.drop(1006);                       // never opened: the client probes HTTP before it decides
+    await vi.advanceTimersByTimeAsync(0);
+    await c.reconnect();                // meanwhile the owner changes settings
+    last().open();
+    g.open();
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(states.at(-1)).toBe("connected");
+    expect(states).not.toContain("unauthorized");
+    expect(sockets).toHaveLength(2);
+  });
+
+  it("opens a single socket when ensureConnected is called again while the first call is still loading settings", async () => {
+    const g = gate();
+    hold = g.p;
+    const c = client();
+    const first = c.ensureConnected();
+    const second = c.ensureConnected();
+    const third = c.ensureConnected();
+    g.open();
+    await Promise.all([first, second, third]);
+    expect(sockets).toHaveLength(1);
+    expect(states).toEqual(["connecting"]);
+  });
+
+  it("a reconnect during an in-flight connect uses the new settings and leaves one socket", async () => {
+    const g = gate();
+    hold = g.p;
+    const c = client();
+    const first = c.ensureConnected();    // reads the old token, then waits
+    current = settings({ bridgeToken: "new" });
+    const second = c.reconnect();
+    g.open();
+    await Promise.all([first, second]);
+    expect(sockets).toHaveLength(1);
+    expect(last().url).toContain("token=new");
+  });
+
+  it("lets a later ensureConnected start a new connect after the first one finished", async () => {
+    const c = client();
+    await c.ensureConnected();
+    last().drop(4000);
+    await vi.advanceTimersByTimeAsync(0);
     await c.ensureConnected();
     expect(sockets).toHaveLength(2);
   });
