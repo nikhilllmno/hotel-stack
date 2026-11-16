@@ -49,6 +49,19 @@ mcp_servers:
       x-api-key: ${COMPOSIO_MCP_H_X_API_KEY}
     enabled: true
     trust: untrusted   # Composio's hints: reads run, writes (send, create, update) ask the owner in the chat
+  chrome:   # the owner's own Chrome via the Hermes for Chrome extension (chrome-extension/README.md)
+    command: /Users/nikhil/.local/bin/uv
+    args:
+      - run
+      - --directory
+      - /Users/nikhil/hermes/chrome-extension/bridge
+      - python
+      - -m
+      - chrome_bridge.server
+    env:
+      CHROME_BRIDGE_TOKEN: ${CHROME_BRIDGE_TOKEN}
+    enabled: true
+    trust: untrusted   # web pages are untrusted input; act_with_approval asks the owner in the chat
 platform_toolsets:
   cli:
     - clarify
@@ -222,3 +235,6 @@ agent:
 timezone: America/Chicago  # hotel time: Doss's 'now' and every scheduled job
 browser:
   cloud_provider: browserbase  # real browsing runs in Browserbase (Startup plan), not on this Mac
+gateway:
+  api_server:
+    cors_origins: chrome-extension://hcedflknbknnjccddacdljlcfgocghod  # Hermes for Chrome side panel (fixed extension id)

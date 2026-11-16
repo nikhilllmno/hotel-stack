@@ -220,6 +220,15 @@ Pages: Doss (`/doss`), Call Insights (`/calls`, `/calls/[id]`), Bookings (`/book
   sign-in link for the owner). Google Business Profile is NOT connected: Composio has no managed auth for it; it
   needs the hotel's own Google OAuth client with Business Profile API access, then an auth config in Composio.
 - Image generation: off (owner decision).
+- The owner's own Chrome (`chrome-extension/` at the workspace root, README there): the Hermes for Chrome extension
+  is a side panel chat with Doss (same Hermes API server as the dashboard; `gateway.api_server.cors_origins` allows
+  the fixed extension id hcedflknbknnjccddacdljlcfgocghod) that lets Doss act in the owner's real tabs and logins.
+  MCP `mcp_servers.chrome` = `chrome-extension/bridge` (stdio; also a WebSocket on 127.0.0.1:8765 that only the
+  extension may use: Origin chrome-extension:// + `CHROME_BRIDGE_TOKEN` from the profile .env). Tools: tabs, use_tab,
+  navigate, snapshot, screenshot, act, wait (readOnlyHint, run freely) and act_with_approval (asks the owner). The
+  extension decides what is risky (submit, pay, book, send, delete, cancel, confirm...): `act` refuses it and Doss
+  must use act_with_approval. Password, one-time-code and card fields are always refused. Skill `chrome-browser`;
+  SOUL.md says when to use it (messages from the panel start with "[From the Hermes Chrome extension").
 
 ## Doss in the dashboard (`/doss`)
 - The owner chats with Doss (Hermes profile `hotels/demo-hotel`) through Hermes' API server (127.0.0.1:8642, `API_SERVER_KEY`
