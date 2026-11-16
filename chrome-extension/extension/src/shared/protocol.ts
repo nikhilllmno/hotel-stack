@@ -14,7 +14,7 @@ export type CommandName =
   | "snapshot"          // url, title, numbered interactive elements (refs) and visible text
   | "screenshot"        // PNG of the agent tab's viewport
   | "act"               // click / type / press / scroll / select / hover; risky ones come back as needs_approval
-  | "act_with_approval" // the same actions, after the owner approved in Hermes (args.reason says why)
+  | "act_with_approval" // the same action, after the owner approved in Hermes (args.reason, args.approval_id)
   | "wait";             // wait for time or for text to appear
 
 export type ActArgs = {
@@ -27,6 +27,7 @@ export type ActArgs = {
   direction?: "up" | "down" | "left" | "right"; // scroll
   amount?: number;       // scroll: pixels (default one screen)
   reason?: string;       // act_with_approval only: shown to the owner
+  approval_id?: string;  // act_with_approval only: the id the needs_approval result of `act` gave (single use)
 };
 
 export type CommandArgs = {
@@ -52,7 +53,10 @@ export type CommandMessage = {
 /**
  * extension -> bridge. `text` is what the model reads. `image` (screenshot only) is attached as MCP ImageContent.
  * ok=false means the command failed; `error` is a sentence the agent can act on.
- * A risky `act` is NOT an error: ok=true, status "needs_approval", text tells the agent to call act_with_approval.
+ * A risky `act` is NOT an error: ok=true, status "needs_approval", text tells the agent to call act_with_approval
+ * with the same arguments, a reason, and the `approval_id` the text gives. The extension binds that id to the tab,
+ * document, snapshot, target element and arguments; it is single use and expires after 10 minutes. If anything
+ * changed, act_with_approval does nothing and returns needs_approval again with a new id.
  * A blocked action (password or payment-card field, javascript: URL) is ok=true, status "blocked": never approvable.
  */
 export type ResultMessage = {

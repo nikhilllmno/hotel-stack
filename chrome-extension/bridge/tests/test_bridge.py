@@ -96,10 +96,12 @@ async def test_round_trip_and_approved_flag(hub):
 
     ws, task = await fake_extension(hub, answer)
     assert await server.act(action="click", ref="e3") == "did act"
-    assert await server.act_with_approval(reason="Submit the form", action="click", ref="e9") == "did act_with_approval"
+    assert await server.act_with_approval(approval_id="ap1", reason="Submit the form", action="click",
+                                          ref="e9") == "did act_with_approval"
     assert seen[0]["approved"] is False
     assert seen[0]["args"] == {"action": "click", "ref": "e3"}  # None values are not sent
     assert seen[1]["approved"] is True and seen[1]["args"]["reason"] == "Submit the form"
+    assert seen[1]["args"]["approval_id"] == "ap1"
     task.cancel()
     await ws.close()
 
@@ -170,6 +172,12 @@ async def test_argument_checks_before_sending(hub):
         await server.act(action="type", ref="e1")
     with pytest.raises(ToolError, match="needs key"):
         await server.act(action="press")
+    with pytest.raises(ToolError, match="not x and y"):
+        await server.act(action="press", key="Enter", x=10, y=10)
+    with pytest.raises(ToolError, match="approval_id"):
+        await server.act_with_approval(approval_id=" ", reason="Save", action="click", ref="e1")
+    with pytest.raises(ToolError, match="reason"):
+        await server.act_with_approval(approval_id="ap1", reason="", action="click", ref="e1")
 
 
 async def test_only_act_with_approval_asks_the_owner():
@@ -177,4 +185,14 @@ async def test_only_act_with_approval_asks_the_owner():
     assert set(tools) == {"tabs", "use_tab", "navigate", "snapshot", "screenshot", "act", "act_with_approval", "wait"}
     for name, tool in tools.items():
         assert tool.annotations.read_only_hint is (name != "act_with_approval"), name
-    assert "reason" in tools["act_with_approval"].input_schema["required"]
+    assert {"reason", "approval_id"} <= set(tools["act_with_approval"].input_schema["required"])
+
+
+async def test_large_screenshot_fits_in_one_message(hub):
+    big = base64.b64encode(b"\x89PNG" + b"x" * (3 * 1024 * 1024)).decode()  # about 4 MB of base64, over the 1 MiB default
+    ws, task = await fake_extension(hub, lambda c: {"ok": True, "status": "done", "text": "big",
+                                                    "image": {"data": big, "mime": "image/png"}})
+    image, caption = await server.screenshot()
+    assert len(image.data) == 4 + 3 * 1024 * 1024 and caption == "big"
+    task.cancel()
+    await ws.close()

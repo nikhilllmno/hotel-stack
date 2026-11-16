@@ -17,6 +17,8 @@ from chrome_bridge.protocol import PROTOCOL_VERSION, CommandName, Result, comman
 
 log = logging.getLogger("chrome_bridge")
 
+MAX_MESSAGE_BYTES = 16 * 1024 * 1024  # screenshots; the extension keeps base64 images under 8 MB
+
 NOT_CONNECTED = "Chrome is not connected. Ask the owner to open the Hermes side panel in Chrome."
 
 
@@ -40,7 +42,8 @@ class ExtensionHub:
             self.start_error = "CHROME_BRIDGE_TOKEN is not set in the Hermes profile .env, so the bridge refuses Chrome."
             log.error(self.start_error)
         try:
-            self.server = await serve(self._handle, self.host, self.port, process_request=self._authorize)
+            self.server = await serve(self._handle, self.host, self.port, process_request=self._authorize,
+                                      max_size=MAX_MESSAGE_BYTES)
             log.info("chrome bridge listening on ws://%s:%s", self.host, self.port)
         except OSError as exc:
             self.start_error = f"The chrome bridge could not listen on {self.host}:{self.port} ({exc.strerror}). Another bridge may already be running."

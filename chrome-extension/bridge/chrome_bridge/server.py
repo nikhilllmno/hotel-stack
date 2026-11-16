@@ -123,6 +123,8 @@ def act_args(action: Action, ref: str | None, x: float | None, y: float | None, 
         raise ToolError(f"'{action}' needs text.")
     if action == "press" and not key:
         raise ToolError("'press' needs key, for example Enter, Tab, Escape, ArrowDown or Control+A.")
+    if action == "press" and (x is not None or y is not None):
+        raise ToolError("'press' takes a ref (or nothing for the focused element), not x and y.")
     return {"action": action, "ref": ref, "x": x, "y": y, "text": text, "clear": clear, "key": key,
             "direction": direction, "amount": amount}
 
@@ -132,23 +134,32 @@ async def act(action: Action, ref: str | None = None, x: float | None = None, y:
               text: str | None = None, clear: bool | None = None, key: str | None = None,
               direction: Direction | None = None, amount: int | None = None) -> str:
     """Do one thing in the agent tab with real mouse and keyboard input.
-    click / hover: ref (or x, y). type: ref + text (clear=false appends). press: key (e.g. Enter, Control+A).
+    click / hover: ref (or x, y). type: ref + text (clear=false appends). press: key (e.g. Enter, Control+A),
+    optionally with a ref to focus first.
     scroll: direction (+ amount in pixels, default one screen). select: ref + text (option label or value).
-    Risky actions (submitting forms, paying, booking, sending, deleting, cancelling) are NOT done: the result says
-    the action needs the owner's approval, and you then call act_with_approval with the same arguments and a reason.
+    Risky actions (submitting or saving forms, paying, booking, sending, deleting, cancelling) are NOT done: the
+    result says the action needs the owner's approval and gives an approval_id. Then call act_with_approval with
+    that approval_id, the same arguments and a reason.
     Typing into password or payment-card fields is always refused: ask the owner to do it."""
     return await run("act", act_args(action, ref, x, y, text, clear, key, direction, amount))
 
 
 @mcp.tool(annotations=NEEDS_APPROVAL)
-async def act_with_approval(reason: str, action: Action, ref: str | None = None, x: float | None = None,
-                            y: float | None = None, text: str | None = None, clear: bool | None = None,
-                            key: str | None = None, direction: Direction | None = None,
+async def act_with_approval(approval_id: str, reason: str, action: Action, ref: str | None = None,
+                            x: float | None = None, y: float | None = None, text: str | None = None,
+                            clear: bool | None = None, key: str | None = None, direction: Direction | None = None,
                             amount: int | None = None) -> str:
-    """The same as act, for an action that act refused as risky. Hermes asks the owner first; the action runs only
-    if they approve. reason: one plain sentence the owner reads, e.g. "Submit the rate change for Nov 20-22 to $189"."""
+    """Do an action that act refused as risky. Hermes asks the owner first; the action runs only if they approve.
+    approval_id: the id from act's needs_approval result. Pass the same action arguments act got.
+    reason: one plain sentence the owner reads, e.g. "Submit the rate change for Nov 20-22 to $189".
+    The id is single use and is tied to the page and element: if the page changed, nothing is done and you get a
+    new approval_id to ask with again."""
+    if not approval_id.strip():
+        raise ToolError("Give the approval_id from act's needs_approval result. Call act first.")
+    if not reason.strip():
+        raise ToolError("Give a reason the owner can read.")
     return await run("act_with_approval", {**act_args(action, ref, x, y, text, clear, key, direction, amount),
-                                           "reason": reason})
+                                           "reason": reason, "approval_id": approval_id})
 
 
 @mcp.tool(annotations=READ_ONLY)
