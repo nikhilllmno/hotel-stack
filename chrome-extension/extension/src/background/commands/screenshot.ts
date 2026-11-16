@@ -1,4 +1,5 @@
 import { getWorkableTab } from "../agent-tab";
+import { cursor } from "../cursor";
 import { cdp } from "../debugger";
 import { CommandError } from "../errors";
 import { visualViewport } from "../input";
@@ -20,6 +21,15 @@ const ATTEMPTS: { format: "png" | "jpeg"; quality?: number; shrink: number }[] =
 
 export async function screenshot(): Promise<CommandOutput> {
   const tab = await getWorkableTab();
+  await cursor.hide(tab);  // the agent cursor must not cover page content the model is about to read
+  try {
+    return await capture(tab);
+  } finally {
+    await cursor.show(tab);
+  }
+}
+
+async function capture(tab: Awaited<ReturnType<typeof getWorkableTab>>): Promise<CommandOutput> {
   const v = await visualViewport(tab);
   // Chrome sizes a capture in device pixels. Dividing the clip scale by the device pixel ratio makes one image pixel
   // one CSS pixel (times `fit`), which is the unit of the x,y coordinates the agent passes back to act.

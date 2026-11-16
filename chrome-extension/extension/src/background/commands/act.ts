@@ -1,5 +1,6 @@
 import type { ActArgs } from "../../shared/protocol";
 import { getWorkableTab, type Tab } from "../agent-tab";
+import { cursor } from "../cursor";
 import { CommandError, ensureCurrent, type IsCurrent } from "../errors";
 import { insertText, mouseClick, mouseMove, pressKey, visualViewport, wheel } from "../input";
 import { parseKey } from "../keys";
@@ -119,6 +120,10 @@ async function typeInto(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<C
     throw new CommandError(`${describe(facts)} is not a text field, so nothing can be typed into it. Pick a textbox from the snapshot.`);
   }
   const clear = a.clear !== false;
+  if (aimed.point) {  // the cursor goes to the field first; it pulses only when the text field really gets clicked
+    live();
+    await cursor.moveTo(tab, aimed.point.x, aimed.point.y, { pulse: a.ref === undefined });
+  }
   // Check again where the text will really go: the element that ends up focused, not the one that was aimed at.
   const recheck = (focused: ElementFacts) => stoppedAt(classifyAction({ kind: "type" }, focused, true));
   if (a.ref !== undefined) {
@@ -147,7 +152,9 @@ async function typeInto(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<C
     }
   }
   live();
+  await cursor.say(tab, "Typing...");
   await insertText(tab, a.text ?? "");
+  await cursor.say(tab, null);
   return { text: `Typed ${(a.text ?? "").length} characters into ${describe(facts)}.` };
 }
 
@@ -179,6 +186,7 @@ async function scroll(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<str
   const sign = a.direction === "up" || a.direction === "left" ? -1 : 1;
   const at = aimed.point ?? { x: v.clientWidth / 2, y: v.clientHeight / 2 };
   live();
+  await cursor.moveTo(tab, at.x, at.y);
   await wheel(tab, at.x, at.y, horizontal ? sign * amount : 0, horizontal ? 0 : sign * amount);
   return `Scrolled ${a.direction} ${amount} px.`;
 }
@@ -188,19 +196,26 @@ async function perform(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<Co
   switch (a.action) {
     case "click":
       live();
+      await cursor.moveTo(tab, point!.x, point!.y, { pulse: true });  // the cursor arrives first, then the real click goes in
       await mouseClick(tab, point!.x, point!.y);
       return { text: `Clicked ${describe(facts)}.` };
     case "hover":
       live();
+      await cursor.moveTo(tab, point!.x, point!.y);
       await mouseMove(tab, point!.x, point!.y);
       return { text: `Hovered over ${describe(facts)}.` };
     case "type":
       return typeInto(tab, a, aimed, live);
     case "press":
       live();
+      await cursor.say(tab, a.key ?? "", { ttl: cursor.keyMs });
       await pressKey(tab, a.key ?? "");
       return { text: `Pressed ${a.key}${a.ref ? ` on ${describe(facts)}` : ""}.` };
     case "select":
+      if (point) {
+        live();
+        await cursor.moveTo(tab, point.x, point.y);
+      }
       return { text: await selectOption(tab, a, aimed, live) };
     case "scroll":
       return { text: await scroll(tab, a, aimed, live) };
@@ -273,6 +288,8 @@ export function summarize(a: ActArgs, aimed: Aim, risk: { reason: string }): str
 async function askApproval(tab: Tab, a: ActArgs, aimed: Aim, why: string, risk: { reason: string; name: string }): Promise<CommandOutput> {
   const refusal = approvalRefusal(a, aimed);
   if (refusal) return { status: "blocked", text: refusal };
+  if (aimed.point) await cursor.moveTo(tab, aimed.point.x, aimed.point.y);  // show what is waiting, without clicking it
+  await cursor.say(tab, "Waiting for approval");
   const href = aimed.doc?.href ?? "";
   const id = await createApproval({
     tabId: tab.id,
@@ -329,6 +346,7 @@ export async function act(a: ActArgs, approved: boolean, isCurrent: IsCurrent = 
   const tab = await getWorkableTab();
   const live: Live = () => ensureCurrent(isCurrent);
   const aimed = await aim(tab, a, live);
+  await cursor.busy(tab);
   const action = riskAction(a);
 
   // Judge without any approval first: an approval never decides this, the record below does.

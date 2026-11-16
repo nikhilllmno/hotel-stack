@@ -2,11 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   cdp: vi.fn(),
+  hide: vi.fn(async () => undefined),
+  show: vi.fn(async () => undefined),
   viewport: { pageX: 0, pageY: 0, clientWidth: 1000, clientHeight: 800 },
 }));
 
 vi.mock("../src/background/agent-tab", () => ({ getWorkableTab: async () => ({ id: 7, url: "https://x.com/", title: "T" }) }));
 vi.mock("../src/background/debugger", () => ({ cdp: mocks.cdp }));
+vi.mock("../src/background/cursor", () => ({ cursor: { hide: mocks.hide, show: mocks.show } }));
 vi.mock("../src/background/input", () => ({ visualViewport: async () => mocks.viewport }));
 
 const { screenshot } = await import("../src/background/commands/screenshot");
@@ -22,7 +25,32 @@ const captures = () => mocks.cdp.mock.calls.filter((c) => c[1] === "Page.capture
 
 beforeEach(() => {
   mocks.cdp.mockReset();
+  mocks.hide.mockClear();
+  mocks.show.mockClear();
   mocks.viewport = { pageX: 0, pageY: 0, clientWidth: 1000, clientHeight: 800 };
+});
+
+describe("screenshot and the agent cursor", () => {
+  it("hides the cursor before the capture and shows it again afterwards", async () => {
+    const order: string[] = [];
+    mocks.hide.mockImplementation(async () => void order.push("hide"));
+    mocks.show.mockImplementation(async () => void order.push("show"));
+    mocks.cdp.mockImplementation(async (_t: unknown, method: string) => {
+      order.push(method);
+      return method === "Runtime.evaluate" ? { result: { value: 1 } } : { data: "A" };
+    });
+    await screenshot();
+    expect(order[0]).toBe("hide");
+    expect(order.indexOf("Page.captureScreenshot")).toBeGreaterThan(0);
+    expect(order.at(-1)).toBe("show");
+  });
+
+  it("shows it again when the capture fails", async () => {
+    mocks.cdp.mockRejectedValue(new Error("no capture"));
+    await expect(screenshot()).rejects.toThrow("no capture");
+    expect(mocks.hide).toHaveBeenCalledOnce();
+    expect(mocks.show).toHaveBeenCalledOnce();
+  });
 });
 
 describe("screenshot", () => {
