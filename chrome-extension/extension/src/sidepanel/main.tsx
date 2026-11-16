@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
 import "../styles.css";
+import { App } from "./App";
 
-// Side panel entry (owned by the side panel build task).
-createRoot(document.getElementById("root")!).render(<div className="p-4 text-sm">Hermes</div>);
+createRoot(document.getElementById("root")!).render(<App />);
