@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Hermes for Chrome",
+  "version": "0.1.0",
+  "description": "Chat with your Hermes agent in a side panel and let it work in your Chrome tabs.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtURUmhqAsOYp4brG7+o9Okpm9/N2xzIjuRhpdECUsq6o3sxSZzuHaaDNpxnSIPAQcnRXxBrrE+xsXgz1r7PnP8BirpecDq0qPghclyol5NndCfIsdx7X+cunMeGeZ8VFF4XbzK2dwZ1aB5U10gsPqGaFm3WjeadKzYGGYL8F6GHYUeM3+nz7witBVrFd6v7kw4+nTIZno5ioYqxZKWCkz4dNuFPxox/NPJq1L+EI6KrWtT4ZbtIixsA+jQQJRA2aPYKONgruvjpwTYJ+c84btRjPLrSXWs+3Xa0thUjiVyx3y05ZNb5joXeVo/BB9he5OcfiRWsA9Ml9pT9AEM3coQIDAQAB",
+  "minimum_chrome_version": "120",
+  "permissions": ["sidePanel", "debugger", "tabs", "tabGroups", "scripting", "storage", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "Open Hermes" },
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+}
