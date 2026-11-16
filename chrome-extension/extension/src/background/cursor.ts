@@ -23,6 +23,7 @@ export const CURSOR_STYLE = {
   glowSize: 28,                 // px, blur of the inset glow
   pulseMs: 350,
   pulseSize: 44,                // px, final diameter of the click ring
+  pulseLeadMs: 140,             // the real click waits this long after the pulse starts, so it is seen
   fadeMs: 250,
   idleMs: 8000,                 // fade out after this long without a command
   keyMs: 1200,                  // how long a pressed key stays in the pill
@@ -190,7 +191,9 @@ export function hermesCursor(req: CursorRequest, s: CursorStyle): Promise<void> 
           place(o, req.x, req.y);
           a.cancel();
           pulse();
-          resolve();
+          // Let the ring show before the real click: a click that submits or navigates tears the overlay down at once.
+          if (req.pulse) setTimeout(resolve, s.pulseLeadMs);
+          else resolve();
         };
         a.onfinish = finish;
         setTimeout(finish, req.ms + 150);  // a background tab may not run animations
