@@ -1,14 +1,16 @@
 import { cdp, type Target } from "./debugger";
+import { showCursor } from "./visual-cursor";
 import { parseKey, type KeyPress } from "./keys";
 
 /** Trusted input through CDP: the page sees real mouse and keyboard events, not synthetic DOM events. */
 
 export async function mouseMove(tab: Target, x: number, y: number): Promise<void> {
+  await showCursor(tab, x, y);
   await cdp(tab, "Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
 }
 
 export async function mouseClick(tab: Target, x: number, y: number): Promise<void> {
-  await mouseMove(tab, x, y);
+  await showCursor(tab, x, y, true);
   await cdp(tab, "Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1 });
   await cdp(tab, "Input.dispatchMouseEvent", { type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1 });
 }
