@@ -30,7 +30,6 @@ class ExtensionHub:
         self.host = host
         self.port = port
         self.conn: ServerConnection | None = None
-        self.hello: dict[str, Any] = {}
         self.pending: dict[str, asyncio.Future[Result]] = {}
         self.server: Server | None = None
         self.start_error = ""
@@ -83,7 +82,6 @@ class ExtensionHub:
         if kind == "ping":
             await conn.send(json.dumps({"type": "pong"}))
         elif kind == "hello":
-            self.hello = msg
             if msg.get("protocol") != PROTOCOL_VERSION:
                 log.warning("extension speaks protocol %s, bridge speaks %s", msg.get("protocol"), PROTOCOL_VERSION)
         elif kind == "result":

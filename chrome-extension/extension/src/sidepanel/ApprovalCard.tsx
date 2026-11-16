@@ -15,7 +15,7 @@ type Props = {
 export function ApprovalCard({ approval, state, expired, onAnswer }: Props) {
   const s = parseApproval(approval);
   const posting = state?.phase === "posting";
-  const done = state?.phase === "done" ? state.choice : approval.answered;
+  const done = state?.phase === "done" ? state.choice : undefined;
   return (
     <Card size="sm" role="group" aria-label="Approval needed">
       <CardContent className="flex flex-col gap-2">

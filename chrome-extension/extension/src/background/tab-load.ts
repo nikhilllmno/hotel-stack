@@ -35,7 +35,7 @@ export function navigateAndWait(tabId: number, start: () => Promise<unknown>, ti
   });
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** After an action: give a navigation a moment to start, then wait (max `maxMs`) until the tab is loaded again. */
 export async function settle(tabId: number, maxMs = 3_000): Promise<void> {

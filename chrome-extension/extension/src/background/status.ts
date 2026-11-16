@@ -1,3 +1,4 @@
+import { loadBridgeStatus } from "../lib/settings";
 import { STATUS_KEY, type BridgeStatus } from "../shared/protocol";
 
 let current: BridgeStatus | undefined;
@@ -5,7 +6,7 @@ let writes: Promise<void> = Promise.resolve();
 
 /** The BridgeStatus the side panel reads; kept in chrome.storage.session so it survives a service worker restart. */
 export async function getStatus(): Promise<BridgeStatus> {
-  current ??= ((await chrome.storage.session.get(STATUS_KEY))[STATUS_KEY] as BridgeStatus | undefined) ?? { bridge: "disconnected" };
+  current ??= await loadBridgeStatus();
   return current;
 }
 

@@ -14,7 +14,7 @@ export function QuestionCard({ q, state, expired, onAnswer }: Props) {
   const [picked, setPicked] = useState<string[]>([]);
   const [other, setOther] = useState(q.choices.length === 0);
   const busy = state?.phase === "posting";
-  const answered = state?.phase === "done" ? state.choice : q.answered;
+  const answered = state?.phase === "done" ? state.choice : undefined;
   const send = (a: string) => { if (a.trim()) onAnswer(a.trim()); };
 
   if (answered !== undefined || expired) {

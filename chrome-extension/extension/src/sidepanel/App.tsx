@@ -17,8 +17,8 @@ function Panel({ settings }: { settings: Settings }) {
   const bridge = useBridgeStatus();
   const tab = useActiveTab();
   const chat = useChat(settings);
-  const [view, setView] = useState<View>(isConfigured(settings) ? "chat" : "settings");
   const firstRun = !isConfigured(settings);
+  const [view, setView] = useState<View>(firstRun ? "settings" : "chat");
 
   const go = (v: View) => { setView(v); if (v === "chats") void chat.loadSessions(); };
 

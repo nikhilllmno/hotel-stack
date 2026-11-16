@@ -19,7 +19,7 @@ from mcp.server.mcpserver.utilities.types import Image
 from mcp.types import ToolAnnotations
 
 from chrome_bridge.hub import BridgeError, ExtensionHub
-from chrome_bridge.protocol import CommandName
+from chrome_bridge.protocol import CommandName, Result
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
@@ -57,15 +57,20 @@ Action = Literal["click", "type", "press", "scroll", "select", "hover"]
 Direction = Literal["up", "down", "left", "right"]
 
 
-async def run(name: CommandName, args: dict[str, Any], timeout: float = 60.0) -> str:
-    """Send a command and turn the result into the text the model reads."""
+async def call(name: CommandName, args: dict[str, Any], timeout: float = 60.0) -> Result:
+    """Send a command; a failure becomes a ToolError the model reads."""
     try:
         result = await hub.call(name, {k: v for k, v in args.items() if v is not None}, timeout)
     except BridgeError as exc:
         raise ToolError(str(exc)) from exc
     if not result.ok:
         raise ToolError(result.error or f"Chrome could not run '{name}'.")
-    return result.text
+    return result
+
+
+async def run(name: CommandName, args: dict[str, Any], timeout: float = 60.0) -> str:
+    """Send a command and return the text the model reads."""
+    return (await call(name, args, timeout)).text
 
 
 @mcp.tool(annotations=READ_ONLY)
@@ -103,12 +108,9 @@ async def snapshot(max_text: int = 6000) -> str:
 async def screenshot() -> list[Image | str]:
     """A PNG of the visible part of the agent tab. Use it when layout, images or charts matter; use snapshot for refs.
     Coordinates in the image are viewport CSS pixels after scaling, as stated in the caption."""
-    try:
-        result = await hub.call("screenshot", {})
-    except BridgeError as exc:
-        raise ToolError(str(exc)) from exc
-    if not result.ok or not result.image_data:
-        raise ToolError(result.error or "Chrome returned no screenshot.")
+    result = await call("screenshot", {})
+    if not result.image_data:
+        raise ToolError("Chrome returned no screenshot.")
     fmt = "jpeg" if result.image_mime == "image/jpeg" else "png"
     return [Image(data=base64.b64decode(result.image_data), format=fmt), result.text]
 

@@ -4,6 +4,8 @@
  * `chrome` bridge tools and without the dashboard-only parts (diffs, subagents, proposals).
  */
 
+import type { HermesErrorKind } from "./hermes-client";
+
 export type StepKind = "navigate" | "act" | "type" | "screenshot" | "snapshot" | "tabs" | "wait" | "other";
 
 export type Step = {
@@ -20,13 +22,13 @@ export type Step = {
 
 export type Approval = {
   runId: string; requestId: string; generation: number;
-  command: string; description: string; choices: string[]; answered?: string;
+  command: string; description: string; choices: string[];
 };
 
 /** One open question from Hermes (clarify), polled from the run's pending_controls. */
 export type Question = {
   runId: string; requestId: string; generation: number;
-  question: string; choices: string[]; recommended?: string; multi: boolean; answered?: string;
+  question: string; choices: string[]; recommended?: string; multi: boolean;
 };
 
 export type Turn = {
@@ -37,7 +39,7 @@ export type Turn = {
   questions?: Question[];
   status: "running" | "done" | "failed" | "cancelled";
   error?: string;
-  errorKind?: "network" | "unauthorized" | "forbidden" | "http";
+  errorKind?: HermesErrorKind;
 };
 
 export type Msg = {
