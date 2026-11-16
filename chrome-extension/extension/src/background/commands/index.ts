@@ -1,0 +1,20 @@
+import type { ActArgs, CommandArgs } from "../../shared/protocol";
+import { act } from "./act";
+import { navigate } from "./navigate";
+import { screenshot } from "./screenshot";
+import { snapshot } from "./snapshot";
+import { tabs, useTab } from "./tabs";
+import type { Handlers } from "./types";
+import { wait } from "./wait";
+
+/** One executor per bridge command. Arguments arrive untyped from the bridge; each executor checks what it needs. */
+export const handlers: Handlers = {
+  tabs: () => tabs(),
+  use_tab: (args) => useTab(args as CommandArgs["use_tab"]),
+  navigate: (args) => navigate(args as CommandArgs["navigate"]),
+  snapshot: (args) => snapshot(args as CommandArgs["snapshot"]),
+  screenshot: () => screenshot(),
+  act: (args) => act(args as ActArgs, false),
+  act_with_approval: (args, approved) => act(args as ActArgs, approved),
+  wait: (args) => wait(args as CommandArgs["wait"]),
+};
