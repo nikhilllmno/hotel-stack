@@ -107,7 +107,8 @@ export function useChat(settings: Settings) {
       if (live.status === "running") live = { ...live, status: "done" };  // stream ended without run.completed: the stored transcript decides
       const stored = await client.messages(id).then((m) => turnsFromHistory(m), () => null);
       if (!alive()) return;
-      if (stored) setTurns(merge(stored, [...history, live]));
+      // Use the stored transcript only when it already holds this turn (a stopped run may not have been saved yet).
+      if (stored && stored.length > history.length) setTurns(merge(stored, [...history, live]));
       else show();
       void loadSessions();
     } catch (e) {

@@ -27,7 +27,7 @@ function Panel({ settings }: { settings: Settings }) {
       <StatusBar hermes={chat.hermes} bridge={bridge.bridge}
         onNew={() => { chat.newChat(); setView("chat"); }} onChats={() => go(view === "chats" ? "chat" : "chats")} onSettings={() => go(view === "settings" ? "chat" : "settings")} />
       {view === "settings" ? (
-        <SettingsView key={JSON.stringify(settings)} initial={settings} firstRun={firstRun} onSaved={(ok) => ok && setView("chat")} />
+        <SettingsView initial={settings} firstRun={firstRun} onSaved={(ok) => ok && setView("chat")} />
       ) : view === "chats" ? (
         <ChatList sessions={chat.sessions} loading={chat.sessionsLoading} error={chat.sessionsError} currentId={chat.sessionId}
           onOpen={(id) => { void chat.openSession(id); setView("chat"); }} onRetry={() => void chat.loadSessions()} />
