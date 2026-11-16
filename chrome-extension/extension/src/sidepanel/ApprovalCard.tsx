@@ -49,7 +49,7 @@ export function ApprovalCard({ approval, state, expired, onAnswer }: Props) {
           {s.reason && <p className="font-medium break-words">{s.reason}</p>}
           {record ? (
             <>
-              <p className="break-words">Chrome will: {record.summary}</p>
+              <p className="break-words whitespace-pre-wrap">Chrome will: {record.summary}</p>
               {record.pageUrl && <p className="text-xs text-muted-foreground break-all">{record.pageUrl}</p>}
             </>
           ) : (
