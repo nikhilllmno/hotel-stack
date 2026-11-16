@@ -178,6 +178,8 @@ async def test_argument_checks_before_sending(hub):
         await server.act_with_approval(approval_id=" ", reason="Save", action="click", ref="e1")
     with pytest.raises(ToolError, match="reason"):
         await server.act_with_approval(approval_id="ap1", reason="", action="click", ref="e1")
+    with pytest.raises(ToolError, match="under 200"):
+        await server.act_with_approval(approval_id="ap1", reason="x" * 201, action="click", ref="e1")
 
 
 async def test_only_act_with_approval_asks_the_owner():
@@ -185,7 +187,9 @@ async def test_only_act_with_approval_asks_the_owner():
     assert set(tools) == {"tabs", "use_tab", "navigate", "snapshot", "screenshot", "act", "act_with_approval", "wait"}
     for name, tool in tools.items():
         assert tool.annotations.read_only_hint is (name != "act_with_approval"), name
-    assert {"reason", "approval_id"} <= set(tools["act_with_approval"].input_schema["required"])
+    schema = tools["act_with_approval"].input_schema
+    assert {"reason", "approval_id"} <= set(schema["required"])
+    assert list(schema["properties"])[0] == "approval_id"  # first, so Hermes' 1200-char cut never hides it
 
 
 async def test_large_screenshot_fits_in_one_message(hub):

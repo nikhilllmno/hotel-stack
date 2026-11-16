@@ -53,6 +53,8 @@ mcp = MCPServer(
 READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
 NEEDS_APPROVAL = ToolAnnotations(readOnlyHint=False, destructiveHint=True, openWorldHint=True)
 
+MAX_REASON = 200
+
 Action = Literal["click", "type", "press", "scroll", "select", "hover"]
 Direction = Literal["up", "down", "left", "right"]
 
@@ -151,13 +153,15 @@ async def act_with_approval(approval_id: str, reason: str, action: Action, ref: 
                             amount: int | None = None) -> str:
     """Do an action that act refused as risky. Hermes asks the owner first; the action runs only if they approve.
     approval_id: the id from act's needs_approval result. Pass the same action arguments act got.
-    reason: one plain sentence the owner reads, e.g. "Submit the rate change for Nov 20-22 to $189".
+    reason: one plain sentence (under 200 characters) the owner reads, e.g. "Submit the rate change for Nov 20-22 to $189".
     The id is single use and is tied to the page and element: if the page changed, nothing is done and you get a
     new approval_id to ask with again."""
     if not approval_id.strip():
         raise ToolError("Give the approval_id from act's needs_approval result. Call act first.")
     if not reason.strip():
         raise ToolError("Give a reason the owner can read.")
+    if len(reason) > MAX_REASON:
+        raise ToolError(f"Keep reason under {MAX_REASON} characters: Hermes cuts long approval requests off.")
     return await run("act_with_approval", {**act_args(action, ref, x, y, text, clear, key, direction, amount),
                                            "reason": reason, "approval_id": approval_id})
 
