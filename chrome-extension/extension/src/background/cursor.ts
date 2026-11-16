@@ -16,7 +16,7 @@ export const CURSOR_STYLE = {
   accent: "#6366f1",
   outline: "#ffffff",           // outline of the arrow and the pill, so they read on a dark page
   shadow: "rgba(0, 0, 0, 0.35)",
-  cursorSize: 24,               // px, the SVG arrow
+  cursorSize: 32,               // px, the SVG arrow
   pillText: "Hermes",
   frameText: "Hermes is using this tab",
   frameWidth: 2,                // px, inset border of the frame
@@ -72,13 +72,13 @@ export function hermesCursor(req: CursorRequest, s: CursorStyle): Promise<void> 
       background: var(--hermes-primary); color: var(--hermes-primary-foreground); box-shadow: 0 0 0 1px var(--hermes-ring), 0 2px 8px var(--hermes-shadow); }
     .on .frame, .on .cursor, .on .label { opacity: 1; }
     .cursor { position: fixed; left: 0; top: 0; opacity: 0; transition: opacity ${s.fadeMs}ms ease; will-change: transform; }
-    .cursor svg { display: block; width: ${s.cursorSize}px; height: ${s.cursorSize}px; filter: drop-shadow(0 1px 2px var(--hermes-shadow)); }
+    .cursor svg { display: block; width: ${s.cursorSize}px; height: ${s.cursorSize}px; margin: -${(s.cursorSize * 2) / 24}px 0 0 -${(s.cursorSize * 3) / 24}px; /* the tip (3, 2 in the 24 viewBox) sits on the point */ filter: drop-shadow(0 1px 2px var(--hermes-shadow)); }
     .pill { position: absolute; left: ${Math.round(s.cursorSize * 0.7)}px; top: ${Math.round(s.cursorSize * 0.8)}px; white-space: nowrap; padding: 2px 8px;
       border-radius: var(--hermes-radius); font: 600 12px/16px system-ui, sans-serif; background: var(--hermes-accent); color: var(--hermes-primary-foreground);
       box-shadow: 0 0 0 1.5px var(--hermes-outline), 0 2px 6px var(--hermes-shadow); }
     .flip .pill { left: auto; right: ${Math.round(s.cursorSize * 0.3)}px; }
     .ring { position: fixed; left: 0; top: 0; width: ${s.pulseSize}px; height: ${s.pulseSize}px; margin: -${s.pulseSize / 2}px 0 0 -${s.pulseSize / 2}px;
-      border-radius: 50%; border: 2px solid var(--hermes-accent); background: color-mix(in srgb, var(--hermes-accent) 25%, transparent); opacity: 0; }
+      border-radius: 50%; border: 2px solid var(--hermes-accent); background: color-mix(in srgb, var(--hermes-accent) 40%, transparent); box-shadow: 0 0 0 1px var(--hermes-outline, #fff); opacity: 0; }
   `;
 
   const build = (): Overlay => {
@@ -166,7 +166,7 @@ export function hermesCursor(req: CursorRequest, s: CursorStyle): Promise<void> 
         ring.className = "ring";
         ring.style.transform = `translate(${req.x}px, ${req.y}px)`;
         const a = ring.animate(
-          [{ transform: `translate(${req.x}px, ${req.y}px) scale(0.3)`, opacity: 0.7 }, { transform: `translate(${req.x}px, ${req.y}px) scale(1)`, opacity: 0 }],
+          [{ transform: `translate(${req.x}px, ${req.y}px) scale(0.3)`, opacity: 0.95 }, { transform: `translate(${req.x}px, ${req.y}px) scale(1)`, opacity: 0 }],
           { duration: s.pulseMs, easing: "ease-out" },
         );
         a.onfinish = () => ring.remove();
