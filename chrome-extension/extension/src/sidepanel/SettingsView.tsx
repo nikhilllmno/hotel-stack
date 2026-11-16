@@ -9,16 +9,25 @@ import { CopyButton } from "./ErrorBanner";
 
 
 export const HERMES_HELP = `# Hermes profile config.yaml
-platforms:
+gateway:
   api_server:
-    cors_origins: ["${EXTENSION_ORIGIN}"]
+    cors_origins: ${EXTENSION_ORIGIN}
 mcp_servers:
   chrome:
     command: uv
-    args: ["run", "--project", "<repo>/chrome-extension/bridge", "python", "-m", "chrome_bridge.server"]
+    args:
+      - run
+      - --directory
+      - <repo>/chrome-extension/bridge
+      - python
+      - -m
+      - chrome_bridge.server
+    env:
+      CHROME_BRIDGE_TOKEN: \${CHROME_BRIDGE_TOKEN}
+    enabled: true
     trust: untrusted   # Hermes asks you before act_with_approval runs
 
-# Hermes profile .env (the same values as above)
+# Hermes profile .env (the same values as in the fields above)
 API_SERVER_KEY=<Hermes API key>
 CHROME_BRIDGE_TOKEN=<bridge token>`;
 
@@ -50,7 +59,7 @@ function ResultLine({ name, r }: { name: string; r: Result | "testing" | undefin
       {r === "testing" ? <LoaderCircle className="mt-0.5 size-3.5 shrink-0 animate-spin" aria-hidden />
         : r.ok ? <Check className="mt-0.5 size-3.5 shrink-0" aria-hidden /> : <X className="mt-0.5 size-3.5 shrink-0 text-destructive" aria-hidden />}
       <span className={`min-w-0 break-words ${r !== "testing" && !r.ok ? "text-destructive" : ""}`}>
-        <span className="font-medium">{name}: </span>{r === "testing" ? "Testing..." : r.text}
+        {r === "testing" || !r.text.startsWith(name) ? <span className="font-medium">{name}: </span> : null}{r === "testing" ? "Testing..." : r.text}
       </span>
     </p>
   );
@@ -84,7 +93,7 @@ export function SettingsView({ initial, firstRun, onSaved }: Props) {
     setBridge("testing");
     void waitForBridge().then(setBridge);
     try {
-      await new HermesClient(form).listSessions();
+      await new HermesClient(form).probe();
       setHermes({ ok: true, text: "Connected" });
     } catch (e) {
       setHermes({ ok: false, text: toHermesError(e, form.hermesUrl).message });

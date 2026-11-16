@@ -121,6 +121,8 @@ export function describeStep(tool: string, args: Record<string, unknown>, output
     case "act_with_approval": {
       const action = str(args.action);
       const ref = str(args.ref);
+      // A refused `act` is not a second click: the bridge answers "Not done: ... needs the owner's approval".
+      if (c === "act" && /^Not done:.*needs the owner's approval/i.test(text)) return { kind: "act", label: "Asked for approval" };
       const named = text.match(/^(?:Not done: )?(Clicked|Typed|Pressed|Selected|Hovered|Scrolled)\b[^'"\n]*?['"]([^'"\n]+)['"]/i);
       const what = named ? `'${clip(named[2], 40)}'` : ref ? ref : args.x !== undefined ? `at (${str(args.x)}, ${str(args.y)})` : "";
       switch (action) {
@@ -224,7 +226,13 @@ export function applyEvent(turn: Turn, name: string, d: Record<string, unknown>)
     case "assistant.completed":
       if (d.content) t.text = String(d.content);
       break;
+    case "error":
+      // Hermes sends `error {message}` and then `done`. The failure must outlive the `done` and the end of the stream.
+      t.status = "failed";
+      t.error = String(d.message ?? "") || "The run failed.";
+      break;
     case "run.completed": {
+      if (t.status === "failed") break;
       const msgs = (d.messages as Msg[] | undefined) ?? [];
       if (msgs.length) t.steps = stepsFromMessages(msgs);
       t.status = "done";
@@ -274,22 +282,50 @@ export function toQuestion(p: Record<string, unknown>, runId: string): Question 
   };
 }
 
-export type ApprovalSummary = { action: string; element?: string; reason?: string; detail?: string };
+export type ApprovalSummary = {
+  action: string; element?: string; reason?: string; detail?: string;
+  approvalId?: string;
+  /** Hermes cut the argument JSON at 1200 characters: the fields above are only what was readable. */
+  truncated?: boolean;
+  /** The argument text as Hermes sent it (already redacted by Hermes), shown when it was cut off. */
+  raw?: string;
+};
+
+const TRUNCATION_MARKER = /\n?\.\.\. \[arguments truncated\]\s*$/;
+
+/** Fields still readable in cut-off JSON: only strings and numbers that arrived complete. */
+function partialArgs(text: string): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const m of text.matchAll(/"([a-z_]+)":\s*("(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?)\s*[,}\n]/g)) {
+    try { out[m[1]] = JSON.parse(m[2]); } catch { /* skip a malformed value */ }
+  }
+  return out;
+}
 
 /**
  * What the owner is asked to allow, from the approval description/command. For the bridge's `act_with_approval` the
- * command carries "Arguments:" + JSON ({action, ref, text, key, reason ...}); the rest is shown as plain text.
+ * command carries "Arguments:" + JSON ({action, ref, text, key, reason, approval_id ...}). Hermes cuts that JSON at
+ * 1200 characters; then the readable fields are summarised, the raw text is kept, and `truncated` is set.
  */
 export function parseApproval(a: Pick<Approval, "command" | "description">): ApprovalSummary {
-  const both = `${a.command}\n${a.description}`;
-  const json = both.match(/Arguments:\s*(\{[\s\S]*\})/)?.[1];
+  const source = [a.command, a.description].find((t) => /Arguments:/.test(t)) ?? "";
+  const body = source.match(/Arguments:\s*([\s\S]*)$/)?.[1] ?? "";
+  const truncated = TRUNCATION_MARKER.test(body);
   let args: Record<string, unknown> | undefined;
-  if (json) { try { args = JSON.parse(json); } catch { /* truncated: fall back to text */ } }
+  if (truncated) args = partialArgs(body.replace(TRUNCATION_MARKER, ""));
+  else {
+    const json = body.match(/(\{[\s\S]*\})/)?.[1];
+    if (json) { try { args = JSON.parse(json); } catch { /* not JSON: fall back to text */ } }
+  }
   if (!args) return { action: clip(a.description || a.command, 300) };
-  const act = str(args.action) || "act";
+  const act = str(args.action);
   const target = args.ref ? `element ${str(args.ref)}` : args.x !== undefined ? `point (${str(args.x)}, ${str(args.y)})` : undefined;
   const verbs: Record<string, string> = { click: "Click", type: "Type", press: "Press", scroll: "Scroll", select: "Select", hover: "Hover over" };
-  const verb = verbs[act] ?? act;
+  const verb = act ? (verbs[act] ?? act) : truncated ? "Run a browser action" : "act";
   const detail = act === "type" || act === "select" ? str(args.text) : act === "press" ? str(args.key) : act === "scroll" ? str(args.direction) : "";
-  return { action: verb, element: target, reason: str(args.reason) || undefined, detail: detail ? clip(detail, 120) : undefined };
+  return {
+    action: verb, element: target, reason: str(args.reason) || undefined, detail: detail ? clip(detail, 300) : undefined,
+    approvalId: str(args.approval_id) || undefined,
+    ...(truncated ? { truncated, raw: body.replace(TRUNCATION_MARKER, "").trim() } : {}),
+  };
 }

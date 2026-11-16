@@ -16,7 +16,29 @@ describe("ApprovalCard", () => {
     render(<ApprovalCard approval={approval} expired={false} onAnswer={() => {}} />);
     expect(screen.getByText("Hermes wants to:")).toBeTruthy();
     expect(screen.getByText("Click element e7")).toBeTruthy();
-    expect(screen.getByText("Reason: Send the reply")).toBeTruthy();
+    expect(screen.getByText("Send the reply")).toBeTruthy();
+  });
+
+  it("leads with the reason, then the action, and shows the approval id small", () => {
+    const withId: Approval = { ...approval, command: `Arguments:\n{"action":"click","ref":"e7","reason":"Send the reply","approval_id":"ap-77"}` };
+    const { container } = render(<ApprovalCard approval={withId} expired={false} onAnswer={() => {}} />);
+    const text = container.textContent ?? "";
+    expect(text.indexOf("Send the reply")).toBeGreaterThan(-1);
+    expect(text.indexOf("Send the reply")).toBeLessThan(text.indexOf("Click element e7"));
+    expect(screen.getByText("Approval ap-77")).toBeTruthy();
+  });
+
+  it("warns when Hermes cut the arguments, shows the raw text, and keeps Approve enabled", () => {
+    const onAnswer = vi.fn();
+    const cut: Approval = { ...approval, command: `MCP tool 'act_with_approval' wants to run.\n\nArguments:\n{\n  "action": "type",\n  "ref": "e3",\n  "reason": "Fill the note",\n  "text": "abc\n... [arguments truncated]` };
+    render(<ApprovalCard approval={cut} expired={false} onAnswer={onAnswer} />);
+    expect(screen.getByRole("note").textContent).toContain("Arguments were cut off");
+    expect(screen.getByText("Fill the note")).toBeTruthy();
+    expect(document.body.textContent).toContain('"text": "abc');
+    const approve = screen.getByRole("button", { name: "Approve" }) as HTMLButtonElement;
+    expect(approve.disabled).toBe(false);
+    fireEvent.click(approve);
+    expect(onAnswer).toHaveBeenCalledWith("once");
   });
 
   it("sends the choice, and does not claim Approved before Hermes answered", () => {

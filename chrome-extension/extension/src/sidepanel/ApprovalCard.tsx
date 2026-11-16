@@ -1,4 +1,4 @@
-import { Check, ShieldAlert, X } from "lucide-react";
+import { Check, ShieldAlert, TriangleAlert, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { parseApproval, type Approval } from "../lib/hermes-events";
@@ -24,9 +24,19 @@ export function ApprovalCard({ approval, state, expired, onAnswer }: Props) {
           Hermes wants to:
         </div>
         <div className="min-w-0 space-y-1 text-sm">
-          <p className="font-medium break-words">{s.action}{s.element ? ` ${s.element}` : ""}</p>
+          {s.reason && <p className="font-medium break-words">{s.reason}</p>}
+          <p className={`break-words ${s.reason ? "text-muted-foreground" : "font-medium"}`}>{s.action}{s.element ? ` ${s.element}` : ""}</p>
           {s.detail && <p className="overflow-x-auto rounded-md bg-muted px-2 py-1 font-mono text-xs whitespace-pre-wrap break-all">{s.detail}</p>}
-          {s.reason && <p className="break-words text-muted-foreground">Reason: {s.reason}</p>}
+          {s.truncated && (
+            <>
+              <p role="note" className="flex items-start gap-1.5 text-xs font-medium text-destructive">
+                <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                Arguments were cut off. Check the text below before approving.
+              </p>
+              <pre className="max-h-32 overflow-auto rounded-md bg-muted px-2 py-1 font-mono text-[11px] whitespace-pre-wrap break-all">{s.raw}</pre>
+            </>
+          )}
+          {s.approvalId && <p className="text-[11px] text-muted-foreground break-all">Approval {s.approvalId}</p>}
         </div>
         {done ? (
           <p className="flex items-center gap-1.5 text-xs font-medium">
