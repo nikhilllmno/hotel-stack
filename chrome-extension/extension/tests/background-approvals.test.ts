@@ -3,7 +3,7 @@ import { APPROVAL_TTL_MS, canonicalArgs, createApproval, factsKey, resetApproval
 import type { ElementFacts } from "../src/background/risk";
 import { APPROVALS_KEY, readApproval } from "../src/shared/approvals-view";
 
-const binding = { tabId: 1, docNonce: "n", generation: 1, href: "https://x.com/", args: "[]", facts: ["f"], elementIds: ["el1"], summary: 'Click button "Save"', pageUrl: "https://x.com/" };
+const binding = { tabId: 1, docNonce: "n", generation: 1, href: "https://x.com/", args: "[]", facts: ["f"], elementIds: ["el1"], option: "", summary: 'Click button "Save"', pageUrl: "https://x.com/" };
 let stored: Record<string, unknown>;
 
 beforeEach(() => {

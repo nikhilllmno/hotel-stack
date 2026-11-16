@@ -125,6 +125,22 @@ describe("element facts", () => {
     expect(byId).toMatchObject({ p1: false, p2: false, p3: false, p4: false, p5: false, g1: true, g2: true, g3: true, g4: true });
   });
 
+  it("a submitter that overrides the method makes the field no search: <input type=image>, and controls tied to the form by form=", () => {
+    document.body.innerHTML =
+      // <input type=image> is not in form.elements
+      `<form><input type="search" id="i1"><input type="image" src="x.png" formmethod="post"></form>` +
+      `<form><input type="search" id="i2"><input type="submit" formmethod="post" value="Go"></form>` +
+      // submitters outside the tag, tied to the form by id
+      `<form id="f3"><input type="search" id="i3"></form><button form="f3" formmethod="post">Go</button>` +
+      `<form id="f4"><input type="search" id="i4"></form><input type="image" form="f4" formmethod="POST" src="x.png">` +
+      // a button that does not submit, or a GET override, does not change anything
+      `<form><input type="search" id="k1"><button type="button" formmethod="post">x</button></form>` +
+      `<form id="f5"><input type="search" id="k2"></form><button form="f5" formmethod="get">Go</button>` +
+      `<form id="f6"><input type="search" id="k3"></form><button form="other" formmethod="post">Go</button>`;
+    const byId = Object.fromEntries(snapshot().elements.map((e) => [e.facts.fieldId, e.facts.search]));
+    expect(byId).toMatchObject({ i1: false, i2: false, i3: false, i4: false, k1: true, k2: true, k3: true });
+  });
+
   it("gives an option the autocomplete, name and id of its dropdown", () => {
     document.body.innerHTML = `<div role="listbox" id="m" aria-label="Month"><div role="option" id="o">07</div></div>`;
     document.getElementById("m")!.setAttribute("autocomplete", "cc-exp-month");
@@ -272,12 +288,55 @@ describe("locate / focus / select", () => {
     const select = document.querySelector("select") as HTMLSelectElement;
     const onChange = vi.fn();
     select.addEventListener("change", onChange);
-    expect(run({ op: "select", ref: "e1", text: "deluxe" })).toMatchObject({ native: true, label: "Deluxe" });
+    expect(run({ op: "select", ref: "e1", text: "deluxe" })).toMatchObject({ native: true, changed: true, option: { label: "Deluxe", value: "d" } });
     expect(select.value).toBe("d");
     expect(onChange).toHaveBeenCalledOnce();
-    const miss = run<{ label?: string; options: string[] }>({ op: "select", ref: "e1", text: "suite" });
-    expect(miss.label).toBeUndefined();
+    const miss = run<{ option?: unknown; changed: boolean; options: string[] }>({ op: "select", ref: "e1", text: "suite" });
+    expect(miss.option).toBeUndefined();
+    expect(miss.changed).toBe(false);
     expect(miss.options).toEqual(["Standard", "Deluxe"]);
+  });
+
+  describe("pick and select bind to one option", () => {
+    const long = `${"Standard room, ".repeat(30)}and delete everything`;
+    const setup = () => {
+      document.body.innerHTML = `<select aria-label="Room"><option value="s">Standard</option><option value="d" label="Shown label">hidden text</option><option value="${long}">${long}</option></select>`;
+      snapshot();
+      return document.querySelector("select") as HTMLSelectElement;
+    };
+    type Pick = { found: boolean; native: boolean; option?: { id: string; label: string; value: string }; options: string[] };
+
+    it("pick reads the option in full (label as shown, whole value) and changes nothing", () => {
+      const select = setup();
+      const onChange = vi.fn();
+      select.addEventListener("change", onChange);
+      const out = run<Pick>({ op: "pick", ref: "e1", text: long });
+      expect(out.option).toMatchObject({ label: long, value: long });
+      expect(out.option!.label.length).toBeGreaterThan(200);
+      expect(run<Pick>({ op: "pick", ref: "e1", text: "shown label" }).option).toMatchObject({ label: "Shown label", value: "d" });
+      expect(run<Pick>({ op: "pick", ref: "e1", text: "d" }).option).toMatchObject({ label: "Shown label" });
+      expect(select.selectedIndex).toBe(0);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("select with expect changes the value only for that very option", () => {
+      const select = setup();
+      const id = run<Pick>({ op: "pick", ref: "e1", text: "standard" }).option!.id;
+      expect(run({ op: "select", ref: "e1", text: "shown label", expect: id })).toMatchObject({ found: true, changed: false });
+      expect(select.value).toBe("s");
+      const onChange = vi.fn();
+      select.addEventListener("change", onChange);
+      expect(run({ op: "select", ref: "e1", text: "standard", expect: id })).toMatchObject({ changed: true, option: { id, label: "Standard" } });
+      expect(onChange).toHaveBeenCalledOnce();
+    });
+
+    it("select by identity picks the right option even when two have the same value", () => {
+      document.body.innerHTML = `<select aria-label="R"><option value="x">Safe</option><option value="x">Danger</option></select>`;
+      snapshot();
+      const select = document.querySelector("select") as HTMLSelectElement;
+      expect(run({ op: "select", ref: "e1", text: "danger" })).toMatchObject({ changed: true });
+      expect(select.selectedIndex).toBe(1);
+    });
   });
 
   it("says when the element is not a native dropdown", () => {

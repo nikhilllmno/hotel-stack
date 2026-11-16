@@ -20,6 +20,7 @@ export type Approval = ApprovalView & {
   href: string;          // location.href when the owner was asked: a same-document route change voids the approval
   args: string;          // canonicalArgs
   facts: string[];       // factsKey of every element that was judged
+  option: string;        // select: JSON of [identity, label, value] of the option that would be chosen, else ""
   elementIds: string[];  // opaque document-local identity of every element that was judged (page.ts), in the same order
 };
 

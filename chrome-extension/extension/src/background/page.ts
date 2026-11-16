@@ -51,6 +51,10 @@ export type FocusData =
   | { found: false }
   | { found: true; onTarget: boolean; hadText: boolean; facts: ElementFacts; doc: DocId; id: string };
 
+/** The option a select would pick. `label` and `value` are whole, never cut. */
+export type PickedOption = { id: string; label: string; value: string };
+export type PickData = { found: boolean; native: boolean; option?: PickedOption; options: string[] };
+
 export type PageOps = {
   snapshot: { args: { maxText: number }; result: SnapshotData };
   /**
@@ -62,10 +66,10 @@ export type PageOps = {
   active: { args: Record<never, never>; result: { facts: ElementFacts; doc: DocId; id: string } };
   /** Focus the element and report which element has focus afterwards: it can differ when the target is not focusable. */
   focus: { args: { ref: string; clear: boolean }; result: FocusData };
-  select: {
-    args: { ref: string; text: string };
-    result: { found: boolean; native: boolean; label?: string; options: string[] };
-  };
+  /** Read-only: which option of a native dropdown `text` names, in full (label as shown, value) and by identity. Nothing is changed. */
+  pick: { args: { ref: string; text: string }; result: PickData };
+  /** Choose the option. With `expect`, only if it is still the option with that identity: the owner approved that one. */
+  select: { args: { ref: string; text: string; expect?: string }; result: PickData & { changed: boolean } };
   text: { args: Record<never, never>; result: string };
 };
 
@@ -208,6 +212,23 @@ export function hermesPage(req: PageRequest): unknown {
     return owner instanceof HTMLFormElement ? owner : el.closest("form");
   };
 
+  /** Every button and input that belongs to the form: inside it, tied to it with form="id", or reporting it as its .form. */
+  const controlsOf = (form: Element): Element[] => {
+    const all = new Set<Element>(form.querySelectorAll("button, input"));
+    if (form.id) for (const c of document.querySelectorAll("button, input")) if (attr(c, "form") === form.id) all.add(c);
+    for (const c of document.querySelectorAll("button, input")) if ((c as HTMLButtonElement).form === form) all.add(c);
+    return [...all];
+  };
+
+  /** Controls that submit the form: button with type submit or none, input type submit or image. <input type=image> is not in form.elements. */
+  const isSubmitter = (c: Element) => {
+    if (c instanceof HTMLButtonElement) {
+      const type = attr(c, "type")?.trim().toLowerCase();
+      return type !== "button" && type !== "reset";
+    }
+    return c instanceof HTMLInputElement && ["submit", "image"].includes(c.type);
+  };
+
   /**
    * A search exception: Enter here only reads. A field outside any form qualifies when it is type=search or inside
    * role=search. A field in a form qualifies only when the form is GET and no submitter overrides that with
@@ -216,12 +237,10 @@ export function hermesPage(req: PageRequest): unknown {
   const isSearch = (el: Element, form: Element | null) => {
     const marked = inputType(el) === "search" || el.closest("[role=search]") !== null;
     if (!form) return marked;
-    if (form.querySelector("input[type=password]")) return false;
+    const controls = controlsOf(form);
+    if (controls.some((c) => inputType(c) === "password")) return false;
     const method = (attr(form, "method") ?? "get").trim().toLowerCase();
-    const overridden = Array.from((form as HTMLFormElement).elements ?? []).some((c) => {
-      const m = attr(c, "formmethod");
-      return m !== undefined && m.trim().toLowerCase() !== "get";
-    });
+    const overridden = controls.some((c) => isSubmitter(c) && (attr(c, "formmethod") ?? "get").trim().toLowerCase() !== "get");
     if (method !== "get" || overridden) return false;
     const fieldWords = `${attr(el, "name") ?? ""} ${el.id}`;
     return marked || /(^|[\s_-])(q|s|query|search|keywords?)($|[\s_-])/i.test(fieldWords);
@@ -343,6 +362,24 @@ export function hermesPage(req: PageRequest): unknown {
     return { found: true, x: x ?? 0, y: y ?? 0, facts: factsOf(target), doc: doc(), id: idOf(target) };
   };
 
+  const whole = (t: string | null | undefined) => (t ?? "").replace(/\s+/g, " ").trim();
+
+  /** Finds the option of a native dropdown that `text` names (label as shown or value, else a label containing it). */
+  const pick = (ref: string, text: string) => {
+    const el = refs.get(ref);
+    if (!el || !el.isConnected) return { data: { found: false, native: false, options: [] } as PickData };
+    if (!(el instanceof HTMLSelectElement)) return { data: { found: true, native: false, options: [] } as PickData };
+    const options = Array.from(el.options);
+    const want = text.trim().toLowerCase();
+    const shown = (o: HTMLOptionElement) => whole(o.label || o.textContent).toLowerCase();
+    const same = (o: HTMLOptionElement) => shown(o) === want || whole(o.textContent).toLowerCase() === want || o.value.toLowerCase() === want;
+    const option = options.find(same) ?? options.find((o) => shown(o).includes(want));
+    const labels = options.slice(0, 20).map((o) => clean(o.label || o.textContent));
+    const data: PickData = { found: true, native: true, options: labels };
+    if (option) data.option = { id: idOf(option), label: whole(option.label || option.textContent), value: option.value };
+    return { data, el, option };
+  };
+
   switch (req.op) {
     case "snapshot":
       return snapshot(req.maxText);
@@ -365,20 +402,16 @@ export function hermesPage(req: PageRequest): unknown {
       }
       return { found: true, onTarget, hadText, facts: factsOf(actual), doc: doc(), id: idOf(actual) };
     }
+    case "pick":
+      return pick(req.ref, req.text).data;
     case "select": {
-      const el = refs.get(req.ref);
-      if (!el || !el.isConnected) return { found: false, native: false, options: [] };
-      if (!(el instanceof HTMLSelectElement)) return { found: true, native: false, options: [] };
-      const options = Array.from(el.options);
-      const want = req.text.trim().toLowerCase();
-      const same = (o: HTMLOptionElement) => clean(o.textContent, 200).toLowerCase() === want || o.value.toLowerCase() === want;
-      const option = options.find(same) ?? options.find((o) => clean(o.textContent, 200).toLowerCase().includes(want));
-      const labels = options.slice(0, 20).map((o) => clean(o.textContent));
-      if (!option) return { found: true, native: true, options: labels };
-      el.value = option.value;
+      const { data, el, option } = pick(req.ref, req.text);
+      if (!el || !option || !data.option) return { ...data, changed: false };
+      if (req.expect !== undefined && data.option.id !== req.expect) return { ...data, changed: false };
+      (el as HTMLSelectElement).selectedIndex = option.index;  // this very option, even when another one has the same value
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
-      return { found: true, native: true, label: clean(option.textContent), options: labels };
+      return { ...data, changed: true };
     }
     case "text":
       return document.body.innerText;

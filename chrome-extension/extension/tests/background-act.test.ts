@@ -20,7 +20,7 @@ vi.mock("../src/background/input", () => ({
 vi.mock("../src/background/tab-load", () => ({ settle: async () => undefined }));
 vi.mock("../src/background/commands/page-line", () => ({ pageLine: async () => 'Page is now "T" https://x.com/' }));
 
-const { act } = await import("../src/background/commands/act");
+const { act, summarize, approvalRefusal } = await import("../src/background/commands/act");
 const { resetApprovalsForTest, APPROVAL_TTL_MS } = await import("../src/background/approvals");
 
 const facts = (over: Partial<ElementFacts>): ElementFacts => ({ tag: "button", role: "button", name: "Search", inForm: false, pageHost: "x.com", ...over });
@@ -31,6 +31,8 @@ const active = (f: ElementFacts, d = doc, id = "el1") => ({ facts: f, doc: d, id
 const focused = (f: ElementFacts, over: Record<string, unknown> = {}) => ({ found: true, onTarget: true, hadText: false, facts: f, doc, id: "el1", ...over });
 const field = (over: Partial<ElementFacts> = {}) => facts({ tag: "input", type: "text", role: "textbox", name: "Guest", editable: true, ...over });
 const save = () => facts({ type: "submit", name: "Save booking", inForm: true });
+// What the page's `pick` op answers: the option a select would choose, in full.
+const picked = (label: string, value = label, id = "o1") => ({ found: true, native: true, option: { id, label, value }, options: [label] });
 const idOf = (text: string) => /approval_id: (ap_[a-z2-9]{12})\b/.exec(text)?.[1] ?? "";
 
 beforeEach(() => {
@@ -93,14 +95,140 @@ describe("act", () => {
       mocks.callPage.mockResolvedValueOnce(active(field({ name: "Rate", inForm: true })));
       await act({ action: "press", key: "Enter" }, false);
       mocks.callPage.mockResolvedValueOnce(located(facts({ tag: "select", role: "combobox", name: "Guests", inForm: true })));
+      mocks.callPage.mockResolvedValueOnce(picked("Two", "2"));
       await act({ action: "select", ref: "e2", text: "Two" }, false);
     });
-    expect(stored.map((a) => [a.summary, a.pageUrl])).toEqual([
+    expect(stored.map((a) => [a.summary.split("\n")[0], a.pageUrl])).toEqual([
       ['Click button "Save booking"', "https://x.com/cart#pay"],
       ['Press Enter in textbox "Rate"', "https://x.com/"],
-      ['Select "Two" in combobox "Guests"', "https://x.com/"],
+      ['Select the option "Two" (value "2") in combobox "Guests"', "https://x.com/"],
     ]);
     expect(stored[0]).toMatchObject({ id: expect.stringMatching(/^ap_/), expiresAt: expect.any(Number) });
+  });
+
+  describe("what the owner is shown", () => {
+    const summaryOf = async (args: Parameters<typeof act>[0], f: ElementFacts, ...more: unknown[]) => {
+      const all = await storedApprovals(async () => {
+        mocks.callPage.mockResolvedValueOnce(located(f));
+        for (const m of more) mocks.callPage.mockResolvedValueOnce(m);
+        await act(args, false);
+      });
+      return all.at(-1)?.summary;
+    };
+
+    it("shows the real control: an aria-label cannot hide the visible text, and the reason and destination are given", async () => {
+      const summary = await summaryOf({ action: "click", ref: "e1" }, facts({
+        name: "Preview", ariaLabel: "Preview", text: "Delete account", type: "submit", inForm: true, formMethod: "post", activationUrl: "https://x.com/account/delete",
+      }));
+      expect(summary).toBe([
+        'Click button "Preview" (visible text: "Delete account")',
+        "Needs approval because: submits a form",
+        "Destination: form POST to https://x.com/account/delete",
+      ].join("\n"));
+    });
+
+    it("shows a link's destination, and a caption input's value", async () => {
+      const link = await summaryOf({ action: "click", ref: "e1" }, facts({ tag: "a", role: "link", name: "Delete account", text: "Delete account", activationUrl: "https://evil.example/x" }));
+      expect(link).toContain("Destination: opens https://evil.example/x");
+      const input = await summaryOf({ action: "click", ref: "e1" }, facts({ tag: "input", type: "submit", name: "Go", ariaLabel: "Go", value: "Pay now", inForm: true }));
+      expect(input).toContain('(visible text: "Pay now")');
+    });
+
+    it("shows the form's own page when it has no action", async () => {
+      const summary = await summaryOf({ action: "click", ref: "e1" }, save());
+      expect(summary).toContain("Destination: form GET to this same page");
+    });
+
+    it("shows the whole select option: a long value after a harmless start is not cut off", async () => {
+      const value = `${"A".repeat(120)} then delete everything`;
+      const summary = await summaryOf({ action: "select", ref: "e1", text: "Standard" }, facts({ tag: "select", role: "combobox", name: "Room", inForm: true }), picked("Standard", value));
+      expect(summary).toContain(`value "${value}"`);
+    });
+
+    it("shows the label the option really has when the agent's words name something harmless", async () => {
+      const summary = await summaryOf({ action: "select", ref: "e1", text: "ok" }, facts({ tag: "select", role: "combobox", name: "Next", inForm: true }), picked("Delete my account", "ok"));
+      expect(summary).toContain('Select the option "Delete my account" (value "ok")');
+    });
+
+    it("files nothing for an option text over 500 characters, and says why", async () => {
+      const long = "x".repeat(501);
+      for (const option of [picked(long, "v"), picked("l", long)]) {
+        const stored = await storedApprovals(async () => {
+          mocks.callPage.mockResolvedValueOnce(located(facts({ tag: "select", role: "combobox", name: "Room", inForm: true })));
+          mocks.callPage.mockResolvedValueOnce(option);
+          const out = await act({ action: "select", ref: "e1", text: "l" }, false);
+          expect(out.status).toBe("blocked");
+          expect(out.text).toContain("option text too long to show the owner");
+        });
+        expect(stored).toEqual([]);
+      }
+    });
+
+    it("shows exactly 500 characters in full", async () => {
+      const exact = "y".repeat(500);
+      const summary = await summaryOf({ action: "select", ref: "e1", text: "l" }, facts({ tag: "select", role: "combobox", name: "Room", inForm: true }), picked("l", exact));
+      expect(summary).toContain(exact);
+    });
+
+    it("typed text is shown whole up to 500 characters; more is refused instead of clipped", () => {
+      const aimed = { facts: field(), targets: [field()], ids: ["el1"] };
+      expect(summarize({ action: "type", ref: "e1", text: "t".repeat(500) }, aimed, { reason: "r" })).toContain(`"${"t".repeat(500)}"`);
+      expect(approvalRefusal({ action: "type", ref: "e1", text: "t".repeat(500) }, aimed)).toBeUndefined();
+      expect(approvalRefusal({ action: "type", ref: "e1", text: "t".repeat(501) }, aimed)).toMatch(/text is too long to show the owner/);
+    });
+  });
+
+  describe("a select is approved for the option it resolved to", () => {
+    const room = () => facts({ tag: "select", role: "combobox", name: "Room", inForm: true });
+    const args = { action: "select", ref: "e1", text: "Standard" } as const;
+    const approve = async () => {
+      mocks.callPage.mockResolvedValueOnce(located(room()));
+      mocks.callPage.mockResolvedValueOnce(picked("Standard", "s", "o1"));
+      return idOf((await act(args, false)).text);
+    };
+    const ops = () => mocks.callPage.mock.calls.map((c) => (c[1] as { op: string }).op);
+
+    it("selects only that option, by identity, once approved", async () => {
+      const id = await approve();
+      mocks.callPage.mockReset();
+      mocks.callPage.mockResolvedValueOnce(located(room()));
+      mocks.callPage.mockResolvedValueOnce(picked("Standard", "s", "o1"));
+      mocks.callPage.mockResolvedValueOnce({ ...picked("Standard", "s", "o1"), changed: true });
+      const out = await act({ ...args, approval_id: id }, true);
+      expect(out).toMatchObject({ status: "done" });
+      expect(out.text).toContain('Selected "Standard" in combobox "Room"');
+      expect(mocks.callPage).toHaveBeenLastCalledWith(expect.anything(), { op: "select", ref: "e1", text: "Standard", expect: "o1" });
+    });
+
+    it.each([
+      ["another option under the same words", picked("Delete everything", "s", "o9")],
+      ["the same option with a new label", picked("Delete everything", "s", "o1")],
+      ["the same option with a new value", picked("Standard", "wipe", "o1")],
+    ])("does not honour the approval when the words now resolve to %s", async (_n, now) => {
+      const id = await approve();
+      mocks.callPage.mockReset();
+      mocks.callPage.mockResolvedValueOnce(located(room()));
+      mocks.callPage.mockResolvedValueOnce(now);
+      const out = await act({ ...args, approval_id: id }, true);
+      expect(out.status).toBe("needs_approval");
+      expect(out.text).toContain("changed since the owner was asked");
+      expect(ops()).toEqual(["locate", "pick"]);  // select never ran
+    });
+
+    it("selects nothing when the option changes between the check and the select", async () => {
+      const id = await approve();
+      mocks.callPage.mockReset();
+      mocks.callPage.mockResolvedValueOnce(located(room()));
+      mocks.callPage.mockResolvedValueOnce(picked("Standard", "s", "o1"));
+      mocks.callPage.mockResolvedValueOnce({ ...picked("Delete everything", "s", "o9"), changed: false });
+      await expect(act({ ...args, approval_id: id }, true)).rejects.toThrow(/nothing was selected/);
+    });
+
+    it("says so when no option can be resolved, and files nothing", async () => {
+      mocks.callPage.mockResolvedValueOnce(located(room()));
+      mocks.callPage.mockResolvedValueOnce({ found: true, native: true, options: ["A", "B"] });
+      await expect(act(args, false)).rejects.toThrow(/has no option "Standard". Options: A, B/);
+    });
   });
 
   it("gives a different approval_id every time", async () => {

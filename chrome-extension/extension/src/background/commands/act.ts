@@ -5,7 +5,7 @@ import { insertText, mouseClick, mouseMove, pressKey, visualViewport, wheel } fr
 import { parseKey } from "../keys";
 import { canonicalArgs, createApproval, factsKey, takeApproval } from "../approvals";
 import { callPage } from "../page-call";
-import type { DocId } from "../page";
+import type { DocId, PickData } from "../page";
 import { classifyAction, classifyTargets, type ElementFacts, type Risk, type RiskAction } from "../risk";
 import { settle } from "../tab-load";
 import { pageLine } from "./page-line";
@@ -15,12 +15,13 @@ import type { CommandOutput } from "./types";
  * What the action will hit. `facts` is the element that gets it; `targets` is every element judged (facts, plus what
  * really receives a click when that is another element). `unresolved`: Hermes could not tell which element has focus.
  */
-type Aim = {
+export type Aim = {
   facts: ElementFacts;
   targets: ElementFacts[];
   ids: string[];         // opaque identity of each of `targets`, in the same order (page.ts)
   point?: { x: number; y: number };
   doc?: DocId;
+  pick?: PickData;       // select: the option the text names, resolved before anything is asked or done
   offTarget?: boolean;   // press with a ref: the element could not take focus, so the key goes to `facts`, the one that has it
   unresolved?: boolean;
 };
@@ -81,12 +82,16 @@ async function aim(tab: Tab, a: ActArgs, live: Live): Promise<Aim> {
   if (found.covered) {
     throw new CommandError(`Element ${a.ref} is covered by "${found.covered}". Close or dismiss that first, then take a new snapshot.`);
   }
+  // Resolve the option now, before the owner is asked: the approval is for this option, not for the words the agent used.
+  if (a.action === "select") live();
+  const pick = a.action === "select" ? await callPage(tab, { op: "pick", ref: a.ref ?? "", text: a.text ?? "" }) : undefined;
   return {
     facts: found.facts,
     targets: found.hit ? [found.facts, found.hit] : [found.facts],
     ids: found.hit ? [found.id, found.hitId ?? ""] : [found.id],
     point: { x: found.x, y: found.y },
     doc: found.doc,
+    pick,
   };
 }
 
@@ -146,18 +151,25 @@ async function typeInto(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<C
   return { text: `Typed ${(a.text ?? "").length} characters into ${describe(facts)}.` };
 }
 
-async function selectOption(tab: Tab, a: ActArgs, facts: ElementFacts, live: Live): Promise<string> {
-  const ref = a.ref ?? "";
+/** The option a select would choose, or the sentence that says why there is none. */
+function requireOption(a: ActArgs, aimed: Aim): NonNullable<PickData["option"]> {
+  const picked = aimed.pick;
+  if (!picked?.found) throw staleRef(a.ref ?? "");
+  if (!picked.native) throw new CommandError(`${describe(aimed.facts)} is not a native dropdown. Click it, then click the option you want.`);
+  if (!picked.option) throw new CommandError(`${describe(aimed.facts)} has no option "${a.text}". Options: ${picked.options.join(", ")}.`);
+  return picked.option;
+}
+
+/** Chooses the option that was resolved (and approved) earlier. If the dropdown no longer resolves to that very option, nothing is selected. */
+async function selectOption(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<string> {
+  const expected = requireOption(a, aimed);
   live();
-  const picked = await callPage(tab, { op: "select", ref, text: a.text ?? "" });
-  if (!picked.found) throw staleRef(ref);
-  if (!picked.native) {
-    throw new CommandError(`${describe(facts)} is not a native dropdown. Click it, then click the option you want.`);
+  const picked = await callPage(tab, { op: "select", ref: a.ref ?? "", text: a.text ?? "", expect: expected.id });
+  if (!picked.found) throw staleRef(a.ref ?? "");
+  if (!picked.changed || !picked.option) {
+    throw new CommandError(`The options of ${describe(aimed.facts)} changed since they were read, so nothing was selected. Take a new snapshot.`);
   }
-  if (picked.label === undefined) {
-    throw new CommandError(`${describe(facts)} has no option "${a.text}". Options: ${picked.options.join(", ")}.`);
-  }
-  return `Selected "${picked.label}" in ${describe(facts)}.`;
+  return `Selected "${picked.option.label}" in ${describe(aimed.facts)}.`;
 }
 
 async function scroll(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<string> {
@@ -189,35 +201,78 @@ async function perform(tab: Tab, a: ActArgs, aimed: Aim, live: Live): Promise<Co
       await pressKey(tab, a.key ?? "");
       return { text: `Pressed ${a.key}${a.ref ? ` on ${describe(facts)}` : ""}.` };
     case "select":
-      return { text: await selectOption(tab, a, facts, live) };
+      return { text: await selectOption(tab, a, aimed, live) };
     case "scroll":
       return { text: await scroll(tab, a, aimed, live) };
   }
 }
 
-const clip = (t: string, max = 80) => (t.length > max ? `${t.slice(0, max - 1)}…` : t);
+/** The longest text the owner is shown in full. Longer text is not clipped: no approval is filed for it. */
+export const MAX_SHOWN_CHARS = 500;
+
+/** Role and accessible name, plus the visible text and title when they say something else: <button aria-label="Preview">Delete account</button>. */
+function describeFully(f: ElementFacts): string {
+  const same = (t: string | undefined) => (t ?? "").trim().toLowerCase() === f.name.trim().toLowerCase();
+  const visible = f.text ?? f.value;
+  const extra = [visible && !same(visible) ? `visible text: "${visible}"` : "", f.title && !same(f.title) && f.title !== visible ? `title: "${f.title}"` : ""].filter(Boolean);
+  return extra.length ? `${describe(f)} (${extra.join("; ")})` : describe(f);
+}
+
+/** Where a click or Enter on this element goes, when the page says: a link's address, or the form's method and action. */
+function destinationOf(f: ElementFacts): string | undefined {
+  if (f.inForm && f.tag !== "a") return `form ${(f.formMethod ?? "get").toUpperCase()} to ${f.activationUrl ?? "this same page (the form has no action)"}`;
+  return f.activationUrl ? `opens ${f.activationUrl}` : undefined;
+}
+
+/** Why no approval can be filed, when the decisive text is too long to show whole; undefined when it can. */
+export function approvalRefusal(a: ActArgs, aimed: Aim): string | undefined {
+  const option = aimed.pick?.option;
+  const texts = a.action === "select" ? [a.text ?? "", option?.label ?? "", option?.value ?? ""] : a.action === "type" ? [a.text ?? ""] : [];
+  if (!texts.some((t) => t.length > MAX_SHOWN_CHARS)) return undefined;
+  return a.action === "select"
+    ? `Blocked: option text too long to show the owner (more than ${MAX_SHOWN_CHARS} characters), so no approval can be filed. Pick another option, or ask the owner to choose it.`
+    : `Blocked: the text is too long to show the owner (more than ${MAX_SHOWN_CHARS} characters), so no approval can be filed. Type shorter text, or ask the owner to enter it.`;
+}
 
 /** What the owner is asked to approve, in words, from the extension's own facts: the side panel shows this instead of the agent's (cut-off) arguments. */
-function summarize(a: ActArgs, aimed: Aim): string {
-  const who = describe(aimed.facts);
+export function summarize(a: ActArgs, aimed: Aim, risk: { reason: string }): string {
+  const who = describeFully(aimed.facts);
+  const option = aimed.pick?.option;
+  const lands = aimed.targets[1];
+  let what: string;
   switch (a.action) {
     case "click":
-      return `Click ${who}${aimed.targets[1] ? ` (the click lands on ${describe(aimed.targets[1])})` : ""}`;
+      what = `Click ${who}${lands ? `, landing on ${describeFully(lands)}` : ""}`;
+      break;
     case "hover":
-      return `Hover over ${who}`;
+      what = `Hover over ${who}`;
+      break;
     case "type":
-      return `Type "${clip(a.text ?? "")}" into ${who}`;
+      what = `Type "${a.text ?? ""}" into ${who}`;
+      break;
     case "press":
-      return `Press ${a.key} in ${who}`;
+      what = `Press ${a.key} in ${who}`;
+      break;
     case "select":
-      return `Select "${clip(a.text ?? "")}" in ${who}`;
+      what = option
+        ? `Select the option "${option.label}" (value "${option.value}")${[option.label, option.value].includes(a.text ?? "") ? "" : ` (the agent asked for "${a.text}")`} in ${who}`
+        : `Select "${a.text}" in ${who}`;
+      break;
     case "scroll":
-      return `Scroll ${a.direction}`;
+      what = `Scroll ${a.direction}`;
+      break;
   }
+  const where = aimed.targets.slice(0, 2).map((f, i) => {
+    const d = destinationOf(f);
+    return d ? `${i === 0 ? "Destination" : "Destination of what is under the pointer"}: ${d}` : "";
+  });
+  return [what, risk.reason ? `Needs approval because: ${risk.reason}` : "", ...where].filter(Boolean).join("\n");
 }
 
 /** Files an approval for what was just judged and tells the agent how to ask for it. approval_id comes first: Hermes cuts long text. */
 async function askApproval(tab: Tab, a: ActArgs, aimed: Aim, why: string, risk: { reason: string; name: string }): Promise<CommandOutput> {
+  const refusal = approvalRefusal(a, aimed);
+  if (refusal) return { status: "blocked", text: refusal };
   const href = aimed.doc?.href ?? "";
   const id = await createApproval({
     tabId: tab.id,
@@ -227,7 +282,8 @@ async function askApproval(tab: Tab, a: ActArgs, aimed: Aim, why: string, risk: 
     args: canonicalArgs(a),
     facts: aimed.targets.map(factsKey),
     elementIds: aimed.ids,
-    summary: summarize(a, aimed),
+    option: optionKey(aimed),
+    summary: summarize(a, aimed, risk),
     pageUrl: href || tab.url || "",
   });
   const what = risk.name ? `${risk.reason}: "${risk.name}"` : risk.reason;
@@ -240,6 +296,12 @@ async function askApproval(tab: Tab, a: ActArgs, aimed: Aim, why: string, risk: 
       `Not done: this ${ACTION_WORDS[a.action]} needs the owner's approval (${what}). ${why}`.trimEnd(),
   };
 }
+
+/** Identity, label and value of the option a select would choose ("" for other actions): the owner approved that option. */
+const optionKey = (aimed: Aim): string => {
+  const o = aimed.pick?.option;
+  return o ? JSON.stringify([o.id, o.label, o.value]) : "";
+};
 
 const sameList = (a: string[], b: string[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 
@@ -256,6 +318,7 @@ function stillCovers(rec: NonNullable<Awaited<ReturnType<typeof takeApproval>>>,
     rec.href === (aimed.doc?.href ?? "") &&
     rec.args === canonicalArgs(a) &&
     sameList(rec.elementIds, aimed.ids) &&
+    rec.option === optionKey(aimed) &&
     sameList(rec.facts, aimed.targets.map(factsKey))
   );
 }
@@ -276,6 +339,7 @@ export async function act(a: ActArgs, approved: boolean, isCurrent: IsCurrent = 
     if (approved) await takeApproval(a.approval_id);
     return { status: "blocked", text: risk.reason };
   }
+  if (a.action === "select") requireOption(a, aimed);  // nothing to ask about or to do when no option can be resolved
   if (aimed.offTarget && risk.level === "safe") {
     throw new CommandError(`Element ${a.ref} cannot take keyboard focus, so the key would go elsewhere (${describe(aimed.facts)}). Click an element that takes keys, then take a new snapshot.`);
   }
