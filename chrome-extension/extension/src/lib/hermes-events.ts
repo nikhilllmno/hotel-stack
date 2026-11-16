@@ -86,6 +86,9 @@ function host(url: string): string {
 /** The bridge tool's text out of whatever Hermes stored (plain text, or a JSON wrapper with result/content). */
 export function toolText(output: string | undefined): string {
   if (!output) return "";
+  // Hermes wraps external tool results: <untrusted_tool_result source="...">\n<warning paragraph>\n\n<payload>\n</untrusted_tool_result>
+  const wrapped = output.match(/^\s*<untrusted_tool_result\b[^>]*>([\s\S]*?)<\/untrusted_tool_result>\s*$/);
+  if (wrapped) output = wrapped[1].replace(/^[\s\S]*?can issue instructions\.\s*/, "").trim();
   try {
     const j = JSON.parse(output);
     if (typeof j === "string") return j;
@@ -285,6 +288,10 @@ export function toQuestion(p: Record<string, unknown>, runId: string): Question 
 export type ApprovalSummary = {
   action: string; element?: string; reason?: string; detail?: string;
   approvalId?: string;
+  /** The bridge's `act_with_approval`: the only approval whose real effect the extension can vouch for. */
+  chromeAct?: boolean;
+  /** chromeAct only: the arguments could not be read at all (neither whole nor cut off). */
+  unreadable?: boolean;
   /** Hermes cut the argument JSON at 1200 characters: the fields above are only what was readable. */
   truncated?: boolean;
   /** The argument text as Hermes sent it (already redacted by Hermes), shown when it was cut off. */
@@ -309,6 +316,7 @@ function partialArgs(text: string): Record<string, unknown> {
  */
 export function parseApproval(a: Pick<Approval, "command" | "description">): ApprovalSummary {
   const source = [a.command, a.description].find((t) => /Arguments:/.test(t)) ?? "";
+  const chrome = /\bact_with_approval\b/.test(`${a.command}\n${a.description}`);
   const body = source.match(/Arguments:\s*([\s\S]*)$/)?.[1] ?? "";
   const truncated = TRUNCATION_MARKER.test(body);
   let args: Record<string, unknown> | undefined;
@@ -317,7 +325,7 @@ export function parseApproval(a: Pick<Approval, "command" | "description">): App
     const json = body.match(/(\{[\s\S]*\})/)?.[1];
     if (json) { try { args = JSON.parse(json); } catch { /* not JSON: fall back to text */ } }
   }
-  if (!args) return { action: clip(a.description || a.command, 300) };
+  if (!args) return { action: clip(a.description || a.command, 300), ...(chrome ? { chromeAct: true, unreadable: true } : {}) };
   const act = str(args.action);
   const target = args.ref ? `element ${str(args.ref)}` : args.x !== undefined ? `point (${str(args.x)}, ${str(args.y)})` : undefined;
   const verbs: Record<string, string> = { click: "Click", type: "Type", press: "Press", scroll: "Scroll", select: "Select", hover: "Hover over" };
@@ -326,6 +334,7 @@ export function parseApproval(a: Pick<Approval, "command" | "description">): App
   return {
     action: verb, element: target, reason: str(args.reason) || undefined, detail: detail ? clip(detail, 300) : undefined,
     approvalId: str(args.approval_id) || undefined,
+    ...(chrome ? { chromeAct: true } : {}),
     ...(truncated ? { truncated, raw: body.replace(TRUNCATION_MARKER, "").trim() } : {}),
   };
 }

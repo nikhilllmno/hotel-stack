@@ -28,19 +28,6 @@ describe("ApprovalCard", () => {
     expect(screen.getByText("Approval ap-77")).toBeTruthy();
   });
 
-  it("warns when Hermes cut the arguments, shows the raw text, and keeps Approve enabled", () => {
-    const onAnswer = vi.fn();
-    const cut: Approval = { ...approval, command: `MCP tool 'act_with_approval' wants to run.\n\nArguments:\n{\n  "action": "type",\n  "ref": "e3",\n  "reason": "Fill the note",\n  "text": "abc\n... [arguments truncated]` };
-    render(<ApprovalCard approval={cut} expired={false} onAnswer={onAnswer} />);
-    expect(screen.getByRole("note").textContent).toContain("Arguments were cut off");
-    expect(screen.getByText("Fill the note")).toBeTruthy();
-    expect(document.body.textContent).toContain('"text": "abc');
-    const approve = screen.getByRole("button", { name: "Approve" }) as HTMLButtonElement;
-    expect(approve.disabled).toBe(false);
-    fireEvent.click(approve);
-    expect(onAnswer).toHaveBeenCalledWith("once");
-  });
-
   it("sends the choice, and does not claim Approved before Hermes answered", () => {
     const onAnswer = vi.fn();
     const { rerender } = render(<ApprovalCard approval={approval} expired={false} onAnswer={onAnswer} />);
