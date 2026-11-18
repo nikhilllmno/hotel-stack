@@ -1,0 +1,10 @@
+# Repo-wide pre-commit hooks. Enable once per clone:
+#   pipx install pre-commit   (or: pip install pre-commit / brew install pre-commit)
+#   pre-commit install
+# See CONTRIBUTING.md.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1 # keep in sync with GITLEAKS_VERSION in .github/workflows/gitleaks.yml
+    hooks:
+      # Scans only the staged changes. Picks up .gitleaks.toml from the repo root.
+      - id: gitleaks
