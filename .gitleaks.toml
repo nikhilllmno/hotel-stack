@@ -1,0 +1,129 @@
+# gitleaks configuration for hotel-stack.
+#
+# Runs all of gitleaks' default rules. The allowlists below only cover files
+# and lines that were checked by hand (2026-11-18 history scan) and contain
+# test fixtures, documentation placeholders, public identifiers or hashes,
+# never live credentials.
+#
+# Rules for changing this file:
+# - Keep every entry scoped to a path. Never allowlist a whole app directory
+#   (hotel-stack/src, beds24-mcp, chrome-extension, daisy-voice-agent-svc-master/websocket-server/src).
+# - For a single value inside app or source code, use condition = "AND" with
+#   the exact file path AND a regex on that line, so the rest of the file is still scanned.
+# - A real secret is never fixed by an allowlist: remove it, move it to .env, rotate it.
+#
+# Line regexes start with ^\s* because gitleaks can prefix the line with a newline.
+# Paths are repo-relative. Run gitleaks from the repo root
+# (`gitleaks git .` or the pre-commit hook), not with an absolute path.
+
+title = "hotel-stack gitleaks config"
+
+[extend]
+useDefault = true
+
+# ---------------------------------------------------------------------------
+# Whole-path allowlists: vendored test suites and documentation only.
+# ---------------------------------------------------------------------------
+
+[[allowlists]]
+description = "hermes-agent (vendored): Python test suite. Fixtures for its secret-redaction features (fake keys, sample PEM blocks, fake tokens)."
+paths = ['''^hermes-agent/tests/''']
+
+[[allowlists]]
+description = "hermes-agent (vendored): JS/TS unit tests in the desktop app and TUI."
+paths = ['''^hermes-agent/(apps/desktop|ui-tui)/.+\.test\.(ts|tsx|mjs)$''']
+
+[[allowlists]]
+description = "hermes-agent (vendored): website docs and their translations. Placeholders such as YOUR_TOKEN and example user/channel IDs."
+paths = [
+  '''^hermes-agent/website/docs/''',
+  '''^hermes-agent/website/i18n/[^/]+/docusaurus-plugin-content-docs/''',
+]
+
+[[allowlists]]
+description = "hermes-agent (vendored): Unsloth reference docs copied from upstream. Hits are Firebase download tokens inside public GitBook image URLs."
+paths = ['''^hermes-agent/optional-skills/mlops/training/unsloth/references/[^/]+\.md$''']
+
+[[allowlists]]
+description = "Demo Hermes home: Langfuse plugin tests (fake sk-lf-/pk-lf- values)."
+paths = ['''^hotels/demo-hotel/plugins/langfuse/tests/''']
+
+# ---------------------------------------------------------------------------
+# Single-line allowlists: exact file AND exact line shape.
+# ---------------------------------------------------------------------------
+
+[[allowlists]]
+description = "hermes-agent docs site: Algolia DocSearch key. Search-only key, public by design."
+condition = "AND"
+regexTarget = "line"
+paths = ['''^hermes-agent/website/docusaurus\.config\.ts$''']
+regexes = ['''^\s*apiKey: '[0-9a-f]{32}',$''']
+
+[[allowlists]]
+description = "hermes-agent: public OAuth client IDs (public PKCE/device-flow clients, not secrets)."
+condition = "AND"
+regexTarget = "line"
+paths = [
+  '''^hermes-agent/hermes_cli/auth_constants\.py$''',
+  '''^hermes-agent/agent/anthropic_credentials\.py$''',
+]
+regexes = ['''^\s*_?[A-Z]*_?OAUTH_CLIENT_ID = "[0-9a-f-]{32,36}"$''']
+
+[[allowlists]]
+description = "hermes-agent: named constants and comments that look like keys but are not (sentinel string, HKDF info label, voice ID, plugin name, env-var label, comment)."
+condition = "AND"
+regexTarget = "line"
+paths = [
+  '''^hermes-agent/apps/desktop/electron/api-expected-404\.ts$''',
+  '''^hermes-agent/scripts/whatsapp-bridge/passkey_flow\.js$''',
+  '''^hermes-agent/optional-skills/productivity/telephony/scripts/telephony\.py$''',
+  '''^hermes-agent/hermes_cli/left_core_migration\.py$''',
+  '''^hermes-agent/hermes_cli/setup_migration\.py$''',
+  '''^hermes-agent/agent/context_compressor\.py$''',
+  '''^hermes-agent/evals/toolperf_abeval/ab_eval\.py$''',
+]
+regexes = [
+  '''^\s*const HERMES_API_EXPECTED_404 = '[^']+'$''',
+  '''^\s*const HANDOFF_KEY_INFO = '[^']+';$''',
+  '''^\s*VAPI_DEFAULT_VOICE_ID = "[A-Za-z0-9]{20}"''',
+  '''^\s*plugin_key="observability/langfuse",$''',
+  '''^\s*\("ELEVENLABS_API_KEY", "TTS/ElevenLabs"\),$''',
+  '''^\s*# NO max_tokens: ''',
+  '''print\('UNIQUE_TOKEN=tok_''',
+]
+
+[[allowlists]]
+description = "Chrome extension manifest: the 'key' field is the extension's RSA public key (pins the extension ID). Public, not a secret."
+condition = "AND"
+regexTarget = "line"
+paths = ['''^chrome-extension/extension/public/manifest\.json$''']
+regexes = ['''^\s*"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA[A-Za-z0-9+/]+={0,2}",?$''']
+
+[[allowlists]]
+description = "Beds24 API reference: prose in the e2e results ('token refresh, scope/validity ...'). The file records secretsIncluded=false."
+condition = "AND"
+regexTarget = "line"
+paths = ['''^beds24-api-reference/e2e-results\.json$''']
+regexes = ['''"detail": "Invite exchange, token refresh, scope/validity inspection''']
+
+[[allowlists]]
+description = "daisy README: local docker-compose Postgres URL (default password, host 'db')."
+condition = "AND"
+regexTarget = "line"
+paths = ['''^daisy-voice-agent-svc-master/README\.md$''']
+regexes = ['''postgresql://postgres:postgres@db:5432/daisy_local''']
+
+[[allowlists]]
+description = "Content hashes and commit SHAs: hermes plugin-catalog 'sha:' pins, demo skills .bundled_manifest (name:md5), archify example HTML (git log output)."
+condition = "AND"
+regexTarget = "line"
+paths = [
+  '''^hermes-agent/plugin-catalog/[^/]+\.yaml$''',
+  '''^hotels/demo-hotel/skills/\.bundled_manifest$''',
+  '''^hotels/demo-hotel/skills/creative/archify/examples/[^/]+\.html$''',
+]
+regexes = [
+  '''^\s*sha: [0-9a-f]{40}\s*$''',
+  '''^\s*[a-z0-9._-]+:[0-9a-f]{32}\s*$''',
+  '''commit [0-9a-f]{40}''',
+]
